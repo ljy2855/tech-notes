@@ -1,0 +1,6 @@
+
+### Static Linking
+
+
+### Dynamic Linking
+
