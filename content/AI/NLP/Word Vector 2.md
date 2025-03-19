@@ -1,4 +1,5 @@
 
+
 recap 
 - (word vector)
 같은 context를 가지는 center word가 어디에 배치되어야 할까?
@@ -16,7 +17,7 @@ recap
 -> **Stochastic gradient descent (SGD)**
 
 
-
+![[content/AI/NLP/Lec04-word_vectors2.pdf]]
 #### Skip grams
 주어진 center word를 통해서 바깥 context를 예측함
 
@@ -133,14 +134,31 @@ multiclassify or binary classify
 ![[Pasted image 20250317174713.png]]
 
 
-Neural classification
-기존 ML 은 라벨(y)에 대해 softmax을 최대로 하려고함
+**Neural classification**
+Typical ML softmax classifier 은 라벨(y)에 대해 softmax을 최대로 하려고함
 - 즉 linear boundary를 구할 수 밖에 없다 ㅜㅜ
 
-만약에 여러 층을 끼게 된다면 non-linear한 것도 구할 수 있다!
+![[Pasted image 20250319164343.png]]
+
+만약에 여러 층을 끼게 된다면 `neural network classifier`
+-> **non-linear한 것도 구할 수 있다!**
+-> non-linear decision boundary
+![[Pasted image 20250319164738.png]]
+
+The word vectors x re-represent one-hot vectors, moving them around in an intermediate layer vector space, for easy classification with a (linear) softmax classifier
+
+
+![[Pasted image 20250319164826.png]]
+- x: (1-hot vector)
+- hidden layer : non-linear function (logistic(sigmoid), ReLU)
+- u 내적
+- function predict
 
 
 
-
-Addition
+#### non-linear function
+![[Pasted image 20250319165344.png]]
+- logistic, tanh는 지금도 쓴다. 나머진 문제가 좀 있음
+	- ReLu -> 
+#### Addition
 un-supervised -> 특성 추출
