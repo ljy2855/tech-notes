@@ -16,3 +16,7 @@
 - activation fuction의 W,b를 조절하기 위해 얼마만큼 이동할지 gradient로 결정
 
 ![[Pasted image 20250319172253.png]]
+
+
+#### 결과
+![[Pasted image 20250319173448.png]]
