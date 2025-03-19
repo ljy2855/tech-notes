@@ -159,6 +159,23 @@ The word vectors x re-represent one-hot vectors, moving them around in an interm
 #### non-linear function
 ![[Pasted image 20250319165344.png]]
 - logistic, tanh는 지금도 쓴다. 나머진 문제가 좀 있음
-	- ReLu -> 
+	- ReLu -> 0이하 에러 전파 x
+	- GELU -> 오 낫밷
+- 왜 non-linear가 필요한가용?
+	- linear한애는 결국 얼마나 쌓아봐야 결국엔 한층 쌓은거랑 똑같다
+
+#### Cross Entropy Loss
+얼마나 두 distribution이 비슷한가를 측정하는 지표
+
+-> correct class, predict class 의 CEL 를 높히는 방향으로 학습을 함
+
+![[Pasted image 20250319170439.png]]
+- p : input으로 넣는 1-hot vector ->  [0, …, 0, 1, 0, …, 0]
+
+#### Gradient Descent
+![[Pasted image 20250319170742.png]]
+
+
+
 #### Addition
 un-supervised -> 특성 추출
