@@ -72,6 +72,8 @@ file system의 추상 레이어를 통해 여러 타입의 파일시스템을 �
 
 - Boot Control Block
 - Volume Control Block (Superblock)
+	- 해당 group에 있는 block 정보들
+	- 복구에도 이걸보고 사용
 - Directory structure
 - File Control Block (Inode)
 - Blocks for free area
