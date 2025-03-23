@@ -6,20 +6,24 @@
 - 금주 수행한 내용
 
 1. OpenSearch based `Faiss`  HNSW 인덱싱 로직 분석
-	- OpenSearch KNN 플러그인에서 FAISS 엔진을 사용한 HNSW 기반 인덱스 구조 확인
 	- 벡터 인덱싱 시 그래프 구조가 디스크에 저장되며, 검색 시 메모리에 적재되는 방식 확인
-		벡터 인덱싱시에 
-	- 인덱싱 파라미터 (`m`, `ef_construction`) 및 검색 시 파라미터 (`ef_search`)가 성능과 메모리 사용량에 미치는 영향 분석
-		 벡터 노드 하나당 그래프 연결정보를 인덱스에 추가
+	- 인덱싱 및 검색 시 파라미터가 메모리 사용량과 검색 성능에 직접적인 영향을 미침을 확인함
+		- `m`: 각 노드가 유지하는 연결(edge)의 수 → 높을수록 recall 상승, 메모리 사용 증가
+		- `ef_construction`: 인덱싱 시 그래프 탐색 폭 → 인덱스 정확도 상승, 인덱싱 시간 증가
+		- `ef_search`: 검색 시 탐색 범위 → 높을수록 정확도 상승, latency 증가
+	- 인덱싱 파라미터 (`m`, `ef_construction`) 가 메모리 사용량에 미치는 영향 분석
+		- 노드 하나당 메모리 사용량 근사 : (_d_ * 4 + _M_ * 2 * 4) bytes
+		- _d_ * 4: vector 저장 메모리 4bytes (float) x Dimension
+		- _M_(neigbor count) * 2(bidirectional edge) * 4(address size)
 
 2. Production 환경에서 vector DB serving시, 고려해야하는 요소 확인
 	- 실서비스 환경에서의 주요 고려 사항 파악:
 		- 벡터 인덱스의 메모리 상주 여부    
 			기본적으로 HNSW 알고리즘의 경우 **그래프 정보**만을 메모리상에 올려놓고 search 진행
 		- 샤딩 전략 및 부하 분산
-			production 환경에서는 고가용성을 보장하기 위해, 멀티노드 샤딩 전략을 사용, 최소한의 가용성을 보장하기 위해 shard count = node \*2 , replica = 1을 사용
-			
-	- HNSW 인덱스의 메모리 상주 특성과 대규모 벡터 데이터셋에서의 scale-out 어려움에 주목
+			production 환경에서는 고가용성을 보장하기 위해, 멀티노드 샤딩 전략을 사용, 최소한의 가용성을 보장하기 위해 shard count = node count , replica = 1을 사용
+			![[Pasted image 20250323160006.png]]
+			이 때, replica에도 primary shard의 index 정보를 copy하기에 **knn index 메모리를 두배**로 사용 (alwaysLoadKnnIndex default true)
 
 
 - 내주 수행할 내용
