@@ -40,3 +40,34 @@
 
 ### Backpropagation
 
+#### Forward Propagation
+
+![[Pasted image 20250324164548.png]]
+- 앞선 노드에서 계산한 output을 다음 노드에게 전달함
+- 
+
+#### Backpropagation
+
+**Overview**
+![[Pasted image 20250324164755.png]]
+
+**Single node**
+![[Pasted image 20250324164938.png]]
+
+
+- Bprop -> input의 gradient을 전달
+- `upstream * local = downstream`
+
+![[Pasted image 20250324170019.png]]
+- max의 경우 indicator function 이므로 range에 따라 local gradient 찾기
+- y의 경우 다수의 input을 진행하므로 gradient sum 진행
+
+![[Pasted image 20250324170601.png]]
+
+- 공통으로 pass되는 gradient(downstream)를 저장해두었다가 쓰자
+
+#### 실제?
+- Done correctly, big O() complexity of fprop andbprop is the same
+- In general, our nets have regular layer-structure and so we can use matrices and Jacobians…
+- forward , backward 연산량은 비슷함
+
