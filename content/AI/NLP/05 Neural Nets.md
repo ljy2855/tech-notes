@@ -71,3 +71,6 @@
 - In general, our nets have regular layer-structure and so we can use matrices and Jacobians…
 - forward , backward 연산량은 비슷함
 
+![[Pasted image 20250324172055.png]]
+- gradient를 직접 구하기 힘들면 체크용도로 이렇게 근사를 써도?
+- 지금은 쓸일이 없다~
