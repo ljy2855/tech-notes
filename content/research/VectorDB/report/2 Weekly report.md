@@ -2,6 +2,10 @@
 
 질문#1) Milvus를 사용했나요? VM 노드 세개에 deploy를 한 것 같은데, FAISS를 어떻게 사용했는지, 알려주세요.
 
+
+
+
+
 질문#2) Index build 시간도 궁금합니다. 
 
 질문#3) Index build가 된 이후, CRUD 연산 시간 
