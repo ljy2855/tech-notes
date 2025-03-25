@@ -110,7 +110,6 @@ builtin_print_impl(PyObject *module, PyObject *args, PyObject *sep,
 ```
 https://github.com/python/cpython/blob/v3.11.2/Python/bltinmodule.c#L1986
 
-- 
 
 
 ```c
@@ -149,9 +148,6 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 }
 
 ```
-1. GIL 잡을 수 있는지 확인
-2. Py_BEGIN_ALLOW_THREADS 매크로로 GIL 해제
-3. print 
 
 
 https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
@@ -392,7 +388,7 @@ Async
 - 실제 측정에서도 자발적 CS가 거의 없고, CPU 스케줄러에 의한 강제 스위치만 발생
 
 
-### 비동기 처리에 대한 주절주절
+### 주절주절
 #### CPU bound vs IO bound
 
 I/O 작업 시에, context switching 비용 + I/O waiting이 발생하기에, 워크로드에서 어느 작업이 많이 차지하는지를 확인해야 해요.
@@ -423,3 +419,44 @@ I/O 작업 시에, context switching 비용 + I/O waiting이 발생하기에, �
 
 이처럼 **다양한 I/O 시나리오**를 어떻게 처리하느냐에 따라, 애플리케이션 성능과 구조가 달라질 수 있어요.  
 비동기 방식으로 옮겨간다고 해서 무조건 성능이 좋아지진 않으니, **워크로드 특성**을 파악한 뒤에 선택하는 게 중요해요.
+
+
+### GIL
+```c
+static Py_ssize_t
+_Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
+{
+	// ...
+	if (gil_held) {
+        do {
+            Py_BEGIN_ALLOW_THREADS
+            errno = 0;
+#ifdef MS_WINDOWS
+            // write() on a non-blocking pipe fails with ENOSPC on Windows if
+            // the pipe lacks available space for the entire buffer.
+            int c = (int)count;
+            do {
+                _doserrno = 0;
+                n = write(fd, buf, c);
+                if (n >= 0 || errno != ENOSPC || _doserrno != 0) {
+                    break;
+                }
+                errno = EAGAIN;
+                c /= 2;
+            } while (c > 0);
+#else
+            n = write(fd, buf, count);
+#endif
+            /* save/restore errno because PyErr_CheckSignals()
+             * and PyErr_SetFromErrno() can modify it */
+            err = errno;
+            Py_END_ALLOW_THREADS
+        } while (n < 0 && err == EINTR &&
+                !(async_err = PyErr_CheckSignals()));
+    }
+
+}
+
+```
+1. GIL 잡혀있는지에 확인
+2. 
