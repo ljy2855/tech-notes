@@ -153,9 +153,9 @@ https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 때문에 실제 Python에서 호출된 `print()` 함수는 내부적으로 C의 `_Py_write_impl` 함수를 거쳐 `write` 함수를 통해 실행되게 됩니다!
 
 
+![[Pasted image 20250325140902.png]]
 
-![[Pasted image 20250225003146.png]]
-![[Pasted image 20250225154056.png]]
+
 ### 가설2. 출력 연산은 다른 연산과 다르게 느린거 아닐까요?
 
 위에서 확인해본 바와 같이 실제로 Python이 실제로 C가 구현체인 `write`를 호출한다는 걸 알았어요.
@@ -172,10 +172,10 @@ https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 
 다른 프로세스에 접근하지 못하도록 프로세스 별로 고유의 메모리 영역을 가지고 잘못된 접근 시, page fault를 발생시켜요. (물론 정상적인 접근시에도 page fault가 발생할 수 있어요)
 
-![[Pasted image 20250227173918.png]]
+![[Pasted image 20250325142022.png]]
 때문에 프로세스가 **자원을 점유중인지 판단, 할당하는 작업은 중앙의 커널이 모두 처리하고 있어요**
 
-각 프로세스들은 각각의 자원들(파일, 메모리, 디스크, 네트워크 ...)을 공유하면서도 다른 프로세스들의 정보는 모르기 때문에, **system call을 사용하여 운영체제에게 확인 및 처리를 요청하게 돼요.**
+각 프로세스들은 각각의 자원들(파일, 메모리, 디스크, 네트워크 ...)을 공유하면서도 다른 프로세스들의 정보는 모르기 때문에, **[[System Call]]을 사용하여 운영체제에게 확인 및 처리를 요청하게 돼요.**
 
 우리가 익숙한 출력창도 실제론 stdout이라는 파일로, 우리가 실행하는 프로그램이 해당 파일에 쓰기를 진행하고, 파일에 써진 내용이 출력되는 거죠!
 
@@ -194,6 +194,7 @@ https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 
 ![[Pasted image 20250301195935.png]]
 
++ instruction당 fecthing, execute까지 필요한 cycle 단위 비교
 + 자료에선 Thread context switching 비용을 비교하고 있음
 + 실제론 Process context switching 비용이 더욱 비쌈
 
