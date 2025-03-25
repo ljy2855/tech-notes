@@ -108,13 +108,56 @@ builtin_print_impl(PyObject *module, PyObject *args, PyObject *sep,
 	}
 
 ```
-
-
-
-
-때문에 실제 Python에서 호출된 `print()` 함수는 내부적으로 C의 `printf()` 라이브러리를 거쳐 `write()` 함수를 통해 실행되게 됩니다!
-
 https://github.com/python/cpython/blob/v3.11.2/Python/bltinmodule.c#L1986
+
+
+
+```c
+static Py_ssize_t
+_Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
+{
+	// ...
+	if (gil_held) {
+        do {
+            Py_BEGIN_ALLOW_THREADS
+            errno = 0;
+#ifdef MS_WINDOWS
+            // write() on a non-blocking pipe fails with ENOSPC on Windows if
+            // the pipe lacks available space for the entire buffer.
+            int c = (int)count;
+            do {
+                _doserrno = 0;
+                n = write(fd, buf, c);
+                if (n >= 0 || errno != ENOSPC || _doserrno != 0) {
+                    break;
+                }
+                errno = EAGAIN;
+                c /= 2;
+            } while (c > 0);
+#else
+            n = write(fd, buf, count);
+#endif
+            /* save/restore errno because PyErr_CheckSignals()
+             * and PyErr_SetFromErrno() can modify it */
+            err = errno;
+            Py_END_ALLOW_THREADS
+        } while (n < 0 && err == EINTR &&
+                !(async_err = PyErr_CheckSignals()));
+    }
+
+}
+
+```
+1. GIL 잡을 수 있는지 확인
+2. Py_BEGIN_ALLOW_THREADS 매크로로 GIL 해제
+3. print 
+
+
+https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
+
+때문에 실제 Python에서 호출된 `print()` 함수는 내부적으로 C의 `_Py_write_impl` 함수를 거쳐 `write` 함수를 통해 실행되게 됩니다!
+
+
 
 ![[Pasted image 20250225003146.png]]
 ![[Pasted image 20250225154056.png]]
@@ -126,7 +169,7 @@ https://github.com/python/cpython/blob/v3.11.2/Python/bltinmodule.c#L1986
 
 #### System call
 
-그렇다면 어떻게 개별 프로세스에게 공유한 자원에 접근 가능하도록 허용할까요?
+확인해보기에 앞서, 어떻게 개별 프로세스에게 공유한 자원에 접근 가능하도록 허용할까요?
 프로세스들은 실행 중에 **파일 또는 디바이스에 접근 시에 메모리를 우선적으로 참조해 접근**하게 돼요. 
 
 virtual memory layout
