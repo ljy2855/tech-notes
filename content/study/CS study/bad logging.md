@@ -1,10 +1,10 @@
 
-PS 사이트에서는 알고리즘의 효율성을 기준으로 점수를 매기게 돼요
+PS 사이트(백준 or 프로그래머스) 에서 알고리즘의 효율성을 기준으로 점수를 매김
 
 - **시간 복잡도** : 얼마나 적은 연산을 했나 (실행시간)
 - **공간 복잡도** : 얼마나 적은 메모리를 사용했나
 
-가끔 이런 상황이 생길 때가 있어요.
+가끔 이런 상황이 생길 때가 있음
 ### 문제 상황
 
 ```python
@@ -25,20 +25,20 @@ def solution(n, stations, w):
     return answer
 ```
 
-디버깅을 위해 print 출력 코드를 남겨놓은 채로 답을 제출하면, 이런 결과를 확인하게 되는데요,
+디버깅을 위해 print 출력 코드를 남겨놓은 채로 답을 제출하면, 이런 결과를 확인하게 되는데
 ![[Pasted image 20250225001323.png]]
 
-프로그래머스를 기준으로 좌측이 실행시간, 우측이 메모리 사용량을 의미해요.
+프로그래머스를 기준으로 좌측이 `실행시간`, 우측이 `메모리 사용량`을 의미
 
-채점 환경마다 다를 수 있지만, 보통의 경우 실행시간을 통해 해당 모듈이 얼마나 효율적으로 작성되었는지를 판단하게 돼요
+채점 환경마다 다를 수 있지만, 보통의 경우 실행시간을 통해 해당 모듈이 얼마나 효율적으로 작성되었는지를 판단
 
 
-print 코드를 제거하고 다시 제출을 해보면 다음과 같아요.
+print 코드를 제거하고 다시 제출을 해보면 다음과 같음
 
 ![[Pasted image 20250225001339.png]]
 ### 결과
 
-실행 시간이 절반 넘개 단축된 것을 확인할 수 있어요. 알고리즘을 변형한 것이 아니라 단순히 **print 하나만 없앴더니 이정도의 성능 향상을 이뤄낸 것이죠!**
+실행 시간이 절반 넘개 단축된 것을 확인할 수 있어요. 알고리즘을 변형한 것이 아니라 단순히 **print 하나만 없앴더니 이정도의 성능 향상을 이뤄냄**
 
 왜 이런 일이 일어난걸까요? 한번 하나하나 파헤쳐가 봅시다.
 ### 가설 1. 파이썬이 너무 느려서 아닐까요?
@@ -81,9 +81,40 @@ int solution(int n, vector<int> stations, int w)
 
 실제로 Python의 구현체 중 가장 유명한 것은 **CPython**으로, 파이썬 코드를 실행하는 **인터프리터는 C로 작성**되어 있어요.
 
+
+```c
+builtin_print_impl(PyObject *module, PyObject *args, PyObject *sep,
+                   PyObject *end, PyObject *file, int flush)
+/*[clinic end generated code: output=3cfc0940f5bc237b input=c143c575d24fe665]*/
+{
+	// ...
+	for (i = 0; i < PyTuple_GET_SIZE(args); i++) {
+	        if (i > 0) {
+	            if (sep == NULL) {
+	                err = PyFile_WriteString(" ", file);
+	            }
+	            else {
+	                err = PyFile_WriteObject(sep, file, Py_PRINT_RAW);
+	            }
+	            if (err) {
+	                return NULL;
+	            }
+	        }
+	        err = PyFile_WriteObject(PyTuple_GET_ITEM(args, i), file, Py_PRINT_RAW);
+	        if (err) {
+	            return NULL;
+	        }
+	    }
+	}
+
+```
+
+
+
+
 때문에 실제 Python에서 호출된 `print()` 함수는 내부적으로 C의 `printf()` 라이브러리를 거쳐 `write()` 함수를 통해 실행되게 됩니다!
 
-https://stackoverflow.com/questions/59039963/implementation-of-print-in-python
+https://github.com/python/cpython/blob/v3.11.2/Python/bltinmodule.c#L1986
 
 ![[Pasted image 20250225003146.png]]
 ![[Pasted image 20250225154056.png]]
