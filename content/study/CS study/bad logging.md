@@ -185,18 +185,37 @@ https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 4. 커널에서 요청한 작업 수행
 5. 실행 중인 process의 context로 돌아와서 다음 instruction 실행 
 
-#### Context Switching
+#### Trap (software Interrupt)
 
-시스템 콜 호출시, 프로세스 실행 중 커널 모드로 전환된다고 했는데,  **context switching**이 발생하게 돼요.
-컴퓨터(CPU Core)는 한번에 하나의 프로세스밖에 실행할 수 없기에, 현재 진행중인 프로세스를 상태를 저장하고 다른 프로세스를 전환하는 과정이 발생해요.
+시스템 콜 호출시, 프로세스 실행 중 커널 모드로 전환된다고 했는데, `Interrupt`을 통해 ISR로 등록된 system call handler를 호출하게 돼요.
 
-실제로 이러한 context switching는 일반 연산보다 훨씬 비싼 연산을 가지게 돼요.
+Interrupt가 발생하게되면, CPU는 지금 진행중인 연산을 멈추고, 현재 상태를 Interrupt frame에 잠시 저장 후, handler를 우선적으로 처리해요
+
+1. **인터럽트 발생**:
+    - 프로세스가 실행 중일 때, 인터럽트가 발생하면 CPU는 현재 수행 중인 연산을 멈추고 인터럽트 처리 루틴을 실행
+
+2. **현재 상태 저장 (Interrupt Frame)**:
+    - CPU는 현재 상태를 **인터럽트 프레임**에 저장합니다. 이는 현재 작업 중인 프로세스의 상태(레지스터 값 등)를 포함
+        
+3. **인터럽트 서비스 루틴 (ISR) 호출**:
+    - 인터럽트가 발생하면, CPU는 해당 인터럽트를 처리하는 **인터럽트 서비스 루틴 (ISR)**을 실행
+        
+4. **파이프라인 서킷 브레이크**:
+    - CPU가 파이프라인을 사용하고 있다면, 인터럽트가 발생하면 현재 진행 중인 명령어들을 멈추고, 파이프라인이 깨짐. 이로 인해 실행 중인 명령어들을 다시 가져오고 실행해야 하므로 오버헤드가 발생
+        
+5. **인터럽트 프레임 메모리 저장**:
+    - 인터럽트가 발생하면, 레지스터 등의 상태를 메모리나 스택에 저장해야 하므로 메모리 접근이 추가됩니다. 이 과정에서도 시간 지연이 발생
+        
+6. **핸들러 명령어 재실행**:
+    - 인터럽트가 처리되고 나면, 원래 실행하던 명령어를 다시 실행하거나, 새로 가져와서 처리해야 할 수도 있습니다. 이로 인해 추가적인 비용이 발생
+    
+7. **인터럽트 프레임 로딩**:
+    - ISR 실행 후, 원래 상태로 돌아가려면 인터럽트 프레임에서 저장된 상태를 로드해야 합니다. 이 과정 역시 시간이 걸리며, 인터럽트 처리에서 발생하는 추가 비용에 포함됩니다.
 
 ![[Pasted image 20250301195935.png]]
 
 + instruction당 fecthing, execute까지 필요한 cycle 단위 비교
-+ 자료에선 Thread context switching 비용을 비교하고 있음
-+ 실제론 Process context switching 비용이 더욱 비쌈
++ Kernel call(system call)이 일반 연산보다 100배정도 큼
 
 #### IO blocking
 IO device 작업을 완료될까지 기다리는게 되는데, 이를 IO blocking이라고 해요.
@@ -209,6 +228,8 @@ IO device 작업을 완료될까지 기다리는게 되는데, 이를 IO blockin
 
 ![[Pasted image 20250301200117.png]]
 
+
+![[Pasted image 20250325144836.png]]
 ### 비동기처리
 
 그렇다면 위와 같은 문제를 개선해봐요.
@@ -280,7 +301,7 @@ async def async_raw_endpoint():
         sys.stdout.write(buffer)
         await asyncio.sleep(0)
 
-    loop = events.get_running_loop()
+    loop = events.get_running_loop() # uvloop 사용 가정
     task = loop.create_task(write_log(f"Async log: {random.randint(0, 100)}\n"))
     
     return {"message": "Asynchronous logging to stdout complete"}
@@ -290,7 +311,7 @@ async def async_raw_endpoint():
 간단한 fastapi 서버를 만들어 보고 두가지 방식의 logger를 통해서 비교를 해봐요
 
 ####  부하테스트 
-**Client Side**
+**Client Side** (apache benchmark)
 ```sh
 ~ ❯ ab -n 10000 -c 100 http://127.0.0.1:8000/sync
 Percentage of the requests served within a certain time (ms)
@@ -349,7 +370,6 @@ Async
 
 - **I/O 요청**(디스크, 네트워크 등)을 하여 프로세스가 “데이터가 도착할 때까지 기다린다”고 선언 → CPU를 내놓고 대기 상태로 전환
 - **`sleep()`** 같은 시스템 호출로 의도적으로 기다림
-- **`yield()`** 호출 등 프로세스가 스스로 양보
 
 | 실험군       | Count | Min    | P50    | P90    | P95    | P99    | Max    | Mean   |
 | --------- | ----- | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
