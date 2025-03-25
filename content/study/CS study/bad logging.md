@@ -230,8 +230,9 @@ IO device 작업을 완료될까지 기다리는게 되는데, 이를 IO blockin
 
 
 ![[Pasted image 20250325144836.png]]
-### 비동기처리
+### 문제 개선
 
+#### 비동기처리
 그렇다면 위와 같은 문제를 개선해봐요.
 기존 작업이 아래와 같다면, IO 처리에 CPU는 놀고 있는 경우가 발생해요
 ![[Pasted image 20250301203936.png]]
@@ -241,6 +242,10 @@ IO 작업을 요청만 보내고 완료를 기다리지 않고 다음 작업을 
 ![[Pasted image 20250301204227.png]]
 IO waiting 하는 시간에 다른 CPU job을 실행하며, 성능 개선을 이뤄낼 수 있지 않을까요?
 이러한 방법을 non-blocking asynchronous라고 해요. 
+
+파이썬 비동기처리 package
+- asyncio
+- uvloop (node)
 
 ### 실제로 적용해볼까요?
 
