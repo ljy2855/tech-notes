@@ -245,7 +245,7 @@ IO waiting 하는 시간에 다른 CPU job을 실행하며, 성능 개선을 이
 
 파이썬 비동기처리 package
 - asyncio
-- uvloop (node)
+- uvloop
 
 ### 실제로 적용해볼까요?
 
