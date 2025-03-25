@@ -306,7 +306,7 @@ async def async_raw_endpoint():
         sys.stdout.write(buffer)
         await asyncio.sleep(0)
 
-    loop = events.get_running_loop() # uvloop 사용 가정
+    loop = events.get_running_loop()
     task = loop.create_task(write_log(f"Async log: {random.randint(0, 100)}\n"))
     
     return {"message": "Asynchronous logging to stdout complete"}
