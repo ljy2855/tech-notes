@@ -85,7 +85,6 @@ int solution(int n, vector<int> stations, int w)
 ```c
 builtin_print_impl(PyObject *module, PyObject *args, PyObject *sep,
                    PyObject *end, PyObject *file, int flush)
-/*[clinic end generated code: output=3cfc0940f5bc237b input=c143c575d24fe665]*/
 {
 	// ...
 	for (i = 0; i < PyTuple_GET_SIZE(args); i++) {
@@ -149,7 +148,6 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 
 ```
 
-
 https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 
 때문에 실제 Python에서 호출된 `print()` 함수는 내부적으로 C의 `_Py_write_impl` 함수를 거쳐 `write` 함수를 통해 실행되게 됩니다!
@@ -166,10 +164,10 @@ https://github.com/python/cpython/blob/main/Python/fileutils.c#L1934
 
 #### System call
 
-확인해보기에 앞서, 어떻게 개별 프로세스에게 공유한 자원에 접근 가능하도록 허용할까요?
-프로세스들은 실행 중에 **파일 또는 디바이스에 접근 시에 메모리를 우선적으로 참조해 접근**하게 돼요. 
+확인해보기에 앞서, 어떻게 **개별 프로세스에게 공유한 자원(파일, 메모리)에 접근 가능하도록 허용**할까요?
+프로세스들은 실행 중에 **파일 또는 디바이스에 접근 시, 메모리를 우선적으로 참조해 접근**하게 돼요. 
 
-virtual memory layout
+**virtual memory layout**
 ![[Pasted image 20250302141721.png]]
 
 다른 프로세스에 접근하지 못하도록 프로세스 별로 고유의 메모리 영역을 가지고 잘못된 접근 시, page fault를 발생시켜요. (물론 정상적인 접근시에도 page fault가 발생할 수 있어요)
@@ -421,8 +419,14 @@ I/O 작업 시에, context switching 비용 + I/O waiting이 발생하기에, �
 비동기 방식으로 옮겨간다고 해서 무조건 성능이 좋아지진 않으니, **워크로드 특성**을 파악한 뒤에 선택하는 게 중요해요.
 
 
-### GIL
+### Python GIL
 ```c
+
+#define Py_BEGIN_ALLOW_THREADS PyThreadState *_save; \
+_save = PyEval_SaveThread();
+
+#define Py_END_ALLOW_THREADS PyEval_RestoreThread(_save);
+
 static Py_ssize_t
 _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 {
@@ -459,4 +463,12 @@ _Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 
 ```
 1. GIL 잡혀있는지에 확인
-2. 
+2. Save the thread state in a local variable.
+3. Release the global interpreter lock.
+4. blocking IO (write)
+5. Reacquire the global interpreter lock.
+6. Restore the thread state from the local variable.
+
+https://docs.python.org/ko/3.13/c-api/init.html#releasing-the-gil-from-extension-code
+
+
