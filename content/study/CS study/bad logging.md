@@ -427,11 +427,10 @@ I/O 작업 시에, context switching 비용 + I/O waiting이 발생하기에, �
 #### print 외 IO 작업
 
 - **네트워크 I/O (HTTP, 소켓, DB, 메시지 큐 등)**
-- **클라우드 스토리지 I/O (S3, GCS, Azure Blob 등)**
+- 파일 read, write(disk, [AWS EBS](https://planetscale.com/blog/io-devices-and-latency))
 - 디바이스 I/O (직접 입력 장치, 센서, 시리얼 포트 등)
 - 메모리 매핑 I/O (mmap 등)
 - 스트리밍/파이프 I/O (대용량 미디어, IPC 등)
-- 표준 입력(stdin)
 - 로그(Log) 출력 (파일, 스트림, 원격 전송 등)
 
 
