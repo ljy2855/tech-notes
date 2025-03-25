@@ -227,16 +227,24 @@ Interrupt가 발생하게되면, CPU는 지금 진행중인 연산을 멈추고,
 #### IO blocking
 IO device 작업을 완료될까지 기다리는게 되는데, 이를 IO blocking이라고 해요.
 
-CPU에서 코드가 실행되고 있는 도중에 IO 작업시에는 I/O bus를 타고 작업을 요청하고 해당 프로세스는 blocking(sleep) 상태에 빠지게 돼요. 
+CPU에서 코드가 실행되고 있는 도중에 IO 작업시에는 I/O bus를 타고 작업을 요청하고 **해당 프로세스는 blocking(sleep) 상태**에 빠지게 돼요. 
 
-이후 I/O 작업이 완료되면, CPU로 Interrupt를 통해 해당 프로세스를 깨우게 되고, 다음 instruction을 수행하게 돼요.
+이후 I/O 작업이 완료되면, **CPU로 Interrupt를 보내 해당 프로세스를 깨우게 되고, 다음 instruction을 수행**하게 돼요.
 
+**Computer Architecture**
 ![[Pasted image 20250301200836.png]]
 
+**Blocking IO**
 ![[Pasted image 20250301200117.png]]
 
-
+**memory hierarchy**
 ![[Pasted image 20250325144836.png]]
+### 정리
+
+- system call 호출 시, interrupt 비용 발생
+- IO 작업이 끝날 때까지 프로세스가 block된 상태로 기다림
+- IO 작업이 끝나서 interrupt가 와야 프로세스 다시 실행
+
 ### 문제 개선
 
 #### 비동기처리
@@ -272,7 +280,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"       # 최대 0.5코어
           memory: "256M"    # 최대 256MB 메모리
 
 ```
