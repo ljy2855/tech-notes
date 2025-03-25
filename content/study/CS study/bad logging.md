@@ -243,9 +243,12 @@ IO 작업을 요청만 보내고 완료를 기다리지 않고 다음 작업을 
 IO waiting 하는 시간에 다른 CPU job을 실행하며, 성능 개선을 이뤄낼 수 있지 않을까요?
 이러한 방법을 non-blocking asynchronous라고 해요. 
 
-파이썬 비동기처리 package
-- asyncio
-- uvloop
+#### 관련 키워드
+- 파이썬 비동기처리 package
+	- asyncio
+	- uvloop
+- coroutine
+
 
 ### 실제로 적용해볼까요?
 
