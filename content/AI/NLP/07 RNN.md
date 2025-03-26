@@ -93,7 +93,7 @@ A fixed-window neural Language Model
 - hidden layer는 옛날엔 sigmoid나 hyper tanh썻음
 - 마지막 layer에서 값을 통해서 vector 출력
 	- **이전 layer를 flexible하게 늘릴수 있음 -> window size 변경 가능**
-	- **모델 사이즈가 크게 늘어나지 않는다 (결국 We, Wh만 하니까)**
+	- **모델 사이즈가 크게 늘어나지 않는다 (결국 $W_e$ , $W_h$만 하니까)**
 - **순서에 대한 정보도 활용**
 
 - **Recurrent 연산은 느리다.. (한번에 한 step씩 순서대로 처리)**
@@ -130,9 +130,20 @@ output을 내는데 어느놈들이 영향을 미쳤는가?
 RNN으로 Generating 해볼까?
 ![[Pasted image 20250326172753.png]]
 - ngram보다 낫배드한데용?
-- **vanishing gradient**
+#### vanishing gradient
 	- 중간 step에 있는 gradient값이 너무 작은 경우
 	- 누적해서 곱하기 때문에 최종적으로 propagation될 gradient가 거의 희미해짐
 ![[Pasted image 20250326173535.png]]
+![[Pasted image 20250326174101.png]]
+**결국, long-term인 경우에 이전 맥락을 잘 반영하지 못하는 경우가 많아졌음**
 
-수식으로 해볼까..?
+**수식 증명**
+![[Pasted image 20250326173906.png]]
+
+- 결국 $W^l_h$의 경우 거리가 멀수록 0에 수렴하는 걸 확인할 수잇음
+	- 게다가 우리는 non-linear function을 쓰기때문에 0에 더욱더 가까워짐
+
+
+#### exploding gradient
+
+- gradient가 너무 크게 되면, 무운제가..?
