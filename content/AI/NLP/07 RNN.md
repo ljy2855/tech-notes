@@ -91,4 +91,48 @@ A fixed-window neural Language Model
 
 - word embedding을 위한 E metric
 - hidden layer는 옛날엔 sigmoid나 hyper tanh썻음
-- 
+- 마지막 layer에서 값을 통해서 vector 출력
+	- **이전 layer를 flexible하게 늘릴수 있음 -> window size 변경 가능**
+	- **모델 사이즈가 크게 늘어나지 않는다 (결국 We, Wh만 하니까)**
+- **순서에 대한 정보도 활용**
+
+- **Recurrent 연산은 느리다.. (한번에 한 step씩 순서대로 처리)**
+- **너무 이전의 step에 있는 정보는 전파가 잘 안된다**
+
+
+#### Train RNN
+
+**Teacher Forcing** (정답지 가지고 옆에서 계속 훈수두기)
+##### forward
+1. load big corpus 
+2. compute output distribution
+3. loss function(cross entropy)  negative log probablity
+4. loss의 평균을 구함
+
+![[Pasted image 20250326171609.png]]
+
+실제론
+- 전체 corpus를 하기엔 너무 힘듬
+	- sentece, document 단위로 자른다!
+
+##### backward
+
+output을 내는데 어느놈들이 영향을 미쳤는가?
+![[Pasted image 20250326172030.png]]
+
+
+**Multivariable Chain Rule**
+두개의 변수로 이루어진 함수의 gradient는 각자의 변수로 미분한 값의 합임
+![[Pasted image 20250326172325.png]]
+
+**backpropagation through time**
+![[Pasted image 20250326172647.png]]
+RNN으로 Generating 해볼까?
+![[Pasted image 20250326172753.png]]
+- ngram보다 낫배드한데용?
+- **vanishing gradient**
+	- 중간 step에 있는 gradient값이 너무 작은 경우
+	- 누적해서 곱하기 때문에 최종적으로 propagation될 gradient가 거의 희미해짐
+![[Pasted image 20250326173535.png]]
+
+수식으로 해볼까..?
