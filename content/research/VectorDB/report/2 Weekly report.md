@@ -15,11 +15,12 @@
 
 질문#1) Milvus를 사용했나요? VM 노드 세개에 deploy를 한 것 같은데, FAISS를 어떻게 사용했는지, 알려주세요.
 
-Semantic search의 검색 정확도를 향상하기 위해, `OpenSearch` (Elastic Search fork)를 활용했었습니다.
+Semantic search의 검색 정확도를 향상하기 위해, `OpenSearch` (Elastic Search fork)를 활용했었습니다. 
+clustering 및 
 
-해당 솔루션에서 plugin으로 `faiss`, `lucene`, `nmslib` 등 vector search engine을 지원하여 이 중 faiss를 사용했습니다.
+plugin으로 `faiss`, `lucene`, `nmslib` 등 vector search engine을 지원하여 이 중 faiss를 사용했습니다.
 
-OpenSearch 
+ 
 
 
 
