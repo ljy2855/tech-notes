@@ -35,6 +35,8 @@ OpenSearch cluster (3 node)
 - Host : 11 core, 36GB
 - 1.2M document Indexed
 
+#### Metric
+- cpu us
 
 #### Index Create
 ```json
@@ -57,15 +59,11 @@ OpenSearch cluster (3 node)
 - 임베딩된 문서를 삽입하는 task 제출 이후 cluster 상태 확인
 ![[Pasted image 20250330150239.png]]
 
-Insight
-1. index 정보 storage -> memory load
-2. hnsw 그래프 노드 추가
-3. 
-
-
+- 
 #### Search
+- topk 100 query시에 latency 및 노드 모니터링
 ![[Pasted image 20250330152955.png]]
-- topk 100 query시에 
+
 
 first search latency
 ![[Pasted image 20250330160854.png]]
@@ -76,8 +74,15 @@ Second Search latency
 
 
 #### Warm up
-Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바로 처리하도록 함
+[Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바로 처리하도록 함](https://opensearch.org/docs/latest/vector-search/api/#warmup-operation)
 ![[Pasted image 20250330151352.png]]
+
+warm-up 요청 시, 노드당 **3.5GB의 인덱스**를 메모리에 올려놓는 것을 확인
+
+**Insight**
+- **local 환경이라 disk -> memory로 로드가 빠를텐데, cloud 환경이라면 이과정이 상당히 오래걸리지 않을까?**
+	- cloud 기반 DB들은 대부분 EBS 스토리지를 사용할텐데, 이는 실시간 서비스를 구축하기엔 latency가 너무 길지 않을까?
+	- 특히나 vector search(HNSW)의 구조상 인덱스에 저장하는 크기가 너무 빠르게 증가함
 
 
 
@@ -85,7 +90,33 @@ Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바�
 After warm-up
 ![[Pasted image 20250330173006.png]]
 
+#### 이슈
+- 반복적으로 메모리에 index load, store GC 작동
+```
+2025-03-30 17:41:11 opensearch-node3       | [2025-03-30T08:41:11,213][INFO ][o.o.m.j.JvmGcMonitorService] [opensearch-node3] [gc][130] overhead, spent [708ms] collecting in the last [1.7s]
+```
 
- 
 
+- 샤드 재분배 작업
+샤드간 비슷한 크기를 갖도록 유지하는데, node의 상태에 따라 간혹 불균일한 샤드를 갖게될 경우 이를 재할당 함
 
+```
+GET _list/shards/target-index
+
+target-index 0 r STARTED    238002 5.3gb 172.23.0.3 opensearch-node3
+target-index 0 p STARTED    238002 5.3gb 172.23.0.5 opensearch-node1
+target-index 1 r STARTED    238174 5.3gb 172.23.0.3 opensearch-node3
+target-index 1 p STARTED    238174 5.3gb 172.23.0.4 opensearch-node2
+target-index 2 r STARTED    238053 5.3gb 172.23.0.3 opensearch-node3
+target-index 2 p STARTED    238053 5.3gb 172.23.0.5 opensearch-node1
+target-index 3 r STARTED    238743 5.3gb 172.23.0.3 opensearch-node3
+target-index 3 p RELOCATING 238743 5.3gb 172.23.0.5 opensearch-node1 -> 172.23.0.4 UnHMdjXFREi63---U6yhEA opensearch-node2
+target-index 4 r STARTED    238772 5.3gb 172.23.0.5 opensearch-node1
+target-index 4 p STARTED    238772 5.3gb 172.23.0.4 opensearch-node2
+target-index 5 p STARTED    239197 5.3gb 172.23.0.5 opensearch-node1
+target-index 5 r STARTED    239197 5.3gb 172.23.0.4 opensearch-node2
+next_token null
+```
+
+이 떄 많은 File IO 및 메모리 부하 확인
+![[Pasted image 20250330174753.png]]
