@@ -1,21 +1,24 @@
 **질문#1) Milvus를 사용했나요? VM 노드 세개에 deploy를 한 것 같은데, FAISS를 어떻게 사용했는지, 알려주세요.**
 
 문서들의 lexcial search도 필요하여, `OpenSearch` (Elastic Search fork)를 활용했었습니다. 
-clustering을 통해 
+
+clustering을 통해 3 manger node(c6g.large.search, 2vCPU, 4GB) + 3 data node(m7g.xlarge.search, 4vcpu, 16GB) 으로 관리했습니다.
 
 [plugin으로 `faiss`, `lucene`, `nmslib` 등 vector search engine을 지원](https://opensearch.org/docs/latest/field-types/supported-field-types/knn-methods-engines/)하여 이 중 faiss를 사용했습니다.
 
 
-
 **질문#2) Index build 시간도 궁금합니다.** 
-Index를 생성(build)하는 시간
 
+Index를 생성(build)하는 시간 자체는 거의 걸리지 않았습니다.
+
+다만 기존 이미 생성된 Index의 세팅을 변경 시(샤드 개수, hnsw 파라미터 수정)에는 reindex를 진행어야 했고, 이는 기존 index에서 copy하는 방식으로, 같은 수의 insert와 거의 동일한 시간이 걸렸습니다. 
 
 **질문#3) Index build가 된 이후, CRUD 연산 시간** 
  - Create: 새로운 embedding 추가시 걸리는 시간
  - Update: Document가 업데이트 된 경우 embedding이 바뀌면, Index rebuild? 를 하는지, 한다면, 걸리는 시간
  - Delete: 위와 동일한 시간
 
+해당 production 환경을 접근이 불가능해서 local에서 재현했습니다.
 
 
 ### 금주 수행한 내용
@@ -50,11 +53,14 @@ OpenSearch cluster (3 node)
         },
 ```
 
-#### Document Insert (200K)
+#### Document Insert (20만개 삽입)
 - 임베딩된 문서를 삽입하는 task 제출 이후 cluster 상태 확인
 ![[Pasted image 20250330150239.png]]
+
+Insight
 1. index 정보 storage -> memory load
-2. 
+2. hnsw 그래프 노드 추가
+3. 
 
 
 #### Search
@@ -68,6 +74,7 @@ first search latency
 Second Search latency
 ![[Pasted image 20250330153120.png]]
 
+
 #### Warm up
 Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바로 처리하도록 함
 ![[Pasted image 20250330151352.png]]
@@ -75,7 +82,8 @@ Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바�
 
 
 
-
+After warm-up
+![[Pasted image 20250330173006.png]]
 
 
  
