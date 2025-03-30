@@ -4,19 +4,17 @@
 
 `HNSW 그래프가 메모리에 상주해야 하는 구조적 특성으로 인한 서비스 상의 문제점 정리`
 
-
-
-
 #### Env
 production 환경과 비슷한 local 실험 환경 재구성
 
 OpenSearch cluster (3 node)
 - 호스트에 3개의 container로 opensearch cluster 생성
 - Host : 11 core, 36GB
-- 
+- 1.2M document Indexed
 
 
 #### Index Create
+
 
 #### Document Insert (200K)
 
@@ -25,9 +23,15 @@ OpenSearch cluster (3 node)
 #### Search
 ![[Pasted image 20250330152955.png]]
 
+- topk 100
 
+first search latency
+
+Second Search latency
+![[Pasted image 20250330153120.png]]
 
 #### Warm up
+Index에 있는 hnsw graph를 메모리에 올려 놓아, search 요청 시 바로 처리하도록 함
 ![[Pasted image 20250330151352.png]]
 
 
