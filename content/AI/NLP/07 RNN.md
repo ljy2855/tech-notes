@@ -143,7 +143,18 @@ RNN으로 Generating 해볼까?
 - 결국 $W^l_h$의 경우 거리가 멀수록 0에 수렴하는 걸 확인할 수잇음
 	- 게다가 우리는 non-linear function을 쓰기때문에 0에 더욱더 가까워짐
 
+**Solution**
+- 새로운 모델 아키텍처 : 기존 이전 input만 받는 vanilla RNN에서 별도의 메모리를 만들자 
+	- LSTM
 
 #### exploding gradient
+![[Pasted image 20250331164748.png]]
+- gradient가 너무 크게 되면, 너무 이상한 포인트로 넘어가서 못돌아올 수도
+- RNN만의 문제가 아니긴 함
+- `Inf`, `NaN` 이 떠서 실패한 경우도 있다
 
-- gradient가 너무 크게 되면, 무운제가..?
+**Solutuon**
+- Gradient Clipping
+	- threshold보다 벡터 크기 넘으면 방향은 두고 크기만 줄임
+- Intuition
+	- 
