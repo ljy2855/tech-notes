@@ -64,5 +64,39 @@ sentiment classification task
 **Multi-layer RNNs (stacked RNNs)**
 ![[Pasted image 20250331172553.png]]
 
-- 더욱 복잡한 표현이 가능하도록 함 (higher-level features)
-- 
+- 더욱 **복잡한 표현이 가능하도록 함 (higher-level features)**
+	- CV의 경우 아래 layer에서는 low한 task(엣지 찾기), 위에는 눈 찾기 같은 layer 설계
+	- NLP의 경우 형태소 분석 -> 문장 -> 문맥 처럼 다양한 layer로 처리가능
+- 너무 층이 높아지면, 문제가 생김
+	- 더 깊은 RNN (예: 8층)을 학습시키려면 skip-connection 같은 구조가 필요
+	- 너무 많은 레이어를 쌓으면 학습이 어려워짐 (그래디언트가 흐르지 않음)
+	- 이를 해결하기 위해 ResNet처럼 층을 건너뛰는 연결을 넣어줌
+
+### Machine Translation
+
+전통적인 MT는 rule based로 진행함 -> 문장을 그냥 대체하는 방식
+
+**Statistical Machine Translation**
+
+![[Pasted image 20250331173705.png]]
+- 통계를 사용해서 적용해보자
+	- translation model: 기존 번역된 문장을 통해 확률이 높게 번역을 진행
+	- language model: 변환된 언어가 자연스러운가 확인
+
+- 시스템이 각자 작은 task로 나눠서 활용
+
+
+#### NMT (Neural Machine Translation)
+sequence to sequence model
+
+기존 NER, word prection task와 다르게, input, output 모두 sequence
+
+
+**Encoder Layer**
+input 문장의 의미를 추출하는 layer
+![[Pasted image 20250331174319.png]]
+- `attention? 특정 단어를 기반으로 ..? (다음시간에)`
+**Decoding Layer**
+
+![[Pasted image 20250331174336.png]]
+
