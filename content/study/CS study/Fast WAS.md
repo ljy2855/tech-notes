@@ -37,3 +37,28 @@ https://docs.libuv.org/en/v1.x/design.html
 
 
 #### epoll (kqueue, IOCP)
+
+
+
+#### loop create
+```c
+int uv__platform_loop_init(uv_loop_t* loop) {
+  uv__loop_internal_fields_t* lfields;
+
+  lfields = uv__get_internal_fields(loop);
+  lfields->ctl.ringfd = -1;
+  lfields->iou.ringfd = -2;  /* "uninitialized" */
+
+  loop->inotify_watchers = NULL;
+  loop->inotify_fd = -1;
+  loop->backend_fd = epoll_create1(O_CLOEXEC);
+
+  if (loop->backend_fd == -1)
+    return UV__ERR(errno);
+
+  uv__iou_init(loop->backend_fd, &lfields->ctl, 256, 0);
+
+  return 0;
+}
+
+```
