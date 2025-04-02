@@ -126,4 +126,5 @@ input 문장의 의미를 추출하는 layer
 **Problem**
 - bottleneck 문제
 	- 결국 encoder의 output이 hidden layer로 들어감
-	- replace 가능한 경우
+	- replace 가능한 경우, 정확히 치환이 안됌
+	
