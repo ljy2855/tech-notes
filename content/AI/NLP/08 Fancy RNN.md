@@ -100,3 +100,30 @@ input 문장의 의미를 추출하는 layer
 
 ![[Pasted image 20250331174336.png]]
 
+- decoder에서는 target sentense를 생성하는 역할을 함
+- Seq2Seq 모델
+- 
+
+**Sequence-to-sequence**
+- 기계 번역 task 말고도 다른 태스크도 잘함
+	- 요약
+	- 형태소 분석
+	- 코드 생성
+
+#### Train
+
+**Background**
+- 실제로 paired corpus가 없고 각각 corpus가 존재
+
+**Loss**
+![[Pasted image 20250402164922.png]]
+![[Pasted image 20250402165016.png]]
+- target sentence의 output만 보고 확인 (negative log prob)
+- `End to End training` -> decoder의 loss를 통해 encoder까지 gradient를 BP
+	- 옛날에는 encoder, decoder를 별도로 train함
+	- 각각의 corpus가 존재했기에
+
+**Problem**
+- bottleneck 문제
+	- 결국 encoder의 output이 hidden layer로 들어감
+	- replace 가능한 경우
