@@ -45,4 +45,15 @@ Search
 
 
 knn index 
+![[Pasted image 20250403162019.png]]
 
+
+![[Pasted image 20250403162239.png]]
+
+cold start
+![[Pasted image 20250403162514.png]]
+![[Pasted image 20250403162340.png]]
+
+
+after warm-up
+![[Pasted image 20250403164010.png]]
