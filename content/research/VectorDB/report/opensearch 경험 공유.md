@@ -84,3 +84,8 @@ after warm-up
 ![[Pasted image 20250403183700.png]]
 
 ![[Pasted image 20250403183728.png]]
+
+
+#### 실험3
+disk를 nfs로 변경하여 실험
+
