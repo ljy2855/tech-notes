@@ -33,4 +33,13 @@ https://ieeexplore.ieee.org/abstract/document/10707868
 
 ### OpenSearch KNN indexing
 
-### 실험
+### 실험 1
+
+
+일반 index (not knn)
+![[Pasted image 20250403151503.png]]
+
+
+
+knn index 
+
