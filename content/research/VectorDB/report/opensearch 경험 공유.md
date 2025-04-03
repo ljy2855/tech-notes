@@ -56,4 +56,17 @@ cold start
 
 
 after warm-up
+![[Pasted image 20250403165149.png]]
 ![[Pasted image 20250403164010.png]]
+
+
+#### 실험2 dataset 크기
+
+
+
+#### 실험3 disk latency
+40K
+![[Pasted image 20250403170736.png]]
+
+![[Pasted image 20250403170817.png]]
+
