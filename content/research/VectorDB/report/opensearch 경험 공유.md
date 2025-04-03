@@ -75,4 +75,6 @@ after warm-up
 
 ![[Pasted image 20250403173705.png]]
 
-
+800k
+![[Pasted image 20250403181147.png]]
+![[Pasted image 20250403180918.png]]
