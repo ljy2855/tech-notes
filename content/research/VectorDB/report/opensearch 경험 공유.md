@@ -65,8 +65,14 @@ after warm-up
 
 
 #### 실험3 disk latency
-40K
+400K
 ![[Pasted image 20250403170736.png]]
 
 ![[Pasted image 20250403170817.png]]
+
+600K
+![[Pasted image 20250403173614.png]]
+
+![[Pasted image 20250403173705.png]]
+
 
