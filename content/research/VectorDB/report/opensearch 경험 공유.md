@@ -5,8 +5,9 @@
 #### RAG 시스템에서 왜 VectorDB로 OpenSearch를 사용하는가?
 
 vector search(semantic) 와 full-text search(lexical) 둘 다 가능하기에,
-이를 위한 
 
+검색에 대한 정확도를 올리기 위해 해당 과정 필요
+https://ieeexplore.ieee.org/abstract/document/10707868
 
 #### Cluster 고가용성 필요
 - vector
@@ -15,7 +16,13 @@ vector search(semantic) 와 full-text search(lexical) 둘 다 가능하기에,
 - BAAI/bge-m3
 - BAAI/bge-reranker-v2-m3
 
-#### Search flow
+#### Embedding flow
+
+1. get document from storage
+2. get embedding vector with model
+3. insert document with vector 
+
+#### Retrieval flow
 
 1. user query embedding
 2. vector search from OpenSearch
