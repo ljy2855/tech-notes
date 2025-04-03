@@ -39,6 +39,9 @@ https://ieeexplore.ieee.org/abstract/document/10707868
 일반 index (not knn)
 ![[Pasted image 20250403151503.png]]
 
+Search
+
+![[Pasted image 20250403152626.png]]
 
 
 knn index 
