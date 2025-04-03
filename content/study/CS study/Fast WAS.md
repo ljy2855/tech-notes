@@ -22,9 +22,11 @@ async def async_endpoint():
 
 ### Uvicorn
 
-
+- `uvloop` 라는 event loop을 쓰네?
 
 ### uvloop
+
+
 
 
 
