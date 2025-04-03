@@ -33,5 +33,4 @@ https://ieeexplore.ieee.org/abstract/document/10707868
 
 ### OpenSearch KNN indexing
 
-
 ### 실험
