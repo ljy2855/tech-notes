@@ -22,11 +22,44 @@ async def async_endpoint():
 
 ### Uvicorn
 
-- `uvloop` 라는 event loop을 쓰네?
+#### starlette 
+
+ASGI server를 구현하기 위한 프레임워크
+
+```python
+# starlette.routing
+def request_response(
+    func: typing.Callable[[Request], typing.Awaitable[Response] | Response],
+) -> ASGIApp:
+    """
+    Takes a function or coroutine `func(request) -> response`,
+    and returns an ASGI application.
+    """
+    f: typing.Callable[[Request], typing.Awaitable[Response]] = (
+        func if is_async_callable(func) else functools.partial(run_in_threadpool, func)  # type:ignore
+    )
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        request = Request(scope, receive, send)
+
+        async def app(scope: Scope, receive: Receive, send: Send) -> None:
+            response = await f(request)
+            await response(scope, receive, send)
+
+        await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+
+    return app
+```
+
+- async def가 아닌 일반 def는 thread connection pool에서 처리함
+	- 이는 일반적인 wsgi app 처리 방식과 동일
+	- tomcat or gunicorn
 
 ### uvloop
 
-
+- asyncIO 와 event loop을 통해 비동기 처리를 구현한 것은 동일
+	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 굳
+	- 
 
 
 
