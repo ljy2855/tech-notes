@@ -49,17 +49,30 @@ def request_response(
         await wrap_app_handling_exceptions(app, request)(scope, receive, send)
 
     return app
+
+# 
+
+async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    func = functools.partial(func, *args, **kwargs)
+    return await anyio.to_thread.run_sync(func) # sync네?
 ```
 
 - async def가 아닌 일반 def는 thread connection pool에서 처리함
 	- 이는 일반적인 wsgi app 처리 방식과 동일
-	- tomcat or gunicorn
+	- tomcat(thread pool) or gunicorn(pre-fork)
+
+![[Pasted image 20250404163333.png]]
+
+![[Pasted image 20250404163633.png]]
+- 왜 Python은 
+
 
 ### uvloop
 
 - asyncIO 와 event loop을 통해 비동기 처리를 구현한 것은 동일
 	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 굳
-	- 
+- fs, socket IO에 대한 작업들을 이벤트 루프로 처리함
+- 
 
 
 
@@ -79,9 +92,3 @@ https://docs.libuv.org/en/v1.x/design.html
 
 #### epoll (kqueue, IOCP)
 
-
-
----
-#### Java 진영은?
-
-#### Tomcat vs Netty
