@@ -36,6 +36,7 @@ https://ieeexplore.ieee.org/abstract/document/10707868
 ### 실험 1
 
 
+
 일반 index (not knn)
 ![[Pasted image 20250403151503.png]]
 
@@ -58,6 +59,9 @@ cold start
 after warm-up
 ![[Pasted image 20250403165149.png]]
 ![[Pasted image 20250403164010.png]]
+![[Pasted image 20250404224947.png]]
+
+
 
 
 #### 실험2 dataset 크기
