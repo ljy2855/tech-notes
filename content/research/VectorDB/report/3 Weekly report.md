@@ -17,12 +17,30 @@ void write_index(const Index* idx, FILE* f, int io_flags = 0);
 void write_index(const Index* idx, IOWriter* writer, int io_flags = 0);
 ```
 
-이 때
+해당 인터페이스를 통해 많은 File IO가 발생하는 것을 확인
 
-- 
-![[Pasted image 20250406204901.png]]
+![[Pasted image 20250403181147.png]]
+- 해당 실험은 볼륨을 MVME으로 사용
 
 
+#### 클라우드 서비스에서의 VectorDB
+![[Pasted image 20250406213214.png]]
+
+OpenSearch Instance에 AWS EBS를 볼륨을 붙여서 문서들과 Index를 함께 disk에 저장
+
+- 문서 : 큰 용량, 적은 확률로 접근
+- 인덱스 : 상대적으로 작은 용량, 잦은 memory to disk load, flush -> 병목 예상가능
+
+이를 분리하여 인덱스만 NVME 에 저장하는 것은 불가능
+
+https://aws.amazon.com/ko/blogs/big-data/lower-your-amazon-opensearch-service-storage-cost-with-gp3-amazon-ebs-volumes/
+
+그렇다고 `gp3`가 아닌, `io1` 를 붙여서 문서와 함께 저장하는 것은 비효율적임
 
 
 ### 내주 수행할 내용
+
+- 가설 확인
+	- 인덱스를 disk에 바로 write하지 않고 별도의 캐시 저장소를 둔다면?
+		- index를 통째로 write하지 않고, segment로 나눠서 관리하니, key-value store를 따로 둔다면?
+	- DPU
