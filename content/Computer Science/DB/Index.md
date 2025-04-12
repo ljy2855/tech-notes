@@ -8,6 +8,7 @@
 리프 노드에는 **실제 데이터가 없고**,  
 **기본키(PK)의 값만 저장**돼 있어서 → 다시 클러스터 인덱스를 **lookup**해야 함
 
+
 #### 어디에 사용함?
 
 - WHERE 조건에 자주 등장하는 컬럼	빠른 필터링 가능
@@ -73,9 +74,9 @@ LRU 기반 페이지 교체 전략
 
 
 이때, Optimizer가 인덱스 탈지 말지 결정함
-### B+Tree
+### B+Tree vs LSM
 
-
+https://jaeyeong951.medium.com/%EC%83%89%EC%9D%B8-index-%EC%9D%98-%EB%91%90-%EA%B0%80%EC%A7%80-%ED%98%95%ED%83%9C-lsm-%ED%8A%B8%EB%A6%AC-b-%ED%8A%B8%EB%A6%AC-7a4ab7887db5
 
 ### 보조인덱스 
 
