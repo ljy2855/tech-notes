@@ -2,11 +2,37 @@
 thread가 동시에 같은 resource(메모리 or file)에 접근할 때 발생하는 문제상황
 
 
-### Mutex
+이를 위해 동기화하는 과정이 필요함
+#### Mutex
+```c
+struct mutex {
+    atomic_t count;
+    spinlock_t wait_lock;
+    struct list_head wait_list;
+    ...
+};
+```
 
-### Semaphore
+atomic instruction
+```c
+int atomic_dec_if_positive(atomic_t *v) {
+    int c, old;
+    do {
+        c = atomic_read(v);
+        if (c <= 0)
+            break;
+        old = atomic_cmpxchg(v, c, c - 1);
+    } while (old != c);
+    return old;
+}
 
-### Counting Variables
+```
+
+- atomic_read : CAS 로 cpu가 실행하는 atomic한 instruction으로 사용
+
+#### Semaphore
+
+#### Counting Variables
 
 
 
