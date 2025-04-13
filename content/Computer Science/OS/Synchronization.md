@@ -30,6 +30,21 @@ int atomic_dec_if_positive(atomic_t *v) {
 
 - atomic_read : CAS 로 cpu가 실행하는 atomic한 instruction으로 사용
 
+
+```c
+void __sched mutex_lock(struct mutex *lock)
+{
+	might_sleep();
+
+	if (!__mutex_trylock_fast(lock))
+		__mutex_lock_slowpath(lock);
+}
+
+```
+
+
+
+
 #### Semaphore
 
 #### Counting Variables
