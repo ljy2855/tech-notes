@@ -69,8 +69,65 @@ Doctor: No (Heart, cogintive) issues
 
 
 
-Preferences
-1. Bilexical affinities : 
+**Preferences**
+1. Bilexical affinities : 관계는 유사함을 의미한다
 2. Dependency distance : 가까이에 있는 단어들이 관계가 있음
 3. Intervening material : 문장을 넘어서까지 관계가 거의 없음
 4. Valency of heads: 
+
+Dependency Parsing Task
+
+- non-projective (dependency가 cross하지 않음 but language에 따라 다름)
+- Only one word is a dependent of ROOT
+- no cycle
+
+
+**어캐 구현함?**
+DP부터 알고리즘으로 해결하다가 Transition-based parsing을 거처 neural network로 해결하자!
+
+
+#### Greedy transition-based parsing
+- greedy 방법으로 파싱함
+- shift, reduce left-arc, reduce right-arc 중 하나를 선택함
+- stack, buffer를 통해 현재 상태를 저장함
+
+
+
+Arc-standard transition-based parser
+![[Pasted image 20250414173809.png]]
+
+#### MaltParser
+Stack, Buffer의 feature를 input으로 넣어 neural net으로 해결하자?
+
+![[Pasted image 20250414174203.png]]
+- one-hot encoding을 진행해서 feature로 넣음
+- 
+
+Evalutation
+
+
+
+**A neural dependency parser**
+
+![[Pasted image 20250414174427.png]]
+
+왜 잘됐을까?
+
+- Distributed Representations
+- soft-max classifier 
+	- sparse해
+
+SyntaxNet
+- 지금 가장 
+
+Graph-based dependency parsers
+![[Pasted image 20250414174808.png]]
+- binary arc (있고 없고) 가 아닌, score을 매긴 이후 가장 높은 점수가 높은 애를 서넞ㅇ
+- 각각 단어들이 어떤 의미를 가지는지 contextual representations가 필요함
+- 모든 관계를 확인해봐야하기에 계산량은 많긴함
+- 근데 성능은 가장 좋음
+
+
+교훈
+지금은 모델 자체가 sequence자체를 이해하도록 알아서 만들었는데,
+이전에는 문장을 구조화하기 위해서 정확하게 parsing하는 방법을들 연구했었음

@@ -1,6 +1,8 @@
 커널에서 [[System Call]]을 통해서 file/IO 등을 처리한다는 것은 확인
 
 ### Architecture
+![[Pasted image 20250414172937.png]]
+
 ![[Pasted image 20250320154929.png]]
 
 ### File
