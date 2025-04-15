@@ -91,6 +91,9 @@ file create, write할 때, 새로운 block을 할당해서 저장하게 되는�
 ![[Pasted image 20250320163107.png]]
 
 
+### XFS vs Ext4
+
+
 ### Performance
 
 Disk의 read, write는 굉장히 느리기 때문에 어떻게 성능을 향상시킬까?
