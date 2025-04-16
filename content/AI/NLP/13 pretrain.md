@@ -94,4 +94,16 @@ CLS :문장의 처음을 나타냄
 SEP: segment를 나누기 위함
 
 ![[Pasted image 20250416172234.png]]
-이렇게 단어를 쪼갤때도 
+- '##' : 이렇게 단어를 쪼갤때도 특정 토큰을 사용하기도 함
+- segment embedding 추가
+- position + segment + token 이렇게 세개!
+
+
+어떻게 학습시킬까?
+![[Pasted image 20250416172725.png]]
+
+- 실제로는 같이 학습시킴!
+- NSP, MLM 같이 함
+- 원하는 태스크에 맞춰서 아키텍처를 갈아껴라
+
+
