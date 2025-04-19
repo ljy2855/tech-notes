@@ -1,8 +1,17 @@
 ![[Lec10-transformers.pdf]]
 
 
+attention
+- sequence x를 통해서 hidden layer로 정보 전달함
+- 그럼 아예 RNN을 없애볼까?
+- **Cross attention**: paying attention to the input x to generate 𝑦𝑡
 
-self attention이 뭐가 문제일까
+
+self attention
+to generate 𝑦𝑡, we need to pay attention to $𝑦_{<𝑡}$
+- rnn과 다르게 $y_t$를 생성하기 위해서 이전 $𝑦_{<𝑡}$ 를 참고한다!
+
+
 
 
 position embedding
