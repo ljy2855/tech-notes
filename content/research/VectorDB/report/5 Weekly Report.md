@@ -20,7 +20,7 @@ motivation
 **Indexing**
 
 memory
-- 
+- Product Quantization, which encodes the data and query points into short codes (e.g., 32 bytes per data point)
 
 disk
 ```
@@ -65,5 +65,9 @@ disk
 
 한계
 - 원본 벡터 + 인접 리스트를 4kb 디스크블록에 저장하면, 1024 차원(4kb)이상 벡터는 저장이 안되지 않나?
-	- 
+	- 4.1 We compared Vamana with HNSW and NSG on three commonly used public benchmarks: SIFT1M (128-dimensions) and GIST1M (960-dimensions)
+	- RAG시스템에서 활용할 고차원 벡터 인덱싱으로 사용하기에 적합한가? 
+	- By default, the length of the embedding vector is `1536` for `text-embedding-3-small` or `3072` for `text-embedding-3-large` (OpenAI embedding model)
+
+실제 코드를 확인해보
 
