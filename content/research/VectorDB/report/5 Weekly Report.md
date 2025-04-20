@@ -35,8 +35,6 @@ disk
 └────────────────────────────────────────────┘
 ```
 
-
-
 **Search**
 
 - `xq`: 쿼리 벡터
@@ -63,11 +61,23 @@ disk
 
 ```
 
+평가
+• z840: a bare-metal mid-range workstation with dual Xeon E5-2620v4s (16 cores), 64GB DDR4 RAM, and two Samsung 960 EVO 1TB SSDs in RAID-0 configuration.
+
+• M64-32ms: a virtual machine with dual Xeon E7-8890v3s (32-vCPUs) with 1792GB DDR3 RAM that we use to build a one-shot in-memory index for billion point datasets.
+
+- 인덱싱 : DEEP1M 기준: Vamana(129s) < HNSW(219s) < NSG(480s)
+- 
+The result is a 348GB index with an average degree of 92.1. The indices were built on z840 and took about 5 days with memory usage remaining under 64GB for the entire process
+
 한계
 - 원본 벡터 + 인접 리스트를 4kb 디스크블록에 저장하면, 1024 차원(4kb)이상 벡터는 저장이 안되지 않나?
 	- 4.1 We compared Vamana with HNSW and NSG on three commonly used public benchmarks: SIFT1M (128-dimensions) and GIST1M (960-dimensions)
 	- RAG시스템에서 활용할 고차원 벡터 인덱싱으로 사용하기에 적합한가? 
 	- By default, the length of the embedding vector is `1536` for `text-embedding-3-small` or `3072` for `text-embedding-3-large` (OpenAI embedding model)
 
-실제 코드를 확인해보
+실제 구현을 확인해보면 1024차원이 넘으면 압축해서 disk에 저장 -> recall 하락
+
+**--PQ_disk_bytes** (default is 0): Use 0 to store uncompressed data on SSD. This allows the index to asymptote to 100% recall. If your vectors are too large to store in SSD, this parameter provides the option to compress the vectors using PQ for storing on SSD. This will trade off recall. You would also want this to be greater than the number of bytes used for the PQ compressed data stored in-memory
+
 
