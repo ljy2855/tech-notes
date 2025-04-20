@@ -17,8 +17,12 @@ motivation
 
 #### Vamana 알고리즘
 
-Indexing
+**Indexing**
 
+memory
+- 
+
+disk
 ```
 
 [ disk block (4KB aligned) ]
@@ -33,14 +37,14 @@ Indexing
 
 
 
-Search
+**Search**
 
 - `xq`: 쿼리 벡터
 - `L`: 후보 리스트 크기
 - `W`: Beam width (한 번에 SSD에서 읽을 노드 수)
 - `k`: 찾고자 하는 최근접 이웃 수
 
-
+```
 입력: 쿼리 xq, 시작 노드 s, 후보 리스트 크기 L, Beam Width W
 
 1. 초기화:
@@ -57,5 +61,9 @@ Search
 
 4. 최종 후보 중 full-precision 벡터로 거리 다시 계산 → top-K 결과 반환
 
+```
 
+한계
+- 원본 벡터 + 인접 리스트를 4kb 디스크블록에 저장하면, 1024 차원(4kb)이상 벡터는 저장이 안되지 않나?
+	- 
 
