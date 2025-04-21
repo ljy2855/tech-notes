@@ -99,6 +99,38 @@ GPT3 이후 두 가지 방향
 
 ![[Pasted image 20250421173247.png]]
 
-RLHF = Reinforcement learning from human
+**어떻게 만들었나**
+![[Pasted image 20250421173436.png]]
 
-feedback
+**InstructGPT**
+Supervised instruction tuning +
+RLHF (Reinforcement learning from human feedback)
+
+![[Pasted image 20250421173701.png]]
+- input, output을 매칭해서 supervised tunning을 진행함
+![[Pasted image 20250421173746.png]]
+
+- 데이터 annotation을 누가 하느냐에 따라 영향을 받기도 함
+
+**reward model**
+![[Pasted image 20250421174339.png]]
+
+
+![[Pasted image 20250421174405.png]]
+
+**GPT4**
+- multi-modal
+
+
+### LLM Limitations
+
+- 최신 정보를 어떻게 반영할까?
+- 할루시네이션
+- LLM security
+	- 학습데이터의 개인정보, 민감한 데이터를 어떻게 걸러낼까
+	- 
+
+
+
+중간 어캐 준비할까요?
+- 다 서술형이다 wow wow
