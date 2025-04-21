@@ -55,7 +55,7 @@ long tail? -> top-k중 일부만 크고 나머진 구림
 
 
 ![[Pasted image 20250310171607.png]]
-- 모델이 발전할 수록 perplexity가 떨어진다
+- 모델이 발전할 수록 perplexity가 낮아진다
 
 
 #### Smoothing
