@@ -18,7 +18,6 @@ n개 보면 ngram
 #### Markov assumption
 
 앞선 모든 context를 보기엔 어려움
-
 앞선 단어 몇개만 보고 다음 나올 단어 추정
 
 
