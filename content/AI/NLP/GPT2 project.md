@@ -9,7 +9,7 @@
 
 The input embeddings that are used in later portions are the sum of the token embeddings and the position embeddings
 
-#### Attention
+#### Attention Layer
 
 ```python
 def attention(self, key, query, value, attention_mask):
@@ -33,3 +33,15 @@ def attention(self, key, query, value, attention_mask):
     return attn_output
 ```
 
+##### Multi head attention
+![[Pasted image 20250422212705.png]]
+- multi head attention의 경우 scaled dot-product attention을 
+
+##### Causal Self Attention
+
+Masked Multiheaded Self-Attention
+![[Pasted image 20250422212617.png]]
+
+
+
+#### 
