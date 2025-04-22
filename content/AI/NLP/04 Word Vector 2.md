@@ -44,7 +44,7 @@ context를 통해 center word 예측
 
 네거티브 샘플 w 를 선택할 때 단순히 균등 분포에서 샘플링하면 자주 등장하는 단어들(“the”, “is” 같은 stop words)이 지나치게 많이 뽑히는 문제가 발생합니다. 이를 해결하기 위해 **빈도 기반 샘플링 방법**을 사용합니다.
 
-어 그럼 sgc + negative sampling을 쓰면 sparse해지겟네요?
+어 그럼 SGD + negative sampling을 쓰면 sparse해지겟네요?
 
 넹
 • **Negative Sampling을 적용하면 SGD가 매우 희소한 그래디언트를 가지게 됨.**
