@@ -44,11 +44,11 @@ backround로 정보를 미리 가지고 question에 대답이 가능해짐
 GPT 전에 아주 고전적인 모델들
 
 확률은 어캐 구하는데요?
-corpus에서 개수 세요... ㅁㅊ
+corpus에서 개수 세요...
 
 뭐가 문제였을까요?
 
-**sparsit problem**
+**sparsity problem**
 
 - 자주 등장하지 않는 단어들(count가 적은)은 확률이 0임 -> smoothing으로 개선
 - 애초에 context가 없었다면? -> backoff (n-1 gram으로 처리)
