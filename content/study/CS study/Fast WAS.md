@@ -10,16 +10,18 @@
 def sync_endpoint():
     """동기 방식으로 로그 출력"""
     sync_logger.info(f"Sync log: {random.randint(0, 100)}")
-    return {"message": "Synchronous logging to Elasticsearch complete"}
+    return {"message": "Synchronous logging"}
 
 @app.get("/async")
 async def async_endpoint():
     """비동기 방식으로 로그 출력"""
     async_logger.info(f"Async log: {random.randint(0, 100)}")
-    return {"message": "Asynchronous logging to Elasticsearch complete"}
+    return {"message": "Asynchronous logging"}
 
 ```
 
+- sync , async endpoint를 어떤식으로 처리하길래?
+- 파이썬 비동기 프레임워크에서 http request를 어떻게 handling 할까?
 ### Uvicorn
 
 #### starlette 
@@ -58,13 +60,17 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 ```
 
 - async def가 아닌 일반 def는 thread connection pool에서 처리함
-	- 이는 일반적인 wsgi app 처리 방식과 동일
+	- 이는 일반적인 WSGI app 처리 방식과 동일
 	- tomcat(thread pool) or gunicorn(pre-fork)
+
+
 
 ![[Pasted image 20250404163333.png]]
 
 ![[Pasted image 20250404163633.png]]
-- 왜 Python은 
+- 왜 Python은 thread pool을 쓰지 않고 여러 worker를 띄울까?
+	- GIL 때문에 결국 병렬처리에서 손해
+- multi thread가 안되면, 비동기 처리로 해볼까?
 
 
 ### uvloop
@@ -72,7 +78,7 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 - asyncIO 와 event loop을 통해 비동기 처리를 구현한 것은 동일
 	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 굳
 - fs, socket IO에 대한 작업들을 이벤트 루프로 처리함
-- 
+
 
 
 
@@ -83,10 +89,10 @@ https://docs.libuv.org/en/v1.x/design.html
 
 ![[Pasted image 20250404021610.png]]
 
-- 요놈이 nodejs 
+- 요놈이 nodejs 에서 event loop로 사용되는 c 라이브러리
 
 #### multiplexing I/O
-
+- 결국 비동기처리는 1 process, 1 thread에서 socket IO를 감지하고  
 
 
 
