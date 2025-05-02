@@ -26,8 +26,28 @@ Storage footprint:
 | Storage    | Local NVMe (μs latency)          | EBS / S3 (ms latency)               |
 | Memory     | 512 GB–1 TB nodes affordable     | High-cost 256 GB limits              |
 | Scaling    | Static servers                   | Elastic scaling & failure handling  |
+- **Key Insight**: Billion-scale vector search requires architectural adaptations under cloud storage and memory constraints.
+
+
+
+---
+
+# 3. Limitations of Traditional HNSW
+
+- **Memory Usage**:
+  - RAM required = Vectors (~30.8 GB) + Graph (~6.4 GB) + Build-time overhead (~20–40 GB).
+  - Practical 256 GB RAM instance handles ~25–28M vectors max.
+- **Disk Access Patterns**:
+  - mmap paging over networked storage introduces 10ms+ p99 latency per page miss.
+- **Cost Explosion**:
+  - High-RAM instances (256 GB+) are expensive ($1,500+/month).
+
+### latency 실험
 ```
-EBS
+FAISS HNSW 10K 1024D fvecs
+2vcpu 4GB
+
+EBS GP3
 [Timing] Indexing (add): 140.187 seconds
 [Timing] File write: 0.0244686 seconds
 [Timing] File read: 0.0223393 seconds
@@ -42,19 +62,7 @@ local NVME
 
 
 ```
-- **Key Insight**: Billion-scale vector search requires architectural adaptations under cloud storage and memory constraints.
 
----
-
-# 3. Limitations of Traditional HNSW
-
-- **Memory Usage**:
-  - RAM required = Vectors (~30.8 GB) + Graph (~6.4 GB) + Build-time overhead (~20–40 GB).
-  - Practical 256 GB RAM instance handles ~25–28M vectors max.
-- **Disk Access Patterns**:
-  - mmap paging over networked storage introduces 10ms+ p99 latency per page miss.
-- **Cost Explosion**:
-  - High-RAM instances (256 GB+) are expensive ($1,500+/month).
 
 > **Conclusion**:  
 > HNSW, while powerful, is not feasible for billion-scale search without significant system rethinking.
