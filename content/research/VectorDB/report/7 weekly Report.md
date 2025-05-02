@@ -7,13 +7,13 @@
 
 ### 연구 배경
 - Vector Indexing HNSW 알고리즘의 메모리 이슈 확인
-- RAG 시스템에서 활용하는 document embedding Model
+- RAG 시스템에서 활용하는 text embedding Model
 	- 
 
 
 
 
-- 이를 해결하기 위한 방안
+- 이를 해결하기 위한 연구
 	- 별도의 ANN 알고리즘 (IVF, HNSW, DiskANN)
 	- Vector product quntazation
 
