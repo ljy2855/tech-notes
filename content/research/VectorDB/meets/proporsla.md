@@ -26,7 +26,22 @@ Storage footprint:
 | Storage    | Local NVMe (μs latency)          | EBS / S3 (ms latency)               |
 | Memory     | 512 GB–1 TB nodes affordable     | High-cost 256 GB limits              |
 | Scaling    | Static servers                   | Elastic scaling & failure handling  |
+```
+EBS
+[Timing] Indexing (add): 140.187 seconds
+[Timing] File write: 0.0244686 seconds
+[Timing] File read: 0.0223393 seconds
+[Timing] Search: 0.00204095 seconds
 
+
+local NVME
+[Timing] Indexing (add): 111.614 seconds
+[Timing] File write: 0.0182051 seconds
+[Timing] File read: 0.0152163 seconds
+[Timing] Search: 0.000734166 seconds
+
+
+```
 - **Key Insight**: Billion-scale vector search requires architectural adaptations under cloud storage and memory constraints.
 
 ---
