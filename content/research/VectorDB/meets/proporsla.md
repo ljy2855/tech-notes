@@ -16,9 +16,7 @@
 
 Storage footprint:
 
-\[
 7.7M \times 4\ \text{KB} \approx 30.8\ \text{GB}
-\]
 
 ## 2.2 Cloud Environment Reality
 | Dimension  | On-premises Assumption          | Cloud Reality (256 GB RAM Instances) |
