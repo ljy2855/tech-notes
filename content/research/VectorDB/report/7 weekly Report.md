@@ -18,15 +18,18 @@
 - A **Vector Database (VectorDB)** therefore sits on the critical path: milliseconds won or lost here propagate directly to user‑visible latency or LLM token wait time.
 
 
-### 1.3 Vector Dataset size 
+### 1.2 Vector Dataset size 
 
-|구분|계산식|결과|
-|:--|:--|:--|
-|짧은 문서 (90%)|6.7M × 0.9 = 6.03M 문서 × 1 vector|6.03M vectors|
-|긴 문서 (10%)|6.7M × 0.1 = 0.67M 문서 × 2.5 vectors|1.675M vectors|
-|**합계**|6.03M + 1.675M|**7.705M vectors**|
+| 구분          | 계산식                                 | 결과                 |
+| :---------- | :---------------------------------- | :----------------- |
+| 짧은 문서 (90%) | 6.7M × 0.9 = 6.03M 문서 × 1 vector    | 6.03M vectors      |
+| 긴 문서 (10%)  | 6.7M × 0.1 = 0.67M 문서 × 2.5 vectors | 1.675M vectors     |
+| **합계**      | 6.03M + 1.675M                      | **7.705M vectors** |
 - chunking 없이 최대 input 8192 tokens 가정
-### 1.2 Cloud Reality Check  
+
+
+
+### 1.3 Cloud Reality Check  
 | Dimension | On‑prem Assumption                    | Cloud Reality                                            |
 | :-------- | :------------------------------------ | :------------------------------------------------------- |
 | Storage   | Local NVMe (μs latency)               | **Network‑attached** EBS / persistent disks (ms latency) |
