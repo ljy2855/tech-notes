@@ -19,11 +19,11 @@ Storage footprint:
 7.7M \times 4\ \text{KB} \approx 30.8\ \text{GB}
 
 ## 2.2 Cloud Environment Reality
-| Dimension  | On-premises Assumption          | Cloud Reality (256 GB RAM Instances) |
-| :--------- | :------------------------------ | :---------------------------------- |
-| Storage    | Local NVMe (μs latency)          | EBS / S3 (ms latency)               |
-| Memory     | 512 GB–1 TB nodes affordable     | High-cost 256 GB limits              |
-| Scaling    | Static servers                   | Elastic scaling & failure handling  |
+| Dimension | On-premises Assumption       | Cloud Reality (256 GB RAM Instances) |
+| :-------- | :--------------------------- | :----------------------------------- |
+| Storage   | Local NVMe (μs latency)      | EBS / S3 (ms latency)                |
+| Memory    | 512 GB–1 TB nodes affordable | High-cost 256 GB limits              |
+| Scaling   | Static servers               | Elastic scaling & failure handling   |
 - **Key Insight**: Billion-scale vector search requires architectural adaptations under cloud storage and memory constraints.
 
 
