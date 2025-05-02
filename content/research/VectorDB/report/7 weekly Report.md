@@ -6,34 +6,9 @@
 - 향후 연구 계획 (주별로 작성)
 
 ---
-### 연구 배경
-- **높은 메모리 요구량**:  
-    HNSW와 같은 그래프 기반 인덱스는 전체 벡터와 인덱스 구조를 메모리에 적재해야 하므로, 수십 GB~수백 GB의 RAM이 필요하다.
-    
-- **디스크 접근 지연 (Disk Latency)**:  
-    클라우드 환경에서는 NVME SSD가 아닌 EBS, S3 같은 네트워크 스토리지를 사용할 때가 많아, 디스크 읽기 지연(latency)이 높아진다.
-    
-- **운영비용 증가**:  
-    고성능 인스턴스 (대용량 메모리/저지연 디스크)를 사용할 경우 비용이 급격히 증가하여 서비스 운영이 비효율적이 된다.
 
 
-- 이를 해결하기 위한 연구
-	- 별도의 ANN 알고리즘 (IVF, HNSW, DiskANN)
-	- Vector product quntazation
-
-
-
-
-
-### 연구 목표
-
-
-
-
-### 향후 연구 계획
-
-
-# Cloud‑Native Vector Search: Detailed Motivation (Sections 1 – 6)
+# Cloud‑Native Vector Search: Detailed Motivation 
 
 ---
 
@@ -42,12 +17,21 @@
 - **Modern AI pipelines**—recommendation, semantic search, multimodal retrieval, RAG—*all* begin with a nearest‑neighbor query against **hundreds of millions** of high‑dimensional vectors.  
 - A **Vector Database (VectorDB)** therefore sits on the critical path: milliseconds won or lost here propagate directly to user‑visible latency or LLM token wait time.
 
+
+### 1.3 Vector Dataset size 
+
+|구분|계산식|결과|
+|:--|:--|:--|
+|짧은 문서 (90%)|6.7M × 0.9 = 6.03M 문서 × 1 vector|6.03M vectors|
+|긴 문서 (10%)|6.7M × 0.1 = 0.67M 문서 × 2.5 vectors|1.675M vectors|
+|**합계**|6.03M + 1.675M|**7.705M vectors**|
+- chunking 없이 최대 input 8192 tokens 가정
 ### 1.2 Cloud Reality Check  
-| Dimension | On‑prem Assumption | Cloud Reality |
-| :--- | :--- | :--- |
-| Storage | Local NVMe (μs latency) | **Network‑attached** EBS / persistent disks (ms latency) |
-| Memory | 512 GB–1 TB RAM nodes affordable once | Per‑hour billing; 1 TB RAM = \$6–7 k / month |
-| Scaling | Single rack | **Auto‑scaling & failover** expected |
+| Dimension | On‑prem Assumption                    | Cloud Reality                                            |
+| :-------- | :------------------------------------ | :------------------------------------------------------- |
+| Storage   | Local NVMe (μs latency)               | **Network‑attached** EBS / persistent disks (ms latency) |
+| Memory    | 512 GB–1 TB RAM nodes affordable once | Per‑hour billing; 1 TB RAM = \$6–7 k / month             |
+| Scaling   | Single rack                           | **Auto‑scaling & failover** expected                     |
 
 > **Key takeaway:** Algorithms tuned for on‑prem NVMe & cheap RAM face *new* cost/latency constraints in the cloud.
 
@@ -77,8 +61,8 @@
 ## 3. HNSW Cloud Pain‑points
 ### 3.1 Full‑RAM Requirement
 - **Storage math** (float32):  
-  \(N × d × 4 \text{bytes} + N × M × 4 \text{bytes}\)  
-  *e.g.* 100 M vectors × 128 dims ⇒ **51.2 GB vectors + 6.4 GB edges ≈ 60 GB**.
+  $N × d × 4 \text{bytes} + N × M × 4 \text{bytes}$  
+  *e.g.* 7.7 M vectors × 1024 dims ⇒ **51.2 GB vectors + 6.4 GB edges ≈ 60 GB**.
 - Cloud RAM beyond 256 GB quickly jumps to *memory‑optimized* instance pricing tiers.
 
 ### 3.2 Random Access Pattern
