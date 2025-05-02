@@ -7,11 +7,6 @@
 
 ---
 
-
-# Cloud‑Native Vector Search: Detailed Motivation 
-
----
-
 # 1. Introduction — Why VectorDB Matters
 
 ## 1.1 AI Service Dependency
@@ -24,88 +19,162 @@
 
 ## 1.2 Vector Dataset Size
 
-| Category         | Calculation                               | Result               |
-| :--------------- | :---------------------------------------- | :------------------- |
-| Short articles (90%) | 6.7M × 0.9 × 1 vector              | 6.03M vectors        |
-| Long articles (10%)  | 6.7M × 0.1 × 2.5 vectors           | 1.675M vectors       |
-| **Total**         | 6.03M + 1.675M                          | **7.705M vectors**   |
+| Category              | Calculation                                | Result                |
+| :-------------------- | :---------------------------------------- | :-------------------- |
+| Short articles (90%)  | 6.7M × 0.9 × 1 vector                     | 6.03M vectors         |
+| Long articles (10%)   | 6.7M × 0.1 × 2.5 vectors                  | 1.675M vectors        |
+| **Total**             | 6.03M + 1.675M                            | **7.705M vectors**     |
 
 - Assumes no chunking; each document up to 8192 tokens (OpenAI embedding model limit).
-- Using 1,024-dimensional embeddings, this results in a raw storage requirement of ~30 GB (float32 format).
+- Using 1,024-dimensional embeddings, each vector occupies **4 KB** (float32).
+- Storage requirement for raw vectors:  
+  
+  $7.705M \times 4\ \text{KB} \approx 30.8\ \text{GB}$
 
 ---
 
 ## 1.3 Cloud Reality Check
 
-| Dimension | Traditional Assumption         | Cloud Reality                                          |
-| :-------- | :----------------------------- | :---------------------------------------------------- |
-| Storage   | Local NVMe (μs latency)         | **Network-attached** EBS / persistent disks (ms latency) |
-| Memory    | 512 GB–1 TB RAM affordable once | Per-hour billing; 1 TB RAM ≈ \$6–7k per month         |
-| Scaling   | Single rack, static provisioning | **Elastic scaling and auto-recovery** expected        |
+| Dimension  | Traditional Assumption         | Cloud Reality (256 GB RAM Instance)                      |
+| :--------- | :----------------------------- | :------------------------------------------------------ |
+| Storage    | Local NVMe (μs latency)         | **Network-attached** EBS / persistent disks (ms latency) |
+| Memory     | 512 GB–1 TB RAM affordable once | RAM constrained to **256 GB**, high per-hour costs       |
+| Scaling    | Single rack, static provisioning | **Elastic scaling and auto-recovery** expected           |
 
 > **Key takeaway:**  
-> Most vector search systems (e.g., Faiss, HNSW, DiskANN) were optimized for on-premises NVMe-based servers,  
-> but **cloud-native deployments face fundamentally different cost and latency trade-offs**.
+> Existing vector search engines, optimized for abundant RAM and fast local disks, face significant cost and latency constraints in 256 GB cloud environments.
 
 ---
 
 # 2. HNSW Recap — Strengths & Inner Workings
 
 ## 2.1 Concept
-- **HNSW (Hierarchical Navigable Small-World Graph)** constructs a multi-layer graph structure:
-  - Sparse layers on top
-  - Dense base layer (level 0)
-- Query proceeds via greedy graph walks, descending layers until a local optimum is found.
+- **HNSW (Hierarchical Navigable Small-World Graph)** builds multi-layer graphs:
+  - Sparse upper layers
+  - Dense base layer
+- Greedy graph traversal from top layers to bottom achieves efficient approximate search.
 
 ## 2.2 Why It Shines
 
-| Property                | Effect                                    |
-| :---------------------- | :--------------------------------------- |
-| **Logarithmic search paths** | Sub-millisecond CPU even at billion scale |
-| **Strong graph locality**    | High recall (> 0.98) without exhaustive scan |
-| **Purely in-memory**         | No decompression, no disk access, minimal latency |
+| Property                     | Effect                                           |
+| :--------------------------- | :----------------------------------------------- |
+| **Logarithmic search paths** | Sub-millisecond CPU even at large scale          |
+| **Strong graph locality**    | High recall (> 0.98) without exhaustive scanning |
+| **Purely in-memory design**  | No decompression or disk access during search    |
 
 ## 2.3 Internal Parameters Cheat-Sheet
 
 | Symbol           | Typical Range | Purpose                          |
 | :--------------- | :------------ | :------------------------------- |
-| *M*              | 16–32          | Maximum neighbors per node       |
-| *efConstruction* | 200–400        | Graph quality vs build time trade-off |
-| *efSearch*       | 32–128         | Recall vs query CPU cost          |
+| *M*              | 16–32          | Max neighbors per node           |
+| *efConstruction* | 200–400        | Graph construction quality trade-off |
+| *efSearch*       | 32–128         | Search recall vs latency         |
 
 ---
 
 # 3. HNSW Cloud Pain-Points
 
 ## 3.1 Full-RAM Requirement
-- **Memory footprint estimation** (float32 format):
-  
-  \[
-  N \times d \times 4\ \text{bytes} + N \times M \times 4\ \text{bytes}
-  \]
 
-  Example for Wikipedia-scale:
-  - 7.7M vectors × 1024 dimensions → ~30 GB for vectors
-  - +6.4 GB for graph structure
-  - ⇒ **~36.4 GB total**
+Memory footprint estimation (float32 format):
 
-- Cloud RAM beyond 256 GB is extremely expensive, leading to massive OPEX at scale.
+\[
+N \times d \times 4\ \text{bytes} + N \times M \times 4\ \text{bytes}
+\]
+
+Example for Wikipedia-scale:
+
+- 7.7M vectors × 1024 dimensions → ~30.8 GB raw vectors
+- +6.4 GB for graph structure (M=32)
+- ⇒ **~37.2 GB total RAM** required
+
+- In practice, indexing additionally requires ~1.5–2× RAM due to working buffers, meaning peak RAM usage can reach **60–80 GB**.
+
+---
 
 ## 3.2 Random Access Pattern
-- HNSW graph traversal involves **non-sequential** memory accesses.
-- Under mmap, each miss triggers a **page fault** → 4–64 KB random reads on EBS volumes.
-- Empirical results:
-  - 1000 random 4 KB reads on AWS gp3 ≈ **10 ms p99** latency (vs <200 μs on NVMe).
+
+- HNSW graph traversal is non-sequential.
+- Each memory miss under mmap triggers a **page fault**, causing **4–64 KB random reads** on network-attached EBS volumes.
+- Empirical results show:
+  - 1000 random 4 KB reads on AWS gp3 ≈ **10 ms p99 latency** (vs <200 μs on NVMe).
+
+> Random disk I/O dominates latency unless the full graph resides in memory.
+
+---
 
 ## 3.3 Cost Explosion
 
 | Instance        | RAM Size | On-demand Cost (2025 AWS) |
 | :-------------- | :------- | :------------------------ |
-| r6i.2xlarge      | 64 GB    | \$340/month               |
-| r6i.32xlarge     | 1 TB     | \$5,500–7,000/month        |
+| r6i.2xlarge      | 64 GB    | \$340/month               |
+| r6i.8xlarge      | 256 GB   | \$1,350–1,600/month       |
 
 > **Observation:**  
-> Keeping the full HNSW index resident in RAM is **economically infeasible** for billion-scale datasets in cloud environments.
+> Even with 256 GB RAM instances, full in-memory indexing and search is feasible only for mid-scale datasets (e.g., ~7–25M vectors at 1024 dims).  
+> Billion-scale indexes become impractical without disk-resident augmentation.
+
+---
+
+## 3.4 RAM Overhead During Index Building — FAISS Example
+
+Even if the saved HNSW index is ~37 GB,  
+**index construction** phase uses far more RAM.
+
+Breakdown during FAISS HNSW indexing:
+
+| Component                    | Description                     | Size Estimate (7.7M vectors) |
+| :---------------------------- | :------------------------------ | :--------------------------- |
+| Raw vectors (float32)          | Full vector set                 | ~30.8 GB |
+| Neighbor links (graph)         | HNSW edges                      | ~6.4 GB |
+| Candidate pools and heaps     | Search buffers for each thread  | 10–20 GB |
+| Other malloc overhead         | Allocator slack, fragmentation  | 10–15 GB |
+| **Peak RAM usage**             | -                               | **~60–80 GB** |
+
+Thus, **indexing typically demands 1.5–2× the final saved size**.
+
+---
+
+## 3.5 Key Reasons for High RAM Usage During FAISS HNSW Indexing
+
+- **Dynamic Graph Construction:**  
+  - Insertions dynamically modify neighbor lists, requiring mutable in-memory structures.
+- **Multiple Working Buffers:**  
+  - Multi-threaded search and insertion use separate candidate buffers and priority queues.
+- **Low-Latency Full Dataset Access:**  
+  - Distance computations must happen in-memory for speed.
+- **Temporary RAM Peaks:**  
+  - RAM usage drops after build but peaks significantly during indexing.
+
+---
+
+## 3.6 RAM Budget Estimation for 256 GB Instances
+
+Given 256 GB RAM:
+
+- **50%** reserved for raw vectors (~128 GB)
+- **Remaining** accommodates graph links, candidate buffers, and overhead
+
+Thus:
+
+- Each 1024-dim float32 vector (4 KB) means:
+
+\[
+\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}
+\]
+
+- Considering safety margins for working memory:
+  - Practical safe capacity ≈ **25–28M vectors**
+
+| Component            | Estimate |
+| :------------------- | :-------- |
+| 1 vector size         | 4 KB |
+| Max vectors (raw math) | 32M |
+| Practical limit       | **~25–28M vectors** |
+
+> **Conclusion:**  
+> On a 256 GB RAM instance, indexing up to ~28 million 1024-dimensional vectors is feasible with FAISS HNSW.  
+> Beyond that, hybrid disk-resident approaches become necessary.
 
 ---
 
@@ -175,7 +244,34 @@
 | Compression          | None                 | FP16, PQ optional compression | ⚠  |
 | Deployment Model     | Single host          | Multi-node sharding + HA     | ⚠  |
 
-> **Motivation Statement:**  
-> *To enable billion-scale vector search in cloud-native environments, DiskANN must evolve: embracing dynamic storage layouts, smarter prefetching, compression strategies, and elastic multi-node deployment while preserving HNSW-level recall.*
+---
+
+# 7. Starling — Beyond DiskANN: Towards Cloud-Native Vector Search
+
+## 7.1 Key Innovations
+- **Segmented Graph Layout:**  
+  Instead of small 4 KB blocks, Starling groups nodes into larger **segments** to improve sequential access patterns.
+- **I/O-Optimal Search:**  
+  Query processing maximizes locality within a segment, reducing random I/O.
+- **Data-Aware Indexing:**  
+  During index build, vectors are grouped based on graph neighborhood proximity to optimize future I/O.
+- **Segment-Level Prefetching:**  
+  Coarser-grained prefetching improves SSD throughput under cloud storage constraints.
+
+## 7.2 Performance Gains (vs DiskANN)
+
+| Metric                 | DiskANN (baseline) | Starling | Improvement |
+| :---------------------- | :----------------- | :------- | :---------- |
+| I/O ops per query       | 8–10               | 5–6      | ~40% fewer I/Os |
+| p99 latency (EBS, 1M vec) | 10 ms              | 6–7 ms   | ~30–40% faster |
+| RAM usage               | Comparable         | Comparable | –
+
+## 7.3 Relevance to Cloud Environments
+- Segment-aware layout is better aligned with EBS/S3 I/O behavior (favoring larger sequential reads).
+- Prefetch optimization helps under limited IOPS constraints.
+- Reduces cost and tail-latency, crucial for production cloud deployments.
+
+> **Insight:**  
+> *Starling shows that true cloud-native vector search systems must rethink both storage granularity and access patterns beyond what DiskANN originally assumed.*
 
 ---
