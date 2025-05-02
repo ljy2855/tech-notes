@@ -12,137 +12,170 @@
 
 ---
 
-## 1. Introduction — Why VectorDB Matters
-### 1.1 AI Service Dependency
-- **Modern AI pipelines**—recommendation, semantic search, multimodal retrieval, RAG—*all* begin with a nearest‑neighbor query against **hundreds of millions** of high‑dimensional vectors.  
-- A **Vector Database (VectorDB)** therefore sits on the critical path: milliseconds won or lost here propagate directly to user‑visible latency or LLM token wait time.
+# 1. Introduction — Why VectorDB Matters
 
+## 1.1 AI Service Dependency
+- **Modern AI pipelines**—including recommendation systems, semantic search, multimodal retrieval, and RAG—*all* begin with a nearest-neighbor query against **hundreds of millions** of high-dimensional vectors.
+- A **Vector Database (VectorDB)** sits on the critical path: milliseconds won or lost here directly impact user-perceived latency, search relevance, or LLM token generation speed.
 
-### 1.2 Vector Dataset size 
-
-| 구분          | 계산식                                 | 결과                 |
-| :---------- | :---------------------------------- | :----------------- |
-| 짧은 문서 (90%) | 6.7M × 0.9 = 6.03M 문서 × 1 vector    | 6.03M vectors      |
-| 긴 문서 (10%)  | 6.7M × 0.1 = 0.67M 문서 × 2.5 vectors | 1.675M vectors     |
-| **합계**      | 6.03M + 1.675M                      | **7.705M vectors** |
-- chunking 없이 최대 input 8192 tokens 가정
-
-
-
-### 1.3 Cloud Reality Check  
-| Dimension | On‑prem Assumption                    | Cloud Reality                                            |
-| :-------- | :------------------------------------ | :------------------------------------------------------- |
-| Storage   | Local NVMe (μs latency)               | **Network‑attached** EBS / persistent disks (ms latency) |
-| Memory    | 512 GB–1 TB RAM nodes affordable once | Per‑hour billing; 1 TB RAM = \$6–7 k / month             |
-| Scaling   | Single rack                           | **Auto‑scaling & failover** expected                     |
-
-> **Key takeaway:** Algorithms tuned for on‑prem NVMe & cheap RAM face *new* cost/latency constraints in the cloud.
+> As highlighted in recent studies [Manu, 2022], retrieval performance is no longer an optimization, but a critical enabler for real-world AI deployment.
 
 ---
 
-## 2. HNSW Recap — Strengths & Inner Workings
-### 2.1 Concept
-- **HNSW (Hierarchical Navigable Small‑World Graph)** builds *L* layered graphs; upper layers are sparse, layer 0 is dense.  
-- Query: *greedy graph walk* from entry‑point to nearest neighbor, descending the hierarchy.
+## 1.2 Vector Dataset Size
 
-### 2.2 Why It Shines
-| Property | Effect |
-| --- | --- |
-| **log‑scale path length** | Sub‑millisecond CPU even at billion scale |
-| **Locality in graph** | High recall (> 0.98) without exhaustive search |
-| **Purely in‑memory** | No decompression / page faults during traversal |
+| Category         | Calculation                               | Result               |
+| :--------------- | :---------------------------------------- | :------------------- |
+| Short articles (90%) | 6.7M × 0.9 × 1 vector              | 6.03M vectors        |
+| Long articles (10%)  | 6.7M × 0.1 × 2.5 vectors           | 1.675M vectors       |
+| **Total**         | 6.03M + 1.675M                          | **7.705M vectors**   |
 
-### 2.3 Internals Cheat‑Sheet
-| Symbol | Typical Value | Role |
-| --- | --- | --- |
-| *M* | 16 – 32 | Max neighbors / node on layer 0 |
-| *efConstruction* | 200 – 400 | Graph quality / build time trade‑off |
-| *efSearch* | 32 – 128 | Recall ↔ CPU cost at query time |
+- Assumes no chunking; each document up to 8192 tokens (OpenAI embedding model limit).
+- Using 1,024-dimensional embeddings, this results in a raw storage requirement of ~30 GB (float32 format).
 
 ---
 
-## 3. HNSW Cloud Pain‑points
-### 3.1 Full‑RAM Requirement
-- **Storage math** (float32):  
-  $N × d × 4 \text{bytes} + N × M × 4 \text{bytes}$  
-  *e.g.* 7.7 M vectors × 1024 dims ⇒ **51.2 GB vectors + 6.4 GB edges ≈ 60 GB**.
-- Cloud RAM beyond 256 GB quickly jumps to *memory‑optimized* instance pricing tiers.
+## 1.3 Cloud Reality Check
 
-### 3.2 Random Access Pattern
-- Greedy walk touches neighbors that are *not* sequential in memory.  
-- With **mmap**, every miss triggers a page‑fault → **4–64 KB random reads** on EBS.
-- Empirical latency: 1000 random 4 KB reads on *gp3* ≈ **10 ms p99** vs < 200 µs on NVMe.
+| Dimension | Traditional Assumption         | Cloud Reality                                          |
+| :-------- | :----------------------------- | :---------------------------------------------------- |
+| Storage   | Local NVMe (μs latency)         | **Network-attached** EBS / persistent disks (ms latency) |
+| Memory    | 512 GB–1 TB RAM affordable once | Per-hour billing; 1 TB RAM ≈ \$6–7k per month         |
+| Scaling   | Single rack, static provisioning | **Elastic scaling and auto-recovery** expected        |
 
-### 3.3 Cost Explosion
-| Instance | RAM | On‑Demand \$ / mo (2025‑Q1 AWS) |
-| --- | --- | --- |
-| r6i.2xlarge | 64 GB | \$340 |
-| r6i.32xlarge | 1 TB | \$5 500–7 000 |
-
-> **Observation:** keeping the full HNSW index hot in RAM is **economically infeasible** beyond a few hundred million vectors.
+> **Key takeaway:**  
+> Most vector search systems (e.g., Faiss, HNSW, DiskANN) were optimized for on-premises NVMe-based servers,  
+> but **cloud-native deployments face fundamentally different cost and latency trade-offs**.
 
 ---
 
-## 4. IVF & PQ Quick Glance — Alternative Trade‑offs
-### 4.1 IVF (Inverted File Index)
-- **Procedure**: k‑means centroids (k≈√N) → search only *nprobe* closest lists.
-- **Pros**: Stores only *centroid IDs* in RAM; lists can live on disk.
-- **Cons**: If the correct neighbor lies outside probed lists → prec / recall drops.
+# 2. HNSW Recap — Strengths & Inner Workings
 
-### 4.2 Product Quantization (PQ/OPQ)
-- Splits vector into *m* sub‑spaces; each sub‑vector gets an 8‑bit code → **16×** compression (128 → 8 bytes).  
-- **Reconstruction distance** used instead of exact L2 → slight accuracy loss.
-- **Decoder cost**: table‑lookup + SIMD; ~50–100 ns per dot‑product.
+## 2.1 Concept
+- **HNSW (Hierarchical Navigable Small-World Graph)** constructs a multi-layer graph structure:
+  - Sparse layers on top
+  - Dense base layer (level 0)
+- Query proceeds via greedy graph walks, descending layers until a local optimum is found.
 
-### 4.3 Why They Don’t Fully Replace HNSW
-- Combined IVF‑PQ can reach **0.92–0.95 recall** but still behind HNSW’s 0.98+.  
-- Retrieval accuracy gap becomes bottleneck when feeding answers into LLMs (hallucination risk).
+## 2.2 Why It Shines
 
----
+| Property                | Effect                                    |
+| :---------------------- | :--------------------------------------- |
+| **Logarithmic search paths** | Sub-millisecond CPU even at billion scale |
+| **Strong graph locality**    | High recall (> 0.98) without exhaustive scan |
+| **Purely in-memory**         | No decompression, no disk access, minimal latency |
 
-## 5. DiskANN — What It Solved
-### 5.1 Core Idea
-- **RAM**: store *sampled navigational graph* (eg. upper layers or “centroids”).  
-- **SSD**: store full graph & vectors in **4 KB blocks** sorted by node ID.  
-- During search, expected ‹5–10› blocks read thanks to *prefetch on predicted path*.
+## 2.3 Internal Parameters Cheat-Sheet
 
-### 5.2 Local‑NVMe Results
-| Dataset | RAM ↓ | SSD QPS | p99 Latency |
-| --- | --- | --- | --- |
-| 1 B vectors (96 d) | 30 GB (vs 320 GB full RAM) | 4 000 | 5 ms |
-
-### 5.3 Mechanisms
-1. **Block Prefetch Queue** : frontier nodes’ blocks are asynchronously fetched.  
-2. **Euclidean pruning** : early‑exit if current best distance < block‑level lower‑bound.  
-3. **Thread‑local caches** : hot blocks pinned in DRAM.
+| Symbol           | Typical Range | Purpose                          |
+| :--------------- | :------------ | :------------------------------- |
+| *M*              | 16–32          | Maximum neighbors per node       |
+| *efConstruction* | 200–400        | Graph quality vs build time trade-off |
+| *efSearch*       | 32–128         | Recall vs query CPU cost          |
 
 ---
 
-## 6. DiskANN Gap in Cloud‑Native Environments
-### 6.1 Fixed 4 KB Block Size
-- EBS and GCP PD reach **peak throughput** at 64 KB+ sequential reads.  
-- 4 KB causes **fragmentation** → 16× more I/O ops for same logical path.
+# 3. HNSW Cloud Pain-Points
 
-### 6.2 Blind Prefetch Strategy
-- Prefetches every candidate frontier block with equal weight.  
-- Under limited cloud IOPS (eg. gp3 base 3 000 IOPS) this triggers *queue congestion* → blocks arrive **after** they are needed.
+## 3.1 Full-RAM Requirement
+- **Memory footprint estimation** (float32 format):
+  
+  \[
+  N \times d \times 4\ \text{bytes} + N \times M \times 4\ \text{bytes}
+  \]
 
-### 6.3 Missing Compression Path
-- Vectors are flushed as raw float32; SSD storage ≈ 60 GB/10 M vec.  
-- On S3 tiering, egress and PUT cost dominate TCO.
+  Example for Wikipedia-scale:
+  - 7.7M vectors × 1024 dimensions → ~30 GB for vectors
+  - +6.4 GB for graph structure
+  - ⇒ **~36.4 GB total**
 
-### 6.4 Single‑Node Assumption
-- Original paper targets “single Dell R730 + 8 NVMe”.  
-- No built‑in shard router, replication, or failover → incompatible with *Kubernetes / managed DB* deployment norms.
+- Cloud RAM beyond 256 GB is extremely expensive, leading to massive OPEX at scale.
 
-### 6.5 Summary Table
-| Design Aspect | DiskANN (orig.) | Cloud‑Native Requirement | Gap |
-| --- | --- | --- | --- |
-| Block Size | 4 KB fixed | Tunable (≥ 64 KB) | ⚠ |
-| Prefetch Policy | BFS frontier, equal pri. | IOPS‑aware, priority queue | ⚠ |
-| Compression | None | FP16/PQ optional | ⚠ |
-| Deployment | Single host | Elastic shards + HA | ⚠ |
+## 3.2 Random Access Pattern
+- HNSW graph traversal involves **non-sequential** memory accesses.
+- Under mmap, each miss triggers a **page fault** → 4–64 KB random reads on EBS volumes.
+- Empirical results:
+  - 1000 random 4 KB reads on AWS gp3 ≈ **10 ms p99** latency (vs <200 μs on NVMe).
 
-> **Motivation Statement:** *We need to rethink DiskANN’s storage layout and I/O heuristics so they embrace the constraints of networked cloud disks and multi‑node orchestration while preserving HNSW‑level recall.*
+## 3.3 Cost Explosion
+
+| Instance        | RAM Size | On-demand Cost (2025 AWS) |
+| :-------------- | :------- | :------------------------ |
+| r6i.2xlarge      | 64 GB    | \$340/month               |
+| r6i.32xlarge     | 1 TB     | \$5,500–7,000/month        |
+
+> **Observation:**  
+> Keeping the full HNSW index resident in RAM is **economically infeasible** for billion-scale datasets in cloud environments.
+
+---
+
+# 4. IVF & PQ Quick Glance — Alternative Trade-offs
+
+## 4.1 IVF (Inverted File Index)
+- Clusters vectors using k-means into √N centroids.
+- Search probes a small number (*nprobe*) of closest clusters only.
+- **Pros:** Great memory efficiency; scalable to billions of vectors.
+- **Cons:** Missed centroids lead to sharp recall drops.
+
+## 4.2 Product Quantization (PQ/OPQ)
+- Compresses vectors by dividing into *m* subspaces, quantizing each separately.
+- 16× compression typical (128-dim → 8 bytes).
+- **Pros:** Massive memory savings.
+- **Cons:** Approximate distances introduce errors; decoder overhead (~50–100 ns per comparison).
+
+## 4.3 Why IVF-PQ Doesn't Fully Replace HNSW
+- Even optimized IVF-PQ setups achieve only **0.92–0.95 recall**, falling short of HNSW (~0.98+).
+- Retrieval error can propagate, degrading downstream tasks like answer generation in RAG systems.
+
+---
+
+# 5. DiskANN — What It Solved
+
+## 5.1 Core Idea
+- Move most of the vector data and graph structure to **SSD**, leaving only entry points and coarse metadata in RAM.
+- Layout vectors into **4 KB blocks** sorted by node ID for sequential access.
+- Prefetch relevant blocks during search to minimize random I/O.
+
+## 5.2 Performance on Local NVMe
+
+| Dataset               | RAM Usage | SSD QPS  | p99 Latency |
+| :--------------------- | :-------- | :------ | :--------- |
+| 1B vectors (96 dim)     | 30 GB (vs 320 GB RAM) | 4000 QPS | ~5 ms |
+
+## 5.3 Key Techniques
+1. **Block Prefetch Queue:** Asynchronously load predicted graph blocks.
+2. **Euclidean Pruning:** Skip blocks if current best distance suffices.
+3. **Thread-local Hot Caches:** Keep frequently accessed nodes resident.
+
+---
+
+# 6. DiskANN Gap in Cloud-Native Environments
+
+## 6.1 Fixed 4 KB Block Size
+- EBS and S3 favor sequential reads ≥64 KB.
+- 4 KB blocks cause **excessive fragmentation** and **IOPS throttling** in cloud disks.
+
+## 6.2 Blind Prefetch Strategy
+- Uniform priority prefetch without IOPS-aware scheduling leads to **prefetch congestion**.
+
+## 6.3 Missing Compression Path
+- Raw float32 vectors occupy large storage.
+- For 10M vectors: ~40 GB storage cost (before replication or backup overhead).
+
+## 6.4 Single-Node Assumption
+- No built-in shard management, replication, or recovery.
+- Unsuitable for Kubernetes, multi-zone HA, or dynamic cloud scaling.
+
+## 6.5 Summary Table
+
+| Aspect              | DiskANN (Original)  | Cloud-Native Requirement  | Gap |
+| :------------------ | :------------------ | :------------------------- | :-- |
+| Block Size           | 4 KB fixed           | Tunable (≥64 KB)             | ⚠  |
+| Prefetch Policy      | Uniform frontier prefetch | Priority-aware, IOPS-sensitive | ⚠  |
+| Compression          | None                 | FP16, PQ optional compression | ⚠  |
+| Deployment Model     | Single host          | Multi-node sharding + HA     | ⚠  |
+
+> **Motivation Statement:**  
+> *To enable billion-scale vector search in cloud-native environments, DiskANN must evolve: embracing dynamic storage layouts, smarter prefetching, compression strategies, and elastic multi-node deployment while preserving HNSW-level recall.*
 
 ---
