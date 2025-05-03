@@ -131,3 +131,32 @@ disk
 	-  faiss `IndexHNSWPQ` vs `IndexHNSWFlat`
 
 
+
+
+```
+┌────────────────────────────────────────────┐
+│ **Node 1**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 2**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 3**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ ... (More Nodes)                           │
+├────────────────────────────────────────────┤
+│ **Metadata**                               │
+│ Node IDs included in segment               │ → e.g., {Node 1, Node 2, Node 3..}
+│ Segment Offset Map                         │ → {Node 1 @ 0B, Node 2 @ 1KB, ...}
+│ Checksum / Validation Data                 │ → For data integrity
+│ Reserved Space for future use              │
+└────────────────────────────────────────────┘
+
+```
