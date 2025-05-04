@@ -4,12 +4,10 @@
 - 연구배경
 - 연구목표
 - 향후 연구 계획 (주별로 작성)
-
----
 ### 1. Introduction — Why VectorDB Matters
 
 
-#### 1.2 Vector Dataset Size
+#### 1.1 Vector Dataset Size
 
 VectorDB usage in RAG system. Assumption knowledge base like wikipedia
 
@@ -25,9 +23,8 @@ VectorDB usage in RAG system. Assumption knowledge base like wikipedia
   
   $7.705M \times 4\ \text{KB} \approx 30.8\ \text{GB}$
 
----
 
-### 1.3 Cloud Reality Check
+### 1.2 Cloud Reality Check
 
 | Dimension | Traditional Assumption           | Cloud Reality (256 GB RAM Instance)                      |
 | :-------- | :------------------------------- | :------------------------------------------------------- |
@@ -38,7 +35,6 @@ VectorDB usage in RAG system. Assumption knowledge base like wikipedia
 > **Key takeaway:**  
 > Existing vector search engines, optimized for abundant RAM and fast local disks, face significant cost and latency constraints in 256 GB cloud environments.
 
----
 
 ### 2. HNSW Recap — Strengths & Inner Workings
 
@@ -64,7 +60,6 @@ VectorDB usage in RAG system. Assumption knowledge base like wikipedia
 | *efConstruction* | 200–400       | Graph construction quality trade-off |
 | *efSearch*       | 32–128        | Search recall vs latency             |
 
----
 
 ### 3. HNSW Cloud Pain-Points
 
@@ -82,7 +77,6 @@ Example for Wikipedia-scale:
 
 - In practice, indexing additionally requires ~1.5–2× RAM due to working buffers, meaning peak RAM usage can reach **60–80 GB**.
 
----
 
 #### 3.2 Random Access Pattern
 
@@ -93,7 +87,6 @@ Example for Wikipedia-scale:
 
 > Random disk I/O dominates latency unless the full graph resides in memory.
 
----
 
 #### 3.3 Cost Explosion
 
@@ -101,12 +94,12 @@ Example for Wikipedia-scale:
 | :---------- | :------- | :------------------------ |
 | r6i.2xlarge | 64 GB    | \$340/month               |
 | r6i.8xlarge | 256 GB   | \$1,350–1,600/month       |
+|             |          |                           |
 
 > **Observation:**  
 > Even with 256 GB RAM instances, full in-memory indexing and search is feasible only for mid-scale datasets (e.g., ~7–25M vectors at 1024 dims).  
 > Billion-scale indexes become impractical without disk-resident augmentation.
 
----
 
 #### 3.4 RAM Overhead During Index Building — FAISS Example
 
@@ -125,7 +118,6 @@ Breakdown during FAISS HNSW indexing:
 
 Thus, **indexing typically demands 1.5–2× the final saved size**.
 
----
 
 #### 3.5 Key Reasons for High RAM Usage During FAISS HNSW Indexing
 
@@ -138,7 +130,6 @@ Thus, **indexing typically demands 1.5–2× the final saved size**.
 - **Temporary RAM Peaks:**  
   - RAM usage drops after build but peaks significantly during indexing.
 
----
 
 #### 3.6 RAM Budget Estimation for 256 GB Instances
 
@@ -166,7 +157,6 @@ $\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}$
 > On a 256 GB RAM instance, indexing up to ~28 million 1024-dimensional vectors is feasible with FAISS HNSW.  
 > Beyond that, hybrid disk-resident approaches become necessary.
 
----
 
 ### 4. IVF & PQ Quick Glance — Alternative Trade-offs
 
@@ -186,7 +176,6 @@ $\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}$
 - Even optimized IVF-PQ setups achieve only **0.92–0.95 recall**, falling short of HNSW (~0.98+).
 - Retrieval error can propagate, degrading downstream tasks like answer generation in RAG systems.
 
----
 
 ### 5. DiskANN — What It Solved
 
@@ -206,7 +195,6 @@ $\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}$
 2. **Euclidean Pruning:** Skip blocks if current best distance suffices.
 3. **Thread-local Hot Caches:** Keep frequently accessed nodes resident.
 
----
 
 ### 6. DiskANN Gap in Cloud-Native Environments
 
@@ -233,33 +221,38 @@ $\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}$
 | Prefetch Policy  | Uniform frontier prefetch | Priority-aware, IOPS-sensitive |
 | Deployment Model | Single host               | Multi-node sharding + HA       |
 
----
+#### 6.6 Improve DiskANN on Cloud Environment
+- DiskANN are optimized prefetch with request small size IO (4kb block size)
+- frequent small size IO can be bottleneck on cloud storage like `EBS gp3`
 
-### 7. Starling — Beyond DiskANN: Towards Cloud-Native Vector Search
+![[Pasted image 20250504164023.png]]
 
-#### 7.1 Key Innovations
-- **Segmented Graph Layout:**  
-  Instead of small 4 KB blocks, Starling groups nodes into larger **segments** to improve sequential access patterns.
-- **I/O-Optimal Search:**  
-  Query processing maximizes locality within a segment, reducing random I/O.
-- **Data-Aware Indexing:**  
-  During index build, vectors are grouped based on graph neighborhood proximity to optimize future I/O.
-- **Segment-Level Prefetching:**  
-  Coarser-grained prefetching improves SSD throughput under cloud storage constraints.
-
-#### 7.2 Performance Gains (vs DiskANN)
-
-| Metric                    | DiskANN (baseline) | Starling   | Improvement     |
-| :------------------------ | :----------------- | :--------- | :-------------- |
-| I/O ops per query         | 8–10               | 5–6        | ~40% fewer I/Os |
-| p99 latency (EBS, 1M vec) | 10 ms              | 6–7 ms     | ~30–40% faster  |
-| RAM usage                 | Comparable         | Comparable | –               |
-
-#### 7.3 Relevance to Cloud Environments
-- Segment-aware layout is better aligned with EBS/S3 I/O behavior (favoring larger sequential reads).
-- Prefetch optimization helps under limited IOPS constraints.
-- Reduces cost and tail-latency, crucial for production cloud deployments.
-
-> **Insight:**  
-> *Starling shows that true cloud-native vector search systems must rethink both storage granularity and access patterns beyond what DiskANN originally assumed.*
+- How about bigger block packing to segment?  
+```
+(example segment)
+┌────────────────────────────────────────────┐
+│ **Node 1**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 2**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 3**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ ... (More Nodes)                           │
+├────────────────────────────────────────────┤
+│ **Metadata**                               │
+│ Node IDs included in segment               │ → e.g., {Node 1, Node 2, Node 3..}
+│ Segment Offset Map                         │ → {Node 1 @ 0B, Node 2 @ 1KB, ...}
+│ Checksum / Validation Data                 │ → For data integrity
+│ Reserved Space for future use              │
+└────────────────────────────────────────────┘
+```
 
