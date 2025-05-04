@@ -1,50 +1,51 @@
 
 
-## 1주차
+## 1주차 (Review OpenSearch usage)
 
-- 금주 수행한 내용
+#### 금주 수행한 내용
 
-1. OpenSearch based `Faiss HNSW 인덱싱` 로직 분석
-	- 벡터 인덱싱 시 그래프 구조가 디스크에 저장되며, **검색 시 메모리에 적재되는 방식 확인**
-	- 인덱싱 및 검색 시 파라미터가 **메모리 사용량과 검색 성능(latency, accuracy) 직접적인 영향을 미침을 확인함**
-		- `m`: 각 노드가 유지하는 연결(edge)의 수 → 높을수록 recall 상승, **메모리 사용 증가**
-		- `ef_construction`: 인덱싱 시 그래프 탐색 폭 → 인덱스 정확도 상승, 인덱싱 시간 증가
-		- `ef_search`: 검색 시 탐색 범위 → 높을수록 정확도 상승, latency 증가
-		- `dimension`: 그래프 노드에 해당 벡터 값 저장 -> 높을수록 **메모리 사용량 증가**
-	- 인덱싱 파라미터 (`m`, `dimension`) 가 메모리 사용량에 미치는 영향 분석
-		- 노드 하나당 메모리 사용량 근사 : `(d * 4 + M * 2 * 4) bytes`
-		- _d_(Dimension size) * 4(float type size)
-		- _M_(neigbor count) * 2(bidirectional edge) * 4(node address size)
-		- d = 1024, M = 16, nodes: 1.7M 
-			-  **(1024 * 4 + 16 * 4 * 2) * 1.7M (bytes) ~= 7.1808 GB**
+**OpenSearch based `Faiss HNSW 인덱싱` 로직 분석**
+- 벡터 인덱싱 시 그래프 구조가 디스크에 저장되며, **검색 시 메모리에 적재되는 방식 확인**
+- 인덱싱 및 검색 시 파라미터가 **메모리 사용량과 검색 성능(latency, accuracy) 직접적인 영향을 미침을 확인함**
+	- `m`: 각 노드가 유지하는 연결(edge)의 수 → 높을수록 recall 상승, **메모리 사용 증가**
+	- `ef_construction`: 인덱싱 시 그래프 탐색 폭 → 인덱스 정확도 상승, 인덱싱 시간 증가
+	- `ef_search`: 검색 시 탐색 범위 → 높을수록 정확도 상승, latency 증가
+	- `dimension`: 그래프 노드에 해당 벡터 값 저장 -> 높을수록 **메모리 사용량 증가**
+- 인덱싱 파라미터 (`m`, `dimension`) 가 메모리 사용량에 미치는 영향 분석
+	- 노드 하나당 메모리 사용량 근사 : `(d * 4 + M * 2 * 4) bytes`
+	- _d_(Dimension size) * 4(float type size)
+	- _M_(neigbor count) * 2(bidirectional edge) * 4(node address size)
+	- d = 1024, M = 16, nodes: 1.7M 
+		-  **(1024 * 4 + 16 * 4 * 2) * 1.7M (bytes) ~= 7.1808 GB**
 
-2. Production 환경에서 vector DB serving시, 고려해야하는 요소 확인
-	- 실서비스 환경에서의 주요 고려 사항 파악
-		- **벡터 인덱스의 메모리 상주 여부**    
-			[Faiss HNSW 알고리즘의 경우 **그래프 정보**만을 메모리상에 올려놓고 search 진행](https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index#is-memory-a-concern)
-		- **production 샤딩 전략 및 부하 분산**
-			production 환경에서는 고가용성을 보장하기 위해, 멀티노드 샤딩 전략을 사용 
-			최소한의 가용성을 보장하기 위해 `shard count = node count` , `replica = 1`을 사용
-			![[Pasted image 20250323160006.png]]
-			이 때, replica에도 primary shard의 index 정보를 copy하기에 **knn index 메모리를 두배**로 사용 (alwaysLoadKnnIndex default true)
-	
-			**실제 production 환경에서 총 indexing memory만 15GB 필요**
-		- **Document embedding시 chuncking**
-			- embedding model의 input size 및 맥락을 위해 문서를 쪼개는 chunking 과정 진행
-			- 때문에 **하나의 문서당 여러개의 벡터로 표현** -> **vector 갯수 증가** -> 메모리 사용 증가
 
-- 내주 수행할 내용
+**Production 환경에서 vector DB serving시, 고려해야하는 요소 확인**
+- 실서비스 환경에서의 주요 고려 사항 파악
+	- **벡터 인덱스의 메모리 상주 여부**    
+		[Faiss HNSW 알고리즘의 경우 **그래프 정보**만을 메모리상에 올려놓고 search 진행](https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index#is-memory-a-concern)
+	- **production 샤딩 전략 및 부하 분산**
+		production 환경에서는 고가용성을 보장하기 위해, 멀티노드 샤딩 전략을 사용 
+		최소한의 가용성을 보장하기 위해 `shard count = node count` , `replica = 1`을 사용
+		![[Pasted image 20250323160006.png]]
+		이 때, replica에도 primary shard의 index 정보를 copy하기에 **knn index 메모리를 두배**로 사용 (alwaysLoadKnnIndex default true)
 
-2. **vectorDB HNSW 인덱싱 메모리 이슈 문제 실험 및 수치화**
-	- HNSW 그래프가 메모리에 상주해야 하는 구조적 특성으로 인한 서비스 상의 문제점 정리
-	- 예상 시나리오:
-	    - 다수의 샤드/노드에 대용량 벡터 인덱스를 분산 배치했을 때의 메모리 소비 패턴
-	- 실험 계획:
-	    - 벡터 개수, dimension, 파라미터별 메모리 사용량 및 검색 latency 수치화
-	    - 벡터 수 증가에 따른 메모리 사용량 곡선 도출 (e.g., 1M, 10M, 100M vectors)
-3. **해결 방안 서치**
-	- vector qunatization으로 가능한가?
-	- disk based indexing으로 해결 가능한가?
+		**실제 production 환경에서 총 indexing memory만 15GB 필요**
+	- **Document embedding시 chuncking**
+		- embedding model의 input size 및 맥락을 위해 문서를 쪼개는 chunking 과정 진행
+		- 때문에 **하나의 문서당 여러개의 벡터로 표현** -> **vector 갯수 증가** -> 메모리 사용 증가
+
+#### 내주 수행할 내용
+
+**vectorDB HNSW 인덱싱 메모리 이슈 문제 실험 및 수치화**
+- HNSW 그래프가 메모리에 상주해야 하는 구조적 특성으로 인한 서비스 상의 문제점 정리
+- 예상 시나리오:
+	- 다수의 샤드/노드에 대용량 벡터 인덱스를 분산 배치했을 때의 메모리 소비 패턴
+- 실험 계획:
+	- 벡터 개수, dimension, 파라미터별 메모리 사용량 및 검색 latency 수치화
+	- 벡터 수 증가에 따른 메모리 사용량 곡선 도출 (e.g., 1M, 10M, 100M vectors)
+**해결 방안 서치**
+- vector qunatization으로 가능한가?
+- disk based indexing으로 해결 가능한가?
 
 
 
@@ -53,9 +54,9 @@ https://arxiv.org/abs/2405.03267
 https://proceedings.neurips.cc/paper_files/paper/2019/file/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Paper.pdf
 
 
----
 
-## 2주차
+---
+## 2주차 (Opensearch load experiment)
 
 
 **질문#1) Milvus를 사용했나요? VM 노드 세개에 deploy를 한 것 같은데, FAISS를 어떻게 사용했는지, 알려주세요.**
@@ -192,9 +193,9 @@ next_token null
 	- disk based indexing으로 해결 가능한가? https://arxiv.org/abs/2310.00402
 
 
----
 
-## 3주차
+---
+## 3주차 (OpenSearch inner HNSW indexing)
 
 
 ### 금주 수행한 내용
@@ -248,10 +249,9 @@ https://aws.amazon.com/ko/blogs/big-data/lower-your-amazon-opensearch-service-st
 	- DPU를 통해서 file cache처럼 쓸 수 있지 않을까?
 
 
+
 ---
-
-## 4주차
-
+## 4주차 (Faiss HNSW indexing)
 
 
 ### 금주 수행한 내용
@@ -367,9 +367,9 @@ int main() {
 	- https://dl.acm.org/doi/abs/10.5555/3454287.3455520
 
 
----
 
-## 5주차
+---
+## 5주차 (DiskANN review)
 
 ### 금주 수행한 내용
 
@@ -493,8 +493,9 @@ disk
 	- DiskANN 기본 설계로는 저장 불가능 → PQ 압축 필요
 - 실제 구현을 확인해보면 1024차원이 넘으면 압축해서 disk에 저장하도록 옵션 제공 -> recall 하락
 
-> DiskANN parameter
-	**PQ_disk_bytes** (default is 0): Use 0 to store uncompressed data on SSD. This allows the index to asymptote to 100% recall. If your vectors are too large to store in SSD, this parameter provides the option to compress the vectors using PQ for storing on SSD. This will trade off recall. You would also want this to be greater than the number of bytes used for the PQ compressed data stored in-memory
+> **DiskANN parameter**
+> **PQ_disk_bytes** (default is 0): Use 0 to store uncompressed data on SSD. This allows the index to asymptote to 100% recall. If your vectors are too large to store in SSD, this parameter provides the option to compress the vectors using PQ for storing on SSD. This will trade off recall. You would also want this to be greater than the number of bytes used for the PQ compressed data stored in-memory
+
 
 ### 차주 수행할 내용
 - product quantization으로 고차원 벡터에서도 recall이 유지되는지 실험
@@ -503,8 +504,7 @@ disk
 
 
 ---
-
-## 6주차
+## 6주차 (Proposal presentation)
 
 
 ### 1. Introduction — Why VectorDB Matters
@@ -597,6 +597,7 @@ Example for Wikipedia-scale:
 | :---------- | :------- | :------------------------ |
 | r6i.2xlarge | 64 GB    | \$340/month               |
 | r6i.8xlarge | 256 GB   | \$1,350–1,600/month       |
+|             |          |                           |
 
 > **Observation:**  
 > Even with 256 GB RAM instances, full in-memory indexing and search is feasible only for mid-scale datasets (e.g., ~7–25M vectors at 1024 dims).  
@@ -723,32 +724,38 @@ $\frac{128\ \text{GB}}{4\ \text{KB}} \approx 32M\ \text{vectors}$
 | Prefetch Policy  | Uniform frontier prefetch | Priority-aware, IOPS-sensitive |
 | Deployment Model | Single host               | Multi-node sharding + HA       |
 
+#### 6.6 Improve DiskANN on Cloud Environment
+- DiskANN are optimized prefetch with request small size IO (4kb block size)
+- frequent small size IO can be bottleneck on cloud storage like `EBS gp3`
 
-### 7. Starling — Beyond DiskANN: Towards Cloud-Native Vector Search
+![[Pasted image 20250504164023.png]]
 
-#### 7.1 Key Innovations
-- **Segmented Graph Layout:**  
-  Instead of small 4 KB blocks, Starling groups nodes into larger **segments** to improve sequential access patterns.
-- **I/O-Optimal Search:**  
-  Query processing maximizes locality within a segment, reducing random I/O.
-- **Data-Aware Indexing:**  
-  During index build, vectors are grouped based on graph neighborhood proximity to optimize future I/O.
-- **Segment-Level Prefetching:**  
-  Coarser-grained prefetching improves SSD throughput under cloud storage constraints.
-
-#### 7.2 Performance Gains (vs DiskANN)
-
-| Metric                    | DiskANN (baseline) | Starling   | Improvement     |
-| :------------------------ | :----------------- | :--------- | :-------------- |
-| I/O ops per query         | 8–10               | 5–6        | ~40% fewer I/Os |
-| p99 latency (EBS, 1M vec) | 10 ms              | 6–7 ms     | ~30–40% faster  |
-| RAM usage                 | Comparable         | Comparable | –               |
-
-#### 7.3 Relevance to Cloud Environments
-- Segment-aware layout is better aligned with EBS/S3 I/O behavior (favoring larger sequential reads).
-- Prefetch optimization helps under limited IOPS constraints.
-- Reduces cost and tail-latency, crucial for production cloud deployments.
-
-> **Insight:**  
-> *Starling shows that true cloud-native vector search systems must rethink both storage granularity and access patterns beyond what DiskANN originally assumed.*
+- How about bigger block packing to segment?  
+```
+(example segment)
+┌────────────────────────────────────────────┐
+│ **Node 1**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 2**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ **Node 3**                                 │
+│ Full-precision Vector (128D float32)       │ → 512B
+│ Neighbor List (R=64, Node IDs)             │ → 256B
+│ Padding / Reserved Space                   │ → 256B (alignment to 1KB)
+├────────────────────────────────────────────┤
+│ ... (More Nodes)                           │
+├────────────────────────────────────────────┤
+│ **Metadata**                               │
+│ Node IDs included in segment               │ → e.g., {Node 1, Node 2, Node 3..}
+│ Segment Offset Map                         │ → {Node 1 @ 0B, Node 2 @ 1KB, ...}
+│ Checksum / Validation Data                 │ → For data integrity
+│ Reserved Space for future use              │
+└────────────────────────────────────────────┘
+```
 
