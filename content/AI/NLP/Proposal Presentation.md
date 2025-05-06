@@ -66,3 +66,8 @@ Based on a 10-point scale (weights can be adjusted):
 | Outcome & Evaluation Plan     | Are the expected results and evaluation methods clearly stated?           | 1 pt   |
 
 ---
+
+
+
+edmdias/amfam-chatbot-intent-dataset
+dipesh/Intent-Classification-small
