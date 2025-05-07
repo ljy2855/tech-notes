@@ -68,8 +68,3 @@ Based on a 10-point scale (weights can be adjusted):
 ---
 
 
-
-edmdias/amfam-chatbot-intent-dataset
-dipesh/Intent-Classification-small
-Bhuvaneshwari/intent_classification
-SetFit/amazon_massive_intent_en-US
