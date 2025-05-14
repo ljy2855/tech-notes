@@ -96,8 +96,6 @@ https://docs.libuv.org/en/v1.x/design.html
 ![[Pasted image 20250404021610.png]]
 
 - 요놈이 nodejs 에서 event loop로 사용되는 c 라이브러리
-- 
-
 ![[Pasted image 20250514145930.png]]
 #### multiplexing I/O
 - 결국 비동기처리는 1 process, 1 thread에서 socket IO를 감지하고  
@@ -197,5 +195,6 @@ tomcat version 9부터 NIO만 지원
 
 ![[Pasted image 20250514173942.png]]
 
-- node
+#### Etc
+- nodejs
 - nginx
