@@ -1,4 +1,32 @@
 
+### Background
+
+- system progamming
+	- prj2
+	- socket server
+		- multi process
+			- ~1990 apache  ws
+		- multi thread (vs thread pool)
+		- select I/O multiplexing
+			- 2000년 초반 ngnix ws
+	- ws vs was
+		- web 초반에는 static file serving
+			- html, css, js 던져주거나
+			- 이미지파일 제공
+		- application
+			- spring boot 같이, 어플리케이션 기반 앱들
+				- 로그인 같은 기능을 추가한다던가?
+				- state-full하게 정보를 들어있어야 한다던가
+				- DB 연결한다던가?
+			- web application sever (was)
+				- apache, nginx cgi
+				- uvicorn, tomcat, netty
+	- 
+
+
+
+---
+
 ### 배경
 저번 세미나 리마인드 [[Bad logging]]
 
