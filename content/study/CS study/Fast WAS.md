@@ -21,7 +21,6 @@
 			- web application sever (was)
 				- apache, nginx cgi
 				- uvicorn, tomcat, netty
-	- 
 
 
 
@@ -103,9 +102,6 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 - 왜 gunicorn(python was)s thread pool을 쓰지 않고 여러 worker를 띄울까?
 	- GIL 때문에 결국 병렬처리에서 손해
 - multi thread가 안되면, 비동기 처리로 해볼까?
-
-
-
 
 ### uvloop
 
@@ -224,5 +220,16 @@ tomcat version 9부터 NIO만 지원
 ![[Pasted image 20250514173942.png]]
 
 #### Etc
-- nodejs
-- nginx
+- nodejs (was 역할을 하는 애들)
+- nginx (ws)
+
+
+### 교훈
+- network IO (socket level)은 비동기 처리가 성능상 국룰이다~
+- 
+
+---
+
+질문
+- Netty vs tomcat 
+	- tomcat은 또 NIO 쓸꺼면 왜 Netty 안쓰고 tomcat을 쓰는건가?
