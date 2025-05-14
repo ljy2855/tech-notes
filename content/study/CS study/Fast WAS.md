@@ -191,4 +191,5 @@ tomcat version 9부터 NIO만 지원
 
 ![[Pasted image 20250514173942.png]]
 
+- node
 - nginx
