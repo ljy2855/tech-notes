@@ -22,7 +22,11 @@ async def async_endpoint():
 
 - sync , async endpoint를 어떤식으로 처리하길래?
 - 파이썬 비동기 프레임워크에서 http request를 어떻게 handling 할까?
+
+
 ### Uvicorn
+
+![[Pasted image 20250514194641.png]]
 
 #### starlette 
 
@@ -73,14 +77,16 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 - multi thread가 안되면, 비동기 처리로 해볼까?
 
 
+
+
 ### uvloop
+
+![[Pasted image 20250514195219.png]]
 
 - asyncIO 와 event loop을 통해 비동기 처리를 구현한 것은 동일
 	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 굳
 - fs, socket IO에 대한 작업들을 이벤트 루프로 처리함
-
-
-
+![[Pasted image 20250514194806.png]]
 
 ### libuv
 https://docs.libuv.org/en/v1.x/design.html
