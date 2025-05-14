@@ -68,7 +68,7 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 ![[Pasted image 20250404163333.png]]
 
 ![[Pasted image 20250404163633.png]]
-- 왜 Python은 thread pool을 쓰지 않고 여러 worker를 띄울까?
+- 왜 gunicorn(python was)s thread pool을 쓰지 않고 여러 worker를 띄울까?
 	- GIL 때문에 결국 병렬처리에서 손해
 - multi thread가 안되면, 비동기 처리로 해볼까?
 
@@ -178,6 +178,17 @@ out:
 
 ### usage
 
+- tomcat
+![[Pasted image 20250514171802.png]]
+![[Pasted image 20250514171828.png]]
+
+![[Pasted image 20250514172627.png]]
+
+![[Pasted image 20250514171840.png]]
+
+tomcat version 9부터 NIO만 지원
+![[Pasted image 20250514172333.png]]
+
+![[Pasted image 20250514173942.png]]
+
 - nginx
-
-

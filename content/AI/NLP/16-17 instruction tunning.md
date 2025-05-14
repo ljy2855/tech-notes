@@ -26,3 +26,14 @@ LM이 many task를 동시에 잘하게 하려면 어떻게 해야할까?
 
 Massive Multitask Langauge Understanding (MMLU)
 
+
+
+### RL
+과거에는 최적화가 어려웠음 -> 학습에는 어려움
+
+- reward를 최대화 하기 위해서, gradient ascent를 해야했는데, 미분이 힘들었음
+
+
+PPO라는 RL 알고리즘을 통해서 transformer, neural network에서 쉬워졌다
+
+
