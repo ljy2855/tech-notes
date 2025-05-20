@@ -19,7 +19,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 **DB**
 - DBMS Buffer Pool
-- adaptive hash index
+- **adaptive hash index**
 - Write-Ahead Log 
 - Memtable
 
@@ -82,3 +82,19 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 - 인접한 메모리 영역들을 남겨둘까? -> **Spatial locality**
 
 하나씩 실제 커널이 어떻게 해결했는지 확인해보자
+
+**context switch flush overhead**
+- TLB entry에 PCID (process context ID)를 저장해서 구분함
+
+**Temporal Locality**
+- LRU 알고리즘을 통해서 오래된 entry를 추출 (최근에는 `MGLRU` 활용)
+
+**Spatial Locality**
+- 4kb 페이지 단위로 인접한 메모리 영역 가져옴
+- 가상 메모리상 인접한 page들을 prefetch하기도 함
+
+
+### Adaptive hash index
+
+
+
