@@ -1,0 +1,1 @@
+![[Lec18-19-adapatation.pdf]]
