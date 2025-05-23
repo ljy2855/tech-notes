@@ -20,8 +20,6 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 **DB**
 - DBMS Buffer Pool
 - **adaptive hash index**
-- Write-Ahead Log 
-- Memtable
 
 **Application**
 - in-memory storage (Redis, Memcached)
@@ -96,5 +94,17 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 ### Adaptive hash index
 
+> 왜 필요할까?
 
+일반적으로 Mysql InnoDB 기준으로 default로 pk로 Cluster index를 가짐
 
+- B tree 기반 인덱스
+- 기본적으로 index는 disk에 저장함
+- read 시, O(logN) 으로 검색 가능
+- lead node에 row들이 정렬되어 있어, range read에 유리함
+
+다만 B tree의 구조상, 자주 조회되는 특정 key들이 있다면 **매번 B tree를 찾아가야 할까?**
+
+물론 자주 접근되는 인덱스들은 memory 상에 캐시되어(파일시스템 page cache) 디스크로부터 가져오는 번거로움은 덜겠지만 매번 O(logN) 탐색을 해야하긴 문제가 있음
+
+이를 위해 도입되는게 Adaptive hash index
