@@ -37,4 +37,3 @@ SAN (Storage Attached Network)
 
 ### 차주 수행할 내용
 - EBS (gp3) vs 로컬 NVMe 간 4KB random read latency 및 throughput 비교
--  DiskANN cloud 상 disk Latency 실험 (Local NVME와의 차이 중점)
