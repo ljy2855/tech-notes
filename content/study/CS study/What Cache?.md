@@ -11,7 +11,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 **hardware**
 - CPU L1, L2, L3 cache
-- physical address cache (TLB)
+- **physical address cache (TLB)**
 
 **OS**
 - filesystem page cache
