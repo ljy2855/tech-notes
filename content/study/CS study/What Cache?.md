@@ -131,7 +131,7 @@ new () -> heap영역에 저장되는 데이터
 
 물론 자주 접근되는 인덱스들은 memory 상에 캐시되어(파일시스템 page cache) 디스크로부터 가져오는 번거로움은 덜겠지만 매번 O(logN) 탐색을 해야하긴 문제가 있음
 
-이를 위해 도입되는게 `Adaptive hash index` (key를 기준으로! (Name))
+이를 위해 도입되는게 `Adaptive hash index` (key를 기준으로!)
 
 
 > The adaptive hash index enables `InnoDB` to perform more like an in-memory database on systems with appropriate combinations of workload and sufficient memory for the buffer pool without sacrificing transactional features or reliability. The adaptive hash index is disabled by the [`innodb_adaptive_hash_index`](https://dev.mysql.com/doc/refman/8.4/en/innodb-parameters.html#sysvar_innodb_adaptive_hash_index) variable, or turned on at server startup by `--innodb-adaptive-hash-index`.
