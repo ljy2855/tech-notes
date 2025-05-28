@@ -68,7 +68,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
                             +-----+
 ```
 
-- 해당 page table들도 모두 메모리에 (4kb page 단위로) 올라가있음
+- 해당 page table들도 모두 메모리에 (page 단위로) 올라가있음
 - 변환시에 최소 4번의 메모리 접근을 해야함
 - 때문에 TLB에 physical memory를 저장해서 메모리 접근을 줄인다!
 
@@ -85,7 +85,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 - TLB entry에 PCID (process context ID)를 저장해서 구분함
 
 **Temporal Locality**
-- LRU 알고리즘을 통해서 오래된 entry를 추출 (최근에는 `MGLRU` 활용)
+- LRU 알고리즘을 통해서 오래된 entry를 추출
 
 **Spatial Locality**
 - 4kb 페이지 단위로 인접한 메모리 영역 가져옴
@@ -96,12 +96,14 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 > 왜 필요할까?
 
-일반적으로 Mysql InnoDB 기준으로 default로 pk로 Cluster index를 가짐
+일반적으로 Mysql InnoDB 기준으로 default로 pk로 Clustered index를 가짐
 
 - B tree 기반 인덱스
 - 기본적으로 index는 disk에 저장함
 - read 시, O(logN) 으로 검색 가능
 - lead node에 row들이 정렬되어 있어, range read에 유리함
+
+![[Pasted image 20250528163137.png]]
 
 다만 B tree의 구조상, 자주 조회되는 특정 key들이 있다면 **매번 B tree를 찾아가야 할까?**
 
