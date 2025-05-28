@@ -97,6 +97,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 > 왜 필요할까?
 
+#### B tree index
 일반적으로 Mysql InnoDB 기준으로 default로 pk로 Clustered index를 가짐
 
 - B tree 기반 인덱스
@@ -109,6 +110,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 ![[Pasted image 20250528163137.png]]
 *요건 사실 secondary*
 
+#### 동일한 키를 매번 인덱스를 타야하나?
 
 다만 B tree의 구조상, 자주 조회되는 특정 key들이 있다면 **매번 B tree를 찾아가야 할까?**
 
