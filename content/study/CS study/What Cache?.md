@@ -91,6 +91,7 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 - 4kb 페이지 단위로 인접한 메모리 영역 가져옴
 - 가상 메모리상 인접한 page들을 prefetch하기도 함
 
+---
 
 ### Adaptive hash index
 
@@ -103,7 +104,11 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 - read 시, O(logN) 으로 검색 가능
 - lead node에 row들이 정렬되어 있어, range read에 유리함
 
+
+
 ![[Pasted image 20250528163137.png]]
+*요건 사실 secondary*
+
 
 다만 B tree의 구조상, 자주 조회되는 특정 key들이 있다면 **매번 B tree를 찾아가야 할까?**
 
