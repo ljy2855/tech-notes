@@ -11,10 +11,15 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 
 **hardware**
 - CPU L1, L2, L3 cache
+	- L1, L2 (core 당 instruction, data (memory에서 가져온 애들))
+	- L3 core 공유하는 캐시들
 - **physical address cache (TLB)**
+	- virtual memory -> physical translate cache
 
 **OS**
 - filesystem page cache
+	- OS에서 자체 캐시하는 것!
+	- file read() -> file -> fs -> disk (block page) 가져오는 것들을 캐시해둠!
 - Buffer cache / dentry cache / inode cache
 
 **DB**
@@ -45,6 +50,11 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 #### MMU (memroy management unit)
 ![[Pasted image 20250520155436.png]]
 - 실제 page table는 page directory로 구현되어있어, 더 많은 단계를 거침
+
+
+![[Pasted image 20250528203444.png]]
+
+
 
 ```
 +-----+
@@ -90,6 +100,11 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 **Spatial Locality**
 - 4kb 페이지 단위로 인접한 메모리 영역 가져옴
 - 가상 메모리상 인접한 page들을 prefetch하기도 함
+
+new () -> heap영역에 저장되는 데이터
+논리적인 메모리 주소상으로 인접하게 되잖아 `array()`
+- 0번째 인덱스 접근 .. 1번쨰 인덱스 접근 0~ 10번까지 한번에 가져오기 (page 별로 가져올수있다 (4kb))
+-  -> `associate`
 
 ---
 
