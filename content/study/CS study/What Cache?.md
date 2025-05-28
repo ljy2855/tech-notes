@@ -173,10 +173,14 @@ D : 지속성
 6. Redo Log 먼저 쓰고 -> disk fsync()
 ```
 
-replica, partition
--> 확장
+#### partition key 파티션 키 정책
+	- 모듈러 기반 : id(pk) % 5  
+		- 그럼 수평적 확장을 하면 어떤일이 발생할까 
+	- 범위 기반 : 0~ 1000(db1) , 1001 ~ 2000 (db2)
 
 
-partition key
-- id(pk) % 5  
-- 0~ 1000, 1001 ~ 
+![[Pasted image 20250528211618.png]]
+
+#### 다음 주차 예정
+- REDIS
+- CDN
