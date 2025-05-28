@@ -83,13 +83,11 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 - 때문에 TLB에 physical memory를 저장해서 메모리 접근을 줄인다!
 
 
-#### tlb cache 정책은 어떻게 해야할까?
+#### tlb cache 정책은 어떻게?
 
 - 프로세스 context switching 시에, TLB를 통째로 flush 시켜야하지 않을까? (프로세스들의 실제 physical address는 다르기에)
 - 최근 접근한 메모리 영역들을 남겨둘까? -> **Temporal locality**
 - 인접한 메모리 영역들을 남겨둘까? -> **Spatial locality**
-
-하나씩 실제 커널이 어떻게 해결했는지 확인해보자
 
 **context switch flush overhead**
 - TLB entry에 PCID (process context ID)를 저장해서 구분함
@@ -100,11 +98,6 @@ https://gist.github.com/jboner/2841832#file-latency-txt
 **Spatial Locality**
 - 4kb 페이지 단위로 인접한 메모리 영역 가져옴
 - 가상 메모리상 인접한 page들을 prefetch하기도 함
-
-new () -> heap영역에 저장되는 데이터
-논리적인 메모리 주소상으로 인접하게 되잖아 `array()`
-- 0번째 인덱스 접근 .. 1번쨰 인덱스 접근 0~ 10번까지 한번에 가져오기 (page 별로 가져올수있다 (4kb))
--  -> `associate`
 
 ---
 
@@ -129,7 +122,7 @@ new () -> heap영역에 저장되는 데이터
 
 다만 B tree의 구조상, 자주 조회되는 특정 key들이 있다면 **매번 B tree를 찾아가야 할까?**
 
-물론 자주 접근되는 인덱스들은 memory 상에 캐시되어(파일시스템 page cache) 디스크로부터 가져오는 번거로움은 덜겠지만 매번 O(logN) 탐색을 해야하긴 문제가 있음
+물론 자주 접근되는 노드들은 memory 상에 캐시되어(파일시스템 page cache) 디스크로부터 가져오는 번거로움은 덜겠지만 매번 O(logN) 탐색을 해야하는 문제가 있음
 
 이를 위해 도입되는게 `Adaptive hash index` (key를 기준으로!)
 
