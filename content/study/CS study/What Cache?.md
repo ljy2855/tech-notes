@@ -115,15 +115,15 @@ new () -> heap영역에 저장되는 데이터
 #### B tree index
 일반적으로 Mysql InnoDB 기준으로 default로 pk로 Clustered index를 가짐
 
-- B tree 기반 인덱스
+- B+ tree 기반 인덱스
 - 기본적으로 index는 disk에 저장함
 - read 시, O(logN) 으로 검색 가능
-- lead node에 row들이 정렬되어 있어, range read에 유리함
+- lead node에 row(value)들이 정렬되어 있어, `range read`에 유리함
 
 
 
 ![[Pasted image 20250528163137.png]]
-*요건 사실 secondary*
+*요건 사실 secondary index* 
 
 #### 동일한 키를 매번 인덱스를 타야하나?
 
@@ -131,7 +131,7 @@ new () -> heap영역에 저장되는 데이터
 
 물론 자주 접근되는 인덱스들은 memory 상에 캐시되어(파일시스템 page cache) 디스크로부터 가져오는 번거로움은 덜겠지만 매번 O(logN) 탐색을 해야하긴 문제가 있음
 
-이를 위해 도입되는게 Adaptive hash index
+이를 위해 도입되는게 `Adaptive hash index` (key를 기준으로! (Name))
 
 
 > The adaptive hash index enables `InnoDB` to perform more like an in-memory database on systems with appropriate combinations of workload and sufficient memory for the buffer pool without sacrificing transactional features or reliability. The adaptive hash index is disabled by the [`innodb_adaptive_hash_index`](https://dev.mysql.com/doc/refman/8.4/en/innodb-parameters.html#sysvar_innodb_adaptive_hash_index) variable, or turned on at server startup by `--innodb-adaptive-hash-index`.
@@ -139,4 +139,44 @@ new () -> heap영역에 저장되는 데이터
 
 ![[Pasted image 20250528194014.png]]
 
-실제로 
+#### 여담 (BE라면 알아야할 DB 상식)
+
+#### ACID
+
+A : 원자성
+- transaction이 겹치면 안된다!
+- 결과 commited or 시작전이여야한다
+
+C : 정합성
+- 데이터에 대한 일관성을 가져야한다 (balance 잔액) : 0이상이여야함
+
+I : 격리성
+- 트랙젝션끼리 얼마나 격리를 시킬꺼냐
+	- read uncommited (dirty read)
+	- read commited (non-repeatable read)
+	- repeatable read (phantom read) 10개 -> 11개 : 이게 가장 많이써요 innoDB default 
+	- serializable (table 자체 락을 잡아여) : 거의 안씀
+		- `MVCC` (Multi version concurrency control)
+
+D : 지속성
+- 한번 저장된것은 persistent 저장해야한다 disk에 저장
+- Doublewrite buffer 
+- undo Log 
+- Redo Log 
+
+``` transaction 처리 과정
+1. update 쿼리 들어옴 row 하나
+2. Undo log 작성 (snapshot을 떠서 롤백 용도로 사용)
+3. lock을 잡아버려~ => 여기서 DB죽으면 어캐될까요?
+4. 데이터 변경
+5. unlock
+6. Redo Log 먼저 쓰고 -> disk fsync()
+```
+
+replica, partition
+-> 확장
+
+
+partition key
+- id(pk) % 5  
+- 0~ 1000, 1001 ~ 
