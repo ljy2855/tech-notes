@@ -106,7 +106,6 @@ XFS는 파일시스템을 **여러 개의 allocation group (AG)**으로 분할�
 - 각 AG는 별도 공간처럼 동작하며 **병렬 I/O와 동시 블록 할당 가능**
 - 멀티 코어 환경에서, 서로 다른 AG를 병렬 처리하여 **멀티스레드 I/O 성능 향상**
 - ext 계열 대비 **대형 파일/디렉터리 처리에 유리**
-	->
 
 
 > [!note] 왜 XFS이 EXT보다 병렬성이 좋을까?
@@ -119,11 +118,15 @@ XFS는 파일시스템을 **여러 개의 allocation group (AG)**으로 분할�
 
 #### MongoDB
 
-MongoDB 사용 시에, XFS를 사용하도록 권장된다.
+MongoDB 사용 시에, XFS를 사용하도록 권장
 
-storage engine인 WiredTiger가
+storage engine인 WiredTiger가 데이터와 저널데이터를 **WAL으로 저장하기에, 빈번한 IO 발생**
+-> 병렬 IO 처리가 우수한 XFS 활용
+
+
+
+![[Pasted image 20250601175200.png]]
 
 https://www.mongodb.com/ko-kr/docs/manual/administration/production-checklist-operations/
-
 
 https://docs.kernel.org/filesystems/ext4/index.html
