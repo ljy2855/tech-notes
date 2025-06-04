@@ -1,31 +1,4 @@
 
-### Background
-
-- system progamming
-	- prj2
-	- socket server
-		- multi process
-			- ~1990 apache  ws
-		- multi thread (vs thread pool)
-		- select I/O multiplexing
-			- 2000년 초반 ngnix ws
-	- ws vs was
-		- web 초반에는 static file serving
-			- html, css, js 던져주거나
-			- 이미지파일 제공
-		- application
-			- spring boot 같이, 어플리케이션 기반 앱들
-				- 로그인 같은 기능을 추가한다던가?
-				- state-full하게 정보를 들어있어야 한다던가
-				- DB 연결한다던가?
-			- web application sever (was)
-				- apache, nginx cgi
-				- uvicorn, tomcat, netty
-
-
-
----
-
 ### 배경
 저번 세미나 리마인드 [[Bad logging]]
 
@@ -90,7 +63,7 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
     return await anyio.to_thread.run_sync(func) # sync네?
 ```
 
-- async def가 아닌 일반 def는 thread connection pool에서 처리함
+- async def가 아닌 **function def는 thread connection pool에서 처리함**
 	- 이는 일반적인 WSGI app 처리 방식과 동일
 	- tomcat(thread pool) or gunicorn(pre-fork)
 
@@ -107,9 +80,10 @@ async def run_in_threadpool(func: typing.Callable[P, T], *args: P.args, **kwargs
 
 ![[Pasted image 20250514195219.png]]
 
-- asyncIO 와 event loop을 통해 비동기 처리를 구현한 것은 동일
-	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 굳
+- `AsyncIO` 와 event loop을 통해 비동기 처리를 구현한 것은 동일
+	- 다만 Python으로 구현된 AsyncIO와 달리 Cython으로 구현됌 -> 성능 이점
 - fs, socket IO에 대한 작업들을 이벤트 루프로 처리함
+
 ![[Pasted image 20250514194806.png]]
 
 ### libuv
@@ -118,13 +92,13 @@ https://docs.libuv.org/en/v1.x/design.html
 
 
 ![[Pasted image 20250404021610.png]]
+- file I/O 같은 경우 각 OS 별 async IO interface가 달라서 결국 동기로 처리 (multi-threading)
+
 
 - 요놈이 nodejs 에서 event loop로 사용되는 c 라이브러리
 ![[Pasted image 20250514145930.png]]
 #### multiplexing I/O
-- 결국 비동기처리는 1 process, 1 thread에서 socket IO를 감지하고  
-
-
+- 비동기처리는 1 process, 1 thread에서 socket IO를 감지
 
 #### epoll (kqueue, IOCP)
 
@@ -214,22 +188,11 @@ out:
 
 ![[Pasted image 20250514171840.png]]
 
+- NIO 구현체를 확인하면 epoll을 JNI로 래핑해서 사용
+	- NIO Selector는 플랫폼에 따라 (epoll, kqueue, IOCP)를 사용
+
+
 tomcat version 9부터 NIO만 지원
 ![[Pasted image 20250514172333.png]]
 
 ![[Pasted image 20250514173942.png]]
-
-#### Etc
-- nodejs (was 역할을 하는 애들)
-- nginx (ws)
-
-
-### 교훈
-- network IO (socket level)은 비동기 처리가 성능상 국룰이다~
-- 
-
----
-
-질문
-- Netty vs tomcat 
-	- tomcat은 또 NIO 쓸꺼면 왜 Netty 안쓰고 tomcat을 쓰는건가?
