@@ -81,6 +81,13 @@ CFS 스케줄러는 각 CPU 코어마다 **독립적인 runqueue**와 스케줄�
 - CFS는 **주기적 또는 idle 상태일 때** CPU 간의 부하를 비교하고, **imbalance(불균형)** 가 감지되면:
     - 부하가 높은 CPU에서 → 부하가 낮은 CPU로 **태스크를 migrate**시킴
 
+그러나 다음과 같은 문제가 있을 수 있음
+
+- rq->cfs.load는 CPU 사용량이 아닌 **가중치 합(weight sum)** 기반 → bursty workload의 부하를 과소 평가할 수도
+- 
+
+
+https://dl.acm.org/doi/10.1145/2901318.2901326
 
 #### CGroup을 통한 Group Scheduling
 
@@ -118,29 +125,18 @@ echo <PID> > browser/tasks
 > **Earliest Eligible Virtual Deadline First**  
 
 CFS의 공정성 개념을 유지하면서도, **지연(latency) 제어와 예측성 향상**을 위해 설계된 새로운 스케줄러.
-
 Linux 6.6 커널부터 CFS의 내부 알고리즘을 **EEVDF로 대체**.
 
----
-
-### **주요 특징**
-
 - **virtual deadline 기반 스케줄링**
-    
     각 태스크에 가상 마감시간(virtual deadline)을 할당하고, **가장 빠른 마감시간을 가진 태스크부터 실행**
     
     → I/O bound, interactive 태스크에 유리
     
 - **CFS의 vruntime 기반 방식보다 latency-aware**
-    
     → 태스크의 응답성을 개선하고, CPU 자원의 배분이 더 예측 가능해짐
     
 - **기존 인터페이스 유지**
-    
     nice, SCHED_NORMAL, SCHED_BATCH, cgroup/cpu.shares 등 기존 설정 방식은 동일하게 작동
     
     → 사용자 입장에서는 기존 CFS와의 차이를 거의 느끼지 않음
     
-- **추가된 사용자 힌트: latency_nice**
-    
-    태스크의 latency 민감도를 조절할 수 있는 새로운 파라미터 (/proc/[pid]/latency_nice)
