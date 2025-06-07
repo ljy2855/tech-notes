@@ -29,7 +29,7 @@ ready 상태의 프로세스들을 관리하기 위해, Red Black Tree 활용
 ### Detail
 
 - **base_slice_ns**
-    /sys/kernel/debug/sched/base_slice_ns 파일을 통해 CPU 점유 시간 단위를 튜닝 가능
+    `/sys/kernel/debug/sched/base_slice_ns` 파일을 통해 CPU 점유 시간 단위를 튜닝 가능
     - low latency가 필요한 desktop 환경과, throughput이 중요한 server 환경에 따라 조정 가능
     - 단, CONFIG_HZ 설정에 따라 base_slice_ns < TICK_NSEC일 경우, 큰 효과는 없음
         
@@ -72,22 +72,6 @@ ready 상태의 프로세스들을 관리하기 위해, Red Black Tree 활용
 	- 태스크는 nice 값에 따라 가중치(weight) 를 갖고, vruntime 증가 속도에 차등 적용
 	- I/O bound, 짧은 interactive 작업에 낮은 nice 값을 부여하면 더 자주 CPU 할당
 
-#### Multi-core에서도 잘 작동할까?
-
-CFS 스케줄러는 각 CPU 코어마다 **독립적인 runqueue**와 스케줄러 인스턴스를 사용하여 CPU-process affinity를 만족시킨다 
-그러나 시스템 전체의 CPU 사용률을 최적화하기 위해, **CPU 간 태스크 로드 밸런싱**도 수행
-
-- **rq->cfs.load**: 각 CPU의 runqueue에 쌓여 있는 모든 태스크들의 **가중치 합계(weight sum)** 를 나타냄. 이 값은 해당 CPU의 부하(load)를 나타냄
-- CFS는 **주기적 또는 idle 상태일 때** CPU 간의 부하를 비교하고, **imbalance(불균형)** 가 감지되면:
-    - 부하가 높은 CPU에서 → 부하가 낮은 CPU로 **태스크를 migrate**시킴
-
-그러나 다음과 같은 문제가 있을 수 있음
-
-- rq->cfs.load는 CPU 사용량이 아닌 **가중치 합(weight sum)** 기반 → bursty workload의 부하를 과소 평가할 수도
-- 
-
-
-https://dl.acm.org/doi/10.1145/2901318.2901326
 
 #### CGroup을 통한 Group Scheduling
 
@@ -117,6 +101,21 @@ echo <PID> > browser/tasks
 ```
 - cpu.shares는 각 그룹의 CPU 점유 비율을 상대적으로 조절할 수 있는 값
 - multimedia 그룹이 browser보다 2배 더 많은 CPU 자원을 가지도록 설정 가능
+
+### Multi-core에서도 잘 작동할까?
+
+  
+CFS 스케줄러는 각 CPU 코어마다 **독립적인 runqueue(CFS runqueue)** 를 유지하며, **CPU-process affinity**를 고려하여 실행 순서를 결정한다.  
+
+하지만 시스템 전체의 자원 활용률을 높이기 위해, CFS는 **주기적으로 CPU 간 부하를 비교하고, 불균형 시 태스크를 migrate**한다.
+
+
+- **`rq->cfs.load.weight`**: 해당 runqueue에 있는 모든 태스크의 **정적 가중치(nice 기반) 합계**
+- **`cfs_rq->avg.util_avg`**: PELT 기반의 CPU 사용률 예측값으로, **실제 부하를 더 정확하게 반영**함
+- CFS의 로드 밸런싱 로직은 두 값 모두를 참조하지만, 커널 버전에 따라 static weight 중심으로 오동작할 수 있다.
+
+https://github.com/torvalds/linux/blob/master/kernel/sched/fair.c#L4597
+https://dl.acm.org/doi/10.1145/2901318.2901326
 
 
 
