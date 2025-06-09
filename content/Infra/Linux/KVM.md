@@ -1,5 +1,4 @@
 
-
 KVM(Kernel-based Virtual Machine)은 리눅스 커널에 통합된 **하이퍼바이저 기능**
 클라우드 컴퓨팅에서 흔히 사용되는 KVM 기반의 가상 머신은 어떻게 CPU 자원을 활용하고, vCPU는 어떻게 실제 pCPU에 매핑하는지 확인
 
@@ -24,8 +23,8 @@ KVM은 리눅스 커널을 그대로 **하이퍼바이저로 확장**한 구조
 
 ### QEMU (user space)
 
-- QEMU는 **VM의 가상 하드웨어를 구성**하는 에뮬레이터
-- 예: 가상 NIC, 블록 디바이스, VGA 등 모두 QEMU가 구성 및 관리
+- **VM의 가상 하드웨어를 구성**하는 에뮬레이터
+- 가상 NIC, 블록 디바이스, VGA 등 모두 QEMU가 구성 및 관리
 - vCPU 실행 요청을 위해 /dev/kvm에 ioctl을 호출하여 **KVM 커널 모듈과 통신**
 - 각 vCPU는 QEMU에 의해 **독립적인 유저 스레드(pthread)로 실행**
 
@@ -33,7 +32,7 @@ KVM은 리눅스 커널을 그대로 **하이퍼바이저로 확장**한 구조
 ### /dev/kvm (인터페이스)
 
 - QEMU ↔ 커널 간 통신 인터페이스
-- 대표적인 ioctl 명령:
+- qemu에서 ioctl로 통신
     - KVM_CREATE_VM: 새로운 VM 컨텍스트 생성
     - KVM_CREATE_VCPU: vCPU(thread) 생성
     - KVM_RUN: 게스트 코드를 실행 (→ VMEnter)
@@ -44,7 +43,7 @@ KVM은 리눅스 커널을 그대로 **하이퍼바이저로 확장**한 구조
 > 일반적인 read/write 인터페이스로는 처리하기 어려운 구조체 기반 명령 전달 등에 사용
 > 
 > ioctl(fd, command, argument) 형식으로 호출되며, **정의된 상수(#define)로 커널과 통신**
-### KVM 커널 모듈
+### KVM Kernel Module
 
 - QEMU에서 전달받은 vCPU를 실제 커널 스레드로 등록
 - VMCS(Virtual Machine Control Structure) or VMCB(x86/ARM 등)에 컨텍스트 저장
@@ -61,8 +60,6 @@ KVM은 리눅스 커널을 그대로 **하이퍼바이저로 확장**한 구조
 가상 머신 내부에서의 **네트워크 패킷 송수신**, **디스크 읽기/쓰기**와 같은 I/O는 대부분 **QEMU가 에뮬레이션 및 전달**
 
 KVM은 CPU 가상화에 집중하며, I/O 처리 로직은 QEMU가 담당
-
-  
 
 #### 네트워크 (virtio-net 등)
 
@@ -90,21 +87,23 @@ KVM은 CPU 가상화에 집중하며, I/O 처리 로직은 QEMU가 담당
 ---
 
 ### vCPU(Virtual CPU)
+
 - VM 입장에서는 독립적인 CPU처럼 보임
 - 실제로는 **호스트의 쓰레드**로 동작함 (`pthread`)
 - `KVM_RUN` ioctl 호출을 통해 **게스트 코드를 실행하다가 VM Exit 시 돌아옴**
 
+  
+
 **Key Feature**
 - 1 vCPU = 1 host thread (by QEMU)
-- 게스트 OS에서는 SMP 시스템처럼 동작하지만, 실제 자원은 동적임
-- 스케줄링, 인터럽트, 타이머 등도 커널에서 처리됨
+- 게스트 OS에서는 SMP 시스템처럼 동작하지만, 실제로는 각각의 vCPU가 호스트 스레드로 구현되어 **동적으로 pCPU 위에서 실행**
+- 스케줄링, 인터럽트, 타이머 등은 모두 **호스트 커널 레벨에서 처리됨**
 
 ---
 
-## vCPU → pCPU 스케줄링 메커니즘
+## vCPU → pCPU 스케줄링
 
-### 호스트 입장
-vCPU는 커널에서 관리하는 **일반적인 커널 스레드**와 동일하게 취급
+vCPU는 커널에서 관리하는 **일반적인 커널 스레드**와 동일하게 취급됨  
 → 즉, **CFS Completely Fair Scheduler**가 vCPU를 포함한 모든 프로세스를 공평하게 스케줄링
 
 ### vCPU 스케줄링 특징
@@ -119,19 +118,21 @@ vCPU는 커널에서 관리하는 **일반적인 커널 스레드**와 동일하
 
 ---
 
-## 성능에 영향을 주는 요소들
+## 고려사항
 
 ### Double Scheduling
 - 게스트 내부에서도 자체적인 CFS 스케줄링이 존재
 - → host와 guest에서 모두 스케줄링 발생 → 불필요한 latency/straggler 유발 가능
 
 ### Steal Time
+
 - 게스트 OS는 vCPU가 사용 중인 줄 알지만, 실제로는 **host에서 pCPU를 잃었을 경우**
+	→ 이 시간은 게스트 입장에선 '실행 중'처럼 보이지만, 다른 스레드에 밀려 대기한 시간
 - `/proc/stat`의 steal 항목 또는 `top`의 `%st`로 확인 가능
 
 ### SMT/stacked core 문제
 - 동일한 물리 코어의 sibling(vCPU1, vCPU2)이 동시에 스케줄되면 → 성능 간섭
-- → NUMA-aware + SMT-aware 스케줄링이 중요
+	→ NUMA-aware + SMT-aware 스케줄링이 중요
 
 > [!NOTE] NUMA
 > **NUMA(Non-Uniform Memory Access)**는 멀티코어 시스템에서 **CPU와 메모리 사이의 접근 속도**가 **균일하지 않은** 아키텍처
@@ -144,15 +145,12 @@ vCPU는 커널에서 관리하는 **일반적인 커널 스레드**와 동일하
 
 ### Overcommit
 - vCPU 수 > pCPU 수인 경우 성능 예측 어려움
-- 예: 4코어 머신에 10 vCPU 할당 시 → 컨텐션, latency spike 발생 가능
+- 예: pCPU 4개인 시스템에 vCPU 10개 할당 → I/O Wait 증가, context switching 비용 증가
 
 ---
-## 관련 연구들
-
-
 
 ## 레퍼런스
-
+- [KVM virtio – redhat.com](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/virtualization_deployment_and_administration_guide/chap-KVM_Para_virtualized_virtio_Drivers)
 - [KVM Documentation – kernel.org](https://www.kernel.org/doc/html/latest/virt/kvm/index.html)
 - [Linux CFS Scheduler Explained](https://www.kernel.org/doc/Documentation/scheduler/sched-design-CFS.txt)
 - `man taskset`, `man numactl`, `perf`, `trace-cmd`
