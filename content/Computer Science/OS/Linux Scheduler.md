@@ -1,6 +1,8 @@
 
 2.6.23 커널 이전에 사용되던 O(1) scheduler(priority 기반 queue)들에서 CFS 스케줄러로 변경
 
+
+
 ## CFS scheduler
 
 Completely Fair Scheduler
