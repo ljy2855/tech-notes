@@ -2,6 +2,34 @@
 2.6.23 커널 이전에 사용되던 O(1) scheduler(priority 기반 queue)들에서 CFS 스케줄러로 변경
 
 
+OS에서 배웠던 스케줄링 알고리즘?
+
+preemptive? (2.4 ~ 현재까지)
+운영체제가 프로세스의 실행을 실행권한을 뺏는다
+
+- RR (round robbin) : 일정 qunta마다 쪼개서 실행시켰다
+
+---
+
+non-preemptive? (2.4 버전이하에서 이렇게 썻고)
+프로세스가 나 이만큼 썻으니까 yield하면서 스케줄링
+
+
+- SJF (shortest job first)  : 스케줄러가 workload가 얼마나 걸릴지 예측해서 먼저 실행
+- FIFO (first in first out) (queue) : 먼저 들어온애 queue에 넣고 그냥 돌리기
+
+
+---
+
+현재상황에서 달라진게 (OS에서 배웠던 이후에...)
+
+- 기존은 싱글코어 기반 (CPU 하나였다)
+	- 4 core 이상의 멀티코어 (vcpu 실제 코어랑)
+- CPU 성능이 좋아졌따 (HZ clock 좋아졌다)
+- 프로세스 수가 진짜 늘었다
+
+
+-> 멀티태스킹 (한번에 여러개를 공평하게 실행시키기)에 더 초점이 맞춰져야겟다
 
 ## CFS scheduler
 
@@ -34,10 +62,17 @@ ready 상태의 프로세스들을 관리하기 위해, Red Black Tree 활용
     `/sys/kernel/debug/sched/base_slice_ns` 파일을 통해 CPU 점유 시간 단위를 튜닝 가능
     - low latency가 필요한 desktop 환경과, throughput이 중요한 server 환경에 따라 조정 가능
     - 단, CONFIG_HZ 설정에 따라 base_slice_ns < TICK_NSEC일 경우, 큰 효과는 없음
-        
+	- 이걸 짧게 두면 어떻게 될까요?
+		- context switching
+		- 반응속도가 중요한 경우
+			- 게임 핑을 ms단위 
+
+
+
 - **Nice / SCHED_BATCH 처리 강화**
     낮은 우선순위나 배치 작업에 대한 태스크를 훨씬 더 효과적으로 격리
     → interactive 작업과 background 작업의 간섭 최소화
+    IO를 얼마나 잡아먹냐?
 
     
 - **Scheduling Policies**
@@ -74,8 +109,19 @@ ready 상태의 프로세스들을 관리하기 위해, Red Black Tree 활용
 	- 태스크는 nice 값에 따라 가중치(weight) 를 갖고, vruntime 증가 속도에 차등 적용
 	- I/O bound, 짧은 interactive 작업에 낮은 nice 값을 부여하면 더 자주 CPU 할당
 
+어플리케이션 개발자가 건드릴수 없는 영역
 
+---
+
+여기서부터 건드릴수잇게 만듬
+
+cpu 스케줄링을 통제할수 잇는 인터페이스의 역할을 한다!
 #### CGroup을 통한 Group Scheduling
+
+`docker`, `k8s` 같이 컨테이너 기술에 활용되는 핵심 모듈
+control group
+- 프로세스에다가 자원을 할당하게 만들어줄수 있어요
+	- CPU, network IO, memory, disk IO
 
 CFS는 개별 태스크 단위의 공정한 스케줄링뿐 아니라, **태스크 그룹 단위의 공정한 스케줄링**도 지원함
 
@@ -105,6 +151,9 @@ echo <PID> > browser/tasks
 - multimedia 그룹이 browser보다 2배 더 많은 CPU 자원을 가지도록 설정 가능
 
 ![[Pasted image 20250611175439.png]]
+
+
+---
 
 ### Multi-core에서도 잘 작동할까?
 
@@ -142,4 +191,5 @@ Linux 6.6 커널부터 CFS의 내부 알고리즘을 **EEVDF로 대체**.
     nice, SCHED_NORMAL, SCHED_BATCH, cgroup/cpu.shares 등 기존 설정 방식은 동일하게 작동
     
     → 사용자 입장에서는 기존 CFS와의 차이를 거의 느끼지 않음
-    
+
+
