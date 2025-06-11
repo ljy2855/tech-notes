@@ -102,6 +102,8 @@ echo <PID> > browser/tasks
 - cpu.shares는 각 그룹의 CPU 점유 비율을 상대적으로 조절할 수 있는 값
 - multimedia 그룹이 browser보다 2배 더 많은 CPU 자원을 가지도록 설정 가능
 
+![[Pasted image 20250611175439.png]]
+
 ### Multi-core에서도 잘 작동할까?
 
   
