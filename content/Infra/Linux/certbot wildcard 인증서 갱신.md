@@ -1,11 +1,12 @@
 ### ACME dns-01 
 
-Let’s Encrypt는 도메인 소유권을 확인하기 위해 여러 인증 방식을 지원함. 그중 **dns-01 challenge**는 다음 절차를 따름
+Let’s Encrypt는 도메인 소유권을 검증하기 위해 여러 인증 방식을 지원 
+그중 **dns-01 challenge**는 다음 절차를 따름
 
 1. 인증 서버가 무작위 토큰을 발급함
-2. 사용자(Certbot 등)는 CERTBOT_VALIDATION 값을 생성하여,
+2. Certbot은 토큰과 계정 키를 조합해 CERTBOT_VALIDATION 값을 생성
 3. 도메인의 _acme-challenge.example.com이라는 위치에 **TXT 레코드**를 등록
-4. Let’s Encrypt 서버는 등록된 TXT 레코드를 DNS를 통해 직접 조회하여, 해당 토큰 값이 정확히 존재하는지 확인
+4. Let’s Encrypt 서버는 등록된 TXT 레코드를 DNS 쿼리를 통해 직접 조회하여, 해당 토큰 값이 정확히 존재하는지 확인
 5. 성공 시 도메인 소유가 인증되고 인증서 발급이 진행
 
 > “Wildcard certificates can only be requested via DNS challenge.”
@@ -15,7 +16,7 @@ Let’s Encrypt는 도메인 소유권을 확인하기 위해 여러 인증 방�
 
 이 방식은 도메인마다 고유한 CERTBOT_VALIDATION 값을 요구하지만,
 
-`*.example.com`과 `example.com`의 dns-01 challenge는 **둘 다 _acme-challenge.example.com**이라는 같은 위치를 사용함.
+`*.example.com`과 `example.com`의 dns-01 challenge는 **둘 다 동일한 TXT 레코드 이름을 사용**
 
 - Certbot이 첫 번째 도메인 `*.example.com`을 인증하기 위해 TXT 레코드를 설정한 후,    
 - 두 번째 도메인 `example.com`을 인증하면서 같은 위치의 TXT 레코드를 **덮어쓰게 됨**
@@ -32,7 +33,8 @@ echo "Working directory: $workdir"
 # Certbot 갱신
 echo "Renewing certificates..."
 
-certbot renew --non-interactive --quiet \
+certbot certonly --non-interactive --quiet --manual \
+--preferred-challenges dns \
 --manual-auth-hook "$workdir/godaddy-dns-update.py" \
 --manual-cleanup-hook 'rm -f /tmp/CERTBOT_VALIDATION' \
 -d *.example.com -d example.com
@@ -45,7 +47,7 @@ Script started at: 2025-06-14 12:30:58
 Working directory: /root/dns-update
 Renewing certificates...
 Saving debug log to /var/log/letsencrypt/letsencrypt.log
-Renewing an existing certificate for *.cspc.me and cspc.me
+Renewing an existing certificate for *.example.com and example.com
 Encountered exception during recovery: KeyError: KeyAuthorizationAnnotatedChallenge(challb=ChallengeBody(chall=DNS01(token=b"..."), uri='https://acme-v02.api.letsencrypt.org/acme/chall/2315054967/536008867492/ZmF4mA', status=Status(pending), validated=None, error=None), domain='example.com', account_key=JWKRSA(key=<ComparableRSAKey(<cryptography.hazmat.backends.openssl.rsa._RSAPrivateKey object at 0x7d750c42d2e0>)>))
 Exiting due to user request.
 ```
@@ -63,16 +65,18 @@ Exiting due to user request.
 
 ### 해결
 
-기존 manual-auth-hook에서 TXT 레코드를 새로 덮어쓰는 방식 대신, **기존 값을 조회한 뒤 새롭게 받은 값을 함께 등록**하도록 변경함. 이를 통해 `*.example.com`과 `example.com`의 인증 값이 동시에 존재하도록 보장함.
+기존 manual-auth-hook에서 TXT 레코드를 새로 덮어쓰는 방식 대신, **기존 값을 조회한 뒤 새롭게 받은 값을 함께 등록**하도록 변경함. 이를 통해 `*.example.com`과 `example.com`의 인증 값이 동시에 존재하도록 보장
 
 
 ```bash
 #!/bin/bash
 
-echo "Script started at: $(date '+%Y-%m-%d %H:%M:%S')"
-workdir="$PWD"
+# 현재 디렉토리를 workdir로 설정 (절대 경로)
+workdir="$(pwd)"
 echo "Working directory: $workdir"
 
+# Certbot 갱신
+echo "Renewing certificates..."
 certbot certonly \
   --manual \
   --preferred-challenges dns \
@@ -82,8 +86,10 @@ certbot certonly \
   --force-renewal \
   -d '*.example.com' -d example.com
 
+# 종료 시각 출력
 echo "Script ended at: $(date '+%Y-%m-%d %H:%M:%S')"
 ```
+- hook 위치를 절대 경로로 지정해야 renew 시에 해당 위치를 찾음
 
 dns record update
 ```python
@@ -99,9 +105,9 @@ load_dotenv()
 
 API_KEY = os.environ["GODADDY_API_KEY"]
 API_SECRET = os.environ["GODADDY_API_SECRET"]
-DOMAIN = os.environ["CERTBOT_DOMAIN"] # pass by certbot hook
+DOMAIN = os.environ["CERTBOT_DOMAIN"] # pass by certbot manual hook
 RECORD_NAME = "_acme-challenge"
-VALIDATION = os.environ["CERTBOT_VALIDATION"]
+VALIDATION = os.environ["CERTBOT_VALIDATION"]# pass by certbot manual hook
 TTL = 600
 
 def get_existing_txt_records():
@@ -189,5 +195,60 @@ if __name__ == "__main__":
     updated = [v for v in existing if v != VALUE_TO_REMOVE]
     update_txt_records(updated)
 ```
-- 기존 인증에 사용했던 txt record를 삭제함
+- 인증서가 발급된 이후, 인증에 사용했던 txt record를 삭제함
 
+
+
+```bash
+~/dns-update# ./update_certificate.sh
+Script started at: 2025-06-14 12:32:24
+Renewing certificates...
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Renewing an existing certificate for *.example.com and example.com
+Hook '--manual-auth-hook' for example.com ran with output:
+ TXT record set for _acme-challenge.example.com → DCsNlhX36mwzUrTPPFHGieT4P3uitA68kN9uYoIgNWg
+ Waiting for DNS to propagate...
+ Still waiting... 10s
+ Still waiting... 20s
+ Still waiting... 30s
+ Still waiting... 40s
+ TXT record verified in DNS after 40 seconds.
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/example.com/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/example.com/privkey.pem
+This certificate expires on 2025-09-12.
+These files will be updated when the certificate renews.
+Certbot has set up a scheduled task to automatically renew this certificate in the background.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+If you like Certbot, please consider supporting our work by:
+ * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+ * Donating to EFF:                    https://eff.org/donate-le
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Script ended at: 2025-06-14 12:33:15
+```
+
+- 자동으로 renew cronjob 생성
+```
+/etc/letsencrypt/renewal/example.com.conf
+# renew_before_expiry = 30 days
+version = 2.9.0
+archive_dir = /etc/letsencrypt/archive/example.com
+cert = /etc/letsencrypt/live/example.com/cert.pem
+privkey = /etc/letsencrypt/live/example.com/privkey.pem
+chain = /etc/letsencrypt/live/example.com/chain.pem
+fullchain = /etc/letsencrypt/live/example.com/fullchain.pem
+
+# Options used in the renewal process
+[renewalparams]
+account = {acount}
+pref_challs = dns-01,
+authenticator = manual
+server = https://acme-v02.api.letsencrypt.org/directory
+key_type = ecdsa
+manual_auth_hook = /{path}/godaddy-dns-update.py
+manual_cleanup_hook = /{path}/godaddy-dns-cleanup.py
+```
+
+[source code repo](https://github.com/CSPCLAB/dns-update)
