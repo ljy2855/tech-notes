@@ -1,4 +1,8 @@
 
+해당 프로젝트에서
+you will build GPT-2, the precursor of OpenAI’s ChatGPT language model. Specifically, you will implement some of the most important components of the architecture, load the official model weights from HuggingFace into your implementation, and explore its capabilities on a variety of downstream applications
+
+[CS 224N final project](https://web.stanford.edu/class/cs224n/project_w25/CS_224n__Default_Final_Project__Build_GPT_2.pdf)
 ### Model Architecture
 ```python
 class GPT2Model(nn.Module):
