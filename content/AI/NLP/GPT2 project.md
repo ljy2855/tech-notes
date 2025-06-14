@@ -1,8 +1,13 @@
 
-해당 프로젝트에서
-you will build GPT-2, the precursor of OpenAI’s ChatGPT language model. Specifically, you will implement some of the most important components of the architecture, load the official model weights from HuggingFace into your implementation, and explore its capabilities on a variety of downstream applications
+해당 프로젝트에서 GPT-2 모델을 구현하면서, 핵심 컴포턴트인, attention layer, postion embedding을 직접 구현
 
-[CS 224N final project](https://web.stanford.edu/class/cs224n/project_w25/CS_224n__Default_Final_Project__Build_GPT_2.pdf)
+이후 HuggingFace에서 제공하는 pretrained weight를 로드해서 downstream task에 적용
+
+> [CS 224N final project](https://web.stanford.edu/class/cs224n/project_w25/CS_224n__Default_Final_Project__Build_GPT_2.pdf)
+> 
+> you will build GPT-2, the precursor of OpenAI’s ChatGPT language model. Specifically, you will implement some of the most important components of the architecture, load the official model weights from HuggingFace into your implementation, and explore its capabilities on a variety of downstream applications
+
+
 ### Model Architecture
 ```python
 class GPT2Model(nn.Module):
@@ -28,36 +33,41 @@ class GPT2Model(nn.Module):
 	    self.final_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
 ```
 
-#### Tokenization
-![[Pasted image 20250422133510.png]]
-
 #### Embedding Layer
 
-The input embeddings that are used in later portions are the sum of the token embeddings and the position embeddings
+입력 문장은 먼저 BPE tokenizer를 통해 토큰화되고, 이후 token embedding과 position embedding을 더한 결과가 최종 input embedding으로 들어간다.
 
-#### Attention Layer
+**Tokenization**
+![[Pasted image 20250422133510.png]]
+- GPT-2 model uses byte pair encoding [(BPE) tokenization](https://huggingface.co/learn/llm-course/en/chapter6/5)
+
+
+![[Pasted image 20250614175313.png]]
+**Embedding**
 
 ```python
-def attention(self, key, query, value, attention_mask):
+  def embed(self, input_ids):
+	"""
+	- input_ids: [batch_size, seq_len] 형태의 토큰 ID 텐서
+	"""
+    input_shape = input_ids.size() 
+    seq_length = input_shape[1] # 문장의 최대 길이를 구하는 용도
 
-    # Calculate the attention scores.
-    attn_scores = torch.matmul(query, key.transpose(-1, -2)) / (self.attention_head_size ** 0.5)
+    inputs_embeds = self.word_embedding(input_ids) # 각 토큰 ID를 임베딩 벡터로 변환
+    
+	### TODO: Use pos_ids to get position embedding from self.pos_embedding into pos_embeds.
+    ###       Then, add two embeddings together; then apply dropout and return.
+	### YOUR CODE HERE
+    pos_ids = self.position_ids[:, :seq_length] # 0부터 seq_len-1까지를 잘라서 포지션에 대응하는 ID
+    
+    pos_embeds = self.pos_embedding(pos_ids) # 위치 정보에 대한 임베딩 벡터값
+    embeds = inputs_embeds + pos_embeds # 같은 위치의 토큰 임베딩과 포지션 임베딩을 더해서 모델에 줄 최종 임베딩 벡터
+    embeds = self.embed_dropout(embeds) # 과적합 방지를 위해 dropout
+    return embeds    
+````
 
-    seq_len = attn_scores.size(-1)
-    causal_mask = torch.triu(torch.ones((seq_len, seq_len), device=attn_scores.device), diagonal=1).bool()
-    attn_scores = attn_scores.masked_fill(causal_mask, float('-inf'))
 
-    # Apply the attention mask to the attention scores.
-    attn_scores = attn_scores + attention_mask
-
-    # Normalize the attention scores to get the attention weights.
-    attn_probs = nn.Softmax(dim=-1)(attn_scores)
-    attn_probs = self.dropout(attn_probs)
-
-    attn_output = torch.matmul(attn_probs, value)
-    attn_output = rearrange(attn_output, 'b h t d -> b t (h d)')
-    return attn_output
-```
+### Attention Layer
 
 ##### Multi head attention
 ![[Pasted image 20250422212705.png]]
