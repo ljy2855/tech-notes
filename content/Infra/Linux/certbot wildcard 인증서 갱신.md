@@ -3,6 +3,8 @@
 Let’s Encrypt는 도메인 소유권을 검증하기 위해 여러 인증 방식을 지원 
 그중 **dns-01 challenge**는 다음 절차를 따름
 
+![[Pasted image 20250614223808.png]]
+
 1. 인증 서버가 무작위 토큰을 발급함
 2. Certbot은 토큰과 계정 키를 조합해 CERTBOT_VALIDATION 값을 생성
 3. 도메인의 _acme-challenge.example.com이라는 위치에 **TXT 레코드**를 등록
