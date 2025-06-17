@@ -1,133 +1,110 @@
+GPT-2 layer를 구현한 이후에, 실제 학습을 위한 optimizer 구현
 
-### 1.4 AdamW Optimizer 구현
+> You will further implement the step() function of the Adam Optimizer based on Decoupled Weight Decay Regularization and Adam: A Method for Stochastic Optimization in order to train a sentiment classifier.
+
+[_Decoupled Weight Decay Regularization_](https://arxiv.org/abs/1711.05101) 및 [_Adam: A Method for Stochastic Optimization_](https://arxiv.org/abs/1412.6980)에 기반해서 **AdamW** 옵티마이저를 직접 구현
+### Adam Optimzer
+
+Adam은 SGD 기반의 옵티마이저로, 각각의 파라미터에 대해 **1차 모멘트(mean)와 2차 모멘트(variance)** 를 유지하면서 learning rate을 adapctive하게 조절해주는 방식이다. RMSProp과 Momentum의 장점을 모두 가져온 방식으로 널리 사용된다.
+
+- 1차 모멘트: m_t ← gradient의 지수이동평균
+- 2차 모멘트: v_t ← gradient 제곱의 지수이동평균
+- 이 두 가지를 통해 parameter update 시 안정성 향상
+
+![[Pasted image 20250617225615.png]]
+
+#### 기존 optimizer와 차이
+
+AdamW는 기존 Adam과 달리 **weight decay를 gradient에 포함시키지 않고**, 파라미터 업데이트 이후 **직접 decay**시키는 구조
+
+- Adam: grad ← grad + weight_decay * param 방식 → L2 Regularization처럼 작동
+- AdamW: param ← param - lr * weight_decay * param 방식 → Decoupled 방식
+    
+=> weight decay를 옵티마이저 내부적으로 “분리해서 처리”함으로써 성능 안정성을 향상
+
+### 구현
+
+Our reference uses the “efficient” method of computing the bias correction mentioned at the end of section 2 “Algorithm” of in Kigma and Ba [8] (and at the end of the algorithm above) in place of the intermediate m and v method. Similarly, the learning rate should be incorporated into the weight decay update
 
 ```python
+def step(self, closure: Callable = None):
+        loss = None
+        if closure is not None:
+            loss = closure()
 
-class AdamW(Optimizer):
+        for group in self.param_groups:
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                grad = p.grad.data
+                if grad.is_sparse:
+                    raise RuntimeError("Adam does not support sparse gradients, please consider SparseAdam instead")
 
-def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.01):
+                # State should be stored in this dictionary.
+                state = self.state[p]
 
-defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
+                # Access hyperparameters from the `group` dictionary.
+                alpha = group["lr"]
 
-super().__init__(params, defaults)
 
-  
+                ### TODO: Complete the implementation of AdamW here, reading and saving
+                ###       your state in the `state` dictionary above.
+                ###       The hyperparameters can be read from the `group` dictionary
+                ###       (they are lr, betas, eps, weight_decay, as saved in the constructor).
+                ###
+                ###       To complete this implementation:
+                ###       1. Update the first and second moments of the gradients.
+                ###       2. Apply bias correction
+                ###          (using the "efficient version" given in https://arxiv.org/abs/1412.6980;
+                ###          also given in the pseudo-code in the project description).
+                ###       3. Update parameters (p.data).
+                ###       4. Apply weight decay after the main gradient-based updates.
+                ###
+                ###       Refer to the default project handout for more details.
+                ### YOUR CODE HERE
 
-def step(self):
+                beta1, beta2 = group["betas"]
+                eps = group["eps"]
+                weight_decay = group["weight_decay"]
+                correct_bias = group["correct_bias"]
 
-for group in self.param_groups:
+				# 시작 단계 상태 초기화
+                if len(state) == 0:
+                    state["step"] = 0
+                    state["exp_avg"] = torch.zeros_like(p.data) 
+                    state["exp_avg_sq"] = torch.zeros_like(p.data)
 
-for p in group['params']:
+                exp_avg = state["exp_avg"] # m_t
+                exp_avg_sq = state["exp_avg_sq"] # v_t
 
-if p.grad is None:
+                state["step"] += 1
+                step = state["step"]
 
-continue
+                # 1차 모멘트
+                exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
 
-# 1. State 초기화
+                # 2차 모멘트
+                exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
 
-state = self.state[p]
+                # Bias correction
+                if correct_bias:
+                    bias_correction1 = 1 - beta1 ** step
+                    bias_correction2 = 1 - beta2 ** step
+                    step_size = alpha * math.sqrt(bias_correction2) / bias_correction1
+                else:
+                    step_size = alpha
 
-if len(state) == 0:
+                denom = exp_avg_sq.sqrt().add_(eps)
 
-state['step'] = 0
+                # Parameter update
+                p.data.addcdiv_(exp_avg, denom, value=-step_size)
 
-state['exp_avg'] = torch.zeros_like(p.data)
+                # Weight decay 를 gradient와 분리해서 적용
+                if weight_decay > 0.0:
+                    p.data.add_(p.data, alpha=-alpha * weight_decay)
 
-state['exp_avg_sq'] = torch.zeros_like(p.data)
+                
 
-  
-
-# 2. Hyperparameter 설정
-
-beta1, beta2 = group['betas']
-
-state['step'] += 1
-
-bias_correction1 = 1 - beta1 ** state['step']
-
-bias_correction2 = 1 - beta2 ** state['step']
-
-  
-
-# 3. Momentum과 Velocity 계산
-
-exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
-
-exp_avg.mul_(beta1).add_(p.grad, alpha=1 - beta1)
-
-exp_avg_sq.mul_(beta2).addcmul_(p.grad, p.grad, value=1 - beta2)
-
-  
-
-# 4. Bias Correction
-
-denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(group['eps'])
-
-step_size = group['lr'] / bias_correction1
-
-  
-
-# 5. Parameter Update
-
-p.data.addcdiv_(exp_avg, denom, value=-step_size)
-
-  
-
-# 6. Weight Decay 적용
-
-if group['weight_decay'] > 0.0:
-
-p.data.add_(p.data, alpha=-group['lr'] * group['weight_decay'])
+        return loss
 
 ```
-
-  
-
-#### 구현 특징
-
-- **State 관리**: 각 파라미터별로 momentum과 velocity를 독립적으로 관리
-
-- **Momentum 계산**: First moment (momentum)와 second moment (velocity) 계산
-
-- **Bias Correction**: 초기 학습 단계에서의 편향을 보정
-
-- **Weight Decay**: L2 regularization을 위한 weight decay 적용
-
-- **In-place 연산**: 메모리 효율성을 위한 in-place 연산 사용
-
-  
-
-## 2. Basic Downstream Tasks
-
-  
-
-### 2.1 Performance Evaluation
-
-다음 세 가지 기본적인 NLP 태스크에 대해 모델의 성능을 평가함:
-
-  
-
-| Task | Dataset | Performance |
-|------|---------|-------------|
-| Sentiment Analysis | SST (5-class) | 51.3% accuracy |
-| | CFIMDB (binary) | 97.6% accuracy |
-| Paraphrase Detection | Quora Question Pairs | 75.2% accuracy |
-| Sonnet Generation | Shakespeare Sonnets | CHRF: 0.68 |
-
-  
-
-### 2.2 Results Analysis
-
-- **Sentiment Analysis**:
-
-- 5-class SST에서는 중간 정도의 성능
-
-- Binary CFIMDB에서는 매우 높은 정확도 달성
-
-- **Paraphrase Detection**:
-
-- Quora Question Pairs에서 75.2%의 정확도로 합리적인 성능
-
-- **Sonnet Generation**:
-
-- Shakespeare 소네트 생성에서 CHRF 0.68로 구조적 패턴과 의미적 일관성 유지
