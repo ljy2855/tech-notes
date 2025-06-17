@@ -22,9 +22,9 @@ AdamW는 기존 Adam과 달리 **weight decay를 gradient에 포함시키지 않
     
 => weight decay를 옵티마이저 내부적으로 “분리해서 처리”함으로써 성능 안정성을 향상
 
-### 구현
+Our reference uses the “efficient” method of computing the bias correction mentioned at the end of section 2 “Algorithm” of in Kigma and (and at the end of the algorithm above) in place of the intermediate m and v method. Similarly, the learning rate should be incorporated into the weight decay update
 
-Our reference uses the “efficient” method of computing the bias correction mentioned at the end of section 2 “Algorithm” of in Kigma and Ba [8] (and at the end of the algorithm above) in place of the intermediate m and v method. Similarly, the learning rate should be incorporated into the weight decay update
+### 구현
 
 ```python
 def step(self, closure: Callable = None):
