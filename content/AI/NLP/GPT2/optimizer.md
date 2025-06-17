@@ -2,10 +2,19 @@ GPT-2 layer를 구현한 이후에, 실제 학습을 위한 optimizer 구현
 
 > You will further implement the step() function of the Adam Optimizer based on Decoupled Weight Decay Regularization and Adam: A Method for Stochastic Optimization in order to train a sentiment classifier.
 
-[_Decoupled Weight Decay Regularization_](https://arxiv.org/abs/1711.05101) 및 [_Adam: A Method for Stochastic Optimization_](https://arxiv.org/abs/1412.6980)에 기반해서 **AdamW** 옵티마이저를 직접 구현
+[_Decoupled Weight Decay Regularization_](https://arxiv.org/abs/1711.05101) 및 [_Adam: A Method for Stochastic Optimization_](https://arxiv.org/abs/1412.6980)에 기반해서 **AdamW** optimizer를 직접 구현
 ### Adam Optimzer
 
-Adam은 SGD 기반의 옵티마이저로, 각각의 파라미터에 대해 **1차 모멘트(mean)와 2차 모멘트(variance)** 를 유지하면서 learning rate을 adapctive하게 조절해주는 방식이다. RMSProp과 Momentum의 장점을 모두 가져온 방식으로 널리 사용된다.
+![[Pasted image 20250618000530.png]]
+
+Adam은 SGD 기반의 옵티마이저로, 각각의 파라미터에 대해 **1차 모멘트(mean)와 2차 모멘트(variance)** 를 유지하면서 learning rate을 adapctive하게 조절해주는 방식
+RMSProp과 Momentum의 장점을 모두 가져온 방식으로 널리 사용
+
+> SGD(Stochastic Gradient Descent)
+> 전체 데이터 대신, **미니배치** 또는 **한 샘플**을 기반으로 매번 파라미터를 업데이트
+>  -> 실제 학습할 corpus는 너무 많아서 언어모델에선 샘플링 방식으로 해결함
+
+![[Pasted image 20250618001011.png]]
 
 - 1차 모멘트: m_t ← gradient의 지수이동평균
 - 2차 모멘트: v_t ← gradient 제곱의 지수이동평균
@@ -21,8 +30,6 @@ AdamW는 기존 Adam과 달리 **weight decay를 gradient에 포함시키지 않
 - AdamW: param ← param - lr * weight_decay * param 방식 → Decoupled 방식
     
 => weight decay를 옵티마이저 내부적으로 “분리해서 처리”함으로써 성능 안정성을 향상
-
-Our reference uses the “efficient” method of computing the bias correction mentioned at the end of section 2 “Algorithm” of in Kigma and (and at the end of the algorithm above) in place of the intermediate m and v method. Similarly, the learning rate should be incorporated into the weight decay update
 
 ### 구현
 
@@ -103,8 +110,26 @@ def step(self, closure: Callable = None):
                 if weight_decay > 0.0:
                     p.data.add_(p.data, alpha=-alpha * weight_decay)
 
-                
-
         return loss
 
 ```
+
+
+>Our reference uses the “efficient” method of computing the bias correction mentioned at the end of [section 2 “Algorithm” of in Kigma](https://arxiv.org/abs/1412.6980) and (and at the end of the algorithm above) in place of the intermediate m_hat and v_hat method. Similarly, the learning rate should be incorporated into the weight decay update
+
+위에 언급된 알고리즘과 다르게 **"efficient method"** 를 적용한 방법
+
+기존 알고리즘
+```
+m̂_t = m_t / (1 - β1^t)  
+v̂_t = v_t / (1 - β2^t)
+θ_t = θ_t - α * m̂_t / (sqrt(v̂_t) + ε)
+```
+
+efficient method
+```
+step_size = α * sqrt(1 - β2^t) / (1 - β1^t)
+θ_t = θ_t - step_size * m_t / (sqrt(v_t) + ε)
+```
+
+m_t, v_t는 그대로 사용하고, 보정 계수를 **step_size 계산 시 learning rate에 함께 곱해서 처리**
