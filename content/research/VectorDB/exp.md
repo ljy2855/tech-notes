@@ -326,23 +326,31 @@ Average latency per query: 7.78 ms
 | **Disk Layout Time**  | 1.45 sec                     | 1.04 sec                     |
 | **전체 Indexing 시간**    | 914.87 sec                   | 980.66 sec                   |
 | **Index 파일 크기**       | 819.20 MB                    | 819.20 MB                    |
-| **로드 시간 (1차)**        | ≈ 0 sec (측정 안됨)              | ≈ 0 sec (측정 안됨)              |
-| **검색 시간 (10개)**       | 0.16 sec (16.37 ms/query)    | 0.17 sec (17.40 ms/query)    |
 | **로드 시간 (1000쿼리)**    | **100.93 sec**               | **25.04 sec**                |
 | **검색 시간 (1000개)**     | **8.32 sec (8.32 ms/query)** | **7.78 sec (7.78 ms/query)** |
+|                       |                              |                              |
 
 
 
+DiskANN (complexity=64, graph_degree=64,)
 
+| **Quantization Time** | 709.61 sec                   |
+| --------------------- | ---------------------------- |
+| **Graph Build Time**  | 269.15 sec                   |
+| **Disk Layout Time**  | 1.04 sec                     |
+| **전체 Indexing 시간**    | 980.66 sec                   |
+| **Index 파일 크기**       | 819.20 MB                    |
+| **인덱스 로드 시간 **        | **25.04 sec**                |
+| **검색 시간 (1000개)**     | **7.78 sec (7.78 ms/query)** |
 
-HNSW (ef = 20)
+HNSW (ef = 20, M = 16)
 [Timing] Indexing (add): 46.9747 seconds
-[Timing] File write: 0.165714 seconds
-[Timing] File read: 0.107122 seconds
+[Timing] Index File write: 0.165714 seconds
+[Timing] Index File read: 0.107122 seconds
 [Timing] Search: 0.000276 seconds
 
-IVF-PQ
+IVF-PQ (nlist = 100, m = 16, nbits = 8)
 [Timing] Indexing (add): 0.641702 seconds
-[Timing] File write: 0.002208 seconds
-[Timing] File read: 0.011815 seconds
+[Timing] Index File write: 0.002208 seconds
+[Timing] Index File read: 0.011815 seconds
 [Timing] Search: 0.002504 seconds
