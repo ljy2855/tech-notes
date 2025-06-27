@@ -330,3 +330,19 @@ Average latency per query: 7.78 ms
 | **검색 시간 (10개)**       | 0.16 sec (16.37 ms/query)    | 0.17 sec (17.40 ms/query)    |
 | **로드 시간 (1000쿼리)**    | **100.93 sec**               | **25.04 sec**                |
 | **검색 시간 (1000개)**     | **8.32 sec (8.32 ms/query)** | **7.78 sec (7.78 ms/query)** |
+
+
+
+
+
+HNSW (ef = 20)
+[Timing] Indexing (add): 46.9747 seconds
+[Timing] File write: 0.165714 seconds
+[Timing] File read: 0.107122 seconds
+[Timing] Search: 0.000276 seconds
+
+IVF-PQ
+[Timing] Indexing (add): 0.641702 seconds
+[Timing] File write: 0.002208 seconds
+[Timing] File read: 0.011815 seconds
+[Timing] Search: 0.002504 seconds
