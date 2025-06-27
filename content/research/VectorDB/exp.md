@@ -160,6 +160,8 @@ Average latency per query: 8.32 ms
 
 ````
 
+![[Pasted image 20250627164651.png]]
+![[Pasted image 20250627164721.png]]
 on-prem
 Indexing
 ```
@@ -314,4 +316,17 @@ Index load time: 25.0428 seconds
 Total search time: 7.7803 seconds
 Average latency per query: 7.78 ms
 ````
+![[Pasted image 20250627165456.png]]
 
+
+| **항목**                | **Cloud**                    | **On-Prem**                  |
+| --------------------- | ---------------------------- | ---------------------------- |
+| **Quantization Time** | 749.40 sec                   | 709.61 sec                   |
+| **Graph Build Time**  | 160.65 sec                   | 269.15 sec                   |
+| **Disk Layout Time**  | 1.45 sec                     | 1.04 sec                     |
+| **전체 Indexing 시간**    | 914.87 sec                   | 980.66 sec                   |
+| **Index 파일 크기**       | 819.20 MB                    | 819.20 MB                    |
+| **로드 시간 (1차)**        | ≈ 0 sec (측정 안됨)              | ≈ 0 sec (측정 안됨)              |
+| **검색 시간 (10개)**       | 0.16 sec (16.37 ms/query)    | 0.17 sec (17.40 ms/query)    |
+| **로드 시간 (1000쿼리)**    | **100.93 sec**               | **25.04 sec**                |
+| **검색 시간 (1000개)**     | **8.32 sec (8.32 ms/query)** | **7.78 sec (7.78 ms/query)** |
