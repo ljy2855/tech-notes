@@ -122,3 +122,6 @@ graph TD
 - **Neutron DHCP Agent (L)**:
     
     - OpenStack 인스턴스에 Fixed IP, 게이트웨이, DNS 정보 등을 동적으로 할당하는 역할을 합니다.
+
+
+![[Pasted image 20250729193346.png]]
