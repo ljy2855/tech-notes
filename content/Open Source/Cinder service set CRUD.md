@@ -6,8 +6,6 @@ v2/test_service / `openstack volume service set`
 
 VM에 **블록 스토리지 볼륨**을 제공해주는 서비스
 
-VM에 붙힐 Block storage를 제공해주는 서비스
-
 ![[Pasted image 20250808200336.png]]
 
 이 때, 각 호스트들 별로 cinder-volume 데몬이 뜨게 되고, 이를 각 서비스별로 나누어서 제공
@@ -41,3 +39,24 @@ VM에게 block storage를 연결을 보여주는데, 해당 iSCSI 외에 다른 
 openstack volume service set --disable <host> <service>
 openstack volume service set --enable <host> <service>
 ```
+
+
+![[Pasted image 20250808204653.png]]
+
+disable을 요청하면 핻
+
+scheduler는 해당 volume service로는 생성 요청을 보내지 못함
+
+볼륨 생성 테스트
+![[Pasted image 20250808205042.png]]
+
+
+![[Pasted image 20250808205115.png]]
+
+
+
+![[Pasted image 20250808205637.png]]
+
+scheduler를 disable 하게 되면 아예 cli의 요청에 413 에러를 반환함
+
+![[Pasted image 20250808205944.png]]
