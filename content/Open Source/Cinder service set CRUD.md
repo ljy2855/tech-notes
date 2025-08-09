@@ -43,11 +43,11 @@ openstack volume service set --enable <host> <service>
 
 ![[Pasted image 20250808204653.png]]
 
-disable을 요청하면 핻
+disable을 요청하면 cinder-api로 요청이 보내지고, 해당 서비스는 disabled 즉 task queue를 linsten 하지 않게 됌 
 
 scheduler는 해당 volume service로는 생성 요청을 보내지 못함
 
-볼륨 생성 테스트
+####  볼륨 생성 테스트
 ![[Pasted image 20250808205042.png]]
 
 
@@ -62,6 +62,11 @@ scheduler를 disable 하게 되면 아예 cli의 요청에 413 에러를 반환�
 ![[Pasted image 20250808205944.png]]
 
 ### Cinder 내부로직
+
+
+#### Service
+
+
 #### set status
 
 ```python
@@ -105,7 +110,6 @@ try:
 										 volume_rpcapi)
  ```
 
-- cinder-api 는 volume create 요청을 보내면 해당 
 
 
 ```python
@@ -145,3 +149,6 @@ def get_flow(db_api, image_service_api, availability_zones, create_what,
     # Now load (but do not run) the flow using the provided initial data.
     return taskflow.engines.load(api_flow, store=create_what)
 ```
+
+- cinder-api 는 volume create 요청을 보내면 해당 scheder, volume api call을 각각 RabbitMQ 에 task를 넣고, 순차적으로 실행
+- 
