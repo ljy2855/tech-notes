@@ -4,22 +4,12 @@ v2/test_service / `openstack volume service set`
 
 ### Cinder란?
 
-VM에 **블록 스토리지 볼륨**을 제공해주는 서비스
+> VM에 **블록 스토리지 볼륨**을 제공해주는 서비스
 ![[Pasted image 20250808200336.png]]
 
 이 때, 각 호스트들 별로 cinder-volume 데몬이 뜨게 되고, 이 데몬이 스토리지 백엔드와 통신하여 실제 볼륨 관리를 수행
 
 Nova에서 VM을 생성할 때 Cinder 볼륨을 연결할 수 있는데, Cinder는 `cinder-scheduler`를 통해 적절한 `cinder-volume` 서비스를 찾아 볼륨을 생성하고 연결
-
-
-![[Pasted image 20250808201753.png]]
-
-- cinder-scheduler
-	- control node에 volume 관련 요청을 처리해주는 서비스 
-	- 볼륨 생성 요청을 보내면, 스케줄러가 여러 `cinder-volume` 서비스 중에서 가장 적합한 곳을 찾아 요청을 할당
-- cinder-volume 
-	- 실제 스토리지 백엔드와 통신하여 볼륨을 생성, 삭제, VM에 연결하는 등의 작업을 수행
-	- 현재 devstack에서는 LVM(Logical Volume Manager)이라는 driver를 통해 디바이스를 제어
 
 ### Architecture
 ![[Pasted image 20250808202051.png]]
@@ -32,6 +22,17 @@ VM에게 block storage를 연결을 보여주는데, 해당 iSCSI 외에 다른 
 
 이는 각 벤더별 driver별로 지원하는 프로토콜이 다름 
 https://docs.openstack.org/cinder/latest/drivers.html
+
+
+### CLI
+![[Pasted image 20250808201753.png]]
+
+- cinder-scheduler
+	- control node에 volume 관련 요청을 처리해주는 서비스 
+	- 볼륨 생성 요청을 보내면, 스케줄러가 여러 `cinder-volume` 서비스 중에서 가장 적합한 곳을 찾아 요청을 할당
+- cinder-volume 
+	- 실제 스토리지 백엔드와 통신하여 볼륨을 생성, 삭제, VM에 연결하는 등의 작업을 수행
+	- 현재 devstack에서는 LVM(Logical Volume Manager)이라는 driver를 통해 디바이스를 제어
 ### volume service set
 service들을 enable, disable 가능한데, `volume service set` command를 통해 각 호스트에 있는 서비스들을 제어할 수 있음
 
@@ -49,11 +50,12 @@ scheduler는 해당 volume service로는 생성 요청을 보내지 못함
 
 ####  볼륨 생성 테스트
 ![[Pasted image 20250808205042.png]]
-
+- cinder-api에 생성 request에 대한 response 반환
+- volume create 요청은 비동기적으로 처리하므로 (메세지 큐) 성공여부는 모름
 
 ![[Pasted image 20250808205115.png]]
-
-
+- 생성한 볼륨의 status가 `available` 이 아닌 `error`
+- volume create 요청을 처리할 volume service가 없어서 해당 상황 발생
 
 ![[Pasted image 20250808205637.png]]
 
@@ -82,6 +84,7 @@ def update(self, req, id, body):
         ext_loaded = self.ext_mgr.is_loaded('os-extended-services')
 ````
 
+- cinder-api server 로직
 - 아예 데몬을 다운시키는게 아니라, task(volume create ..)를 스케줄링 on/off 하기 위한 용도
 
 #### volume create
@@ -104,8 +107,6 @@ try:
 										 sched_rpcapi,
 										 volume_rpcapi)
  ```
-
-
 
 ```python
 #cinder/cinder/volume/flows/api/create_volume.py
@@ -144,3 +145,4 @@ def get_flow(db_api, image_service_api, availability_zones, create_what,
     # Now load (but do not run) the flow using the provided initial data.
     return taskflow.engines.load(api_flow, store=create_what)
 ```
+- REST API 가 아닌 메세지큐에 task를 넣고 scheduler, volume 서비스가 처리하도록 함
