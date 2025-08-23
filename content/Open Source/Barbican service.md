@@ -1,5 +1,7 @@
 
-openstack 서비스에서 secrect key value store의 역할을 수행하는 서비스
+Openstack에서 secrect key value store의 역할을 수행하는 서비스
+
+![[Pasted image 20250823150948.png]]
 
 aws의 `secret manager`와 같은 서비스
 
