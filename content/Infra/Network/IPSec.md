@@ -22,5 +22,26 @@
 ### IPsec VPN
 ![[Pasted image 20250831180825.png]]
 
-컨셉은 다음과 같음
-> 트래픽은 
+기존 IP packet에 추가로 인증 헤더(AH)를 추가해서, 수신 VPN 장비에서 해당 헤더를 읽고, 패킷의 인증을 진행
+
+
+이 때, 라우팅은 사설 IP인 10.10.10.10으로 가기 위해 특정 헤더를 담아서 VPN장비까지 패킷을 전달하고, 이후 VPN에서 decapsulation을 통해 packet의 원복을 진행함
+### AH
+#### Transport vs Turnel mode
+
+![[Pasted image 20250831184111.png]]
+
+두 가지 모드가 존재하는데, Transport는 IP header 자체의 인증은 불가능함
+-> 중간에 패킷을 spoofing해도 문제 발생
+
+
+떄문에 일반적으로 Turnel mode을 통해 헤더르 포함한 IP packet 자체를 인증 가능하도록 사용
+
+
+다만 AH는 해당 패킷의 인증만 하지, 암호화는 진행하지 않음
+
+
+### ESP
+
+
+![[Pasted image 20250831184646.png]]
