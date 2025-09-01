@@ -1,5 +1,6 @@
 
-[[IPSec]]이 Site to Site로 연결되어있는 VPN으로,
+[[IPSec]]이 Site to Site로 연결되어있는 VPN이면
 
-인터넷망을 통해서 지사끼리 연결하는데 IPSec
-client들을 사내망 VPN 장비를 통해서 연결하는게 IPSec
+SSL VPN은 외부 인터넷에 있는 사용자들이 사내망에 접근할 수 있도록 만드는 VPN
+
+
