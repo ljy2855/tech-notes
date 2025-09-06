@@ -102,6 +102,10 @@ networks:
 
 
 ![[Pasted image 20250906163836.png]]
+- 별도의 네트워크를 지정하지 않는 컨테이너는 default bridge 네트워크 docker0에 붙여서 연결
+- 컨테이너간 네트워크 연결은 bridge interface를 통해 연결
+
+**host의 인터페이스 확인**
 
 ```
 cocopam@soyo:~/docker-network-test$ ifconfig
@@ -149,12 +153,12 @@ veth5f81027: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         TX packets 15  bytes 1626 (1.6 KB)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
-vethee2b3d1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet6 fe80::f0ad:b6ff:fe05:d300  prefixlen 64  scopeid 0x20<link>
-        ether f2:ad:b6:05:d3:00  txqueuelen 0  (Ethernet)
-        RX packets 865  bytes 6961666 (6.9 MB)
+veth3931235: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::74b6:a4ff:fe8e:ffe7  prefixlen 64  scopeid 0x20<link>
+        ether 76:b6:a4:8e:ff:e7  txqueuelen 0  (Ethernet)
+        RX packets 3  bytes 126 (126.0 B)
         RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 1267  bytes 346544 (346.5 KB)
+        TX packets 16  bytes 1580 (1.5 KB)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
 vethf3e5e1e: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
@@ -166,9 +170,103 @@ vethf3e5e1e: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
 ````
+- 새로운 `br-cbbf334f7335` 브릿지 인터페이스 생성
+- veth 가상 이더넷 링크 3개 생성
 
-- 별도의 네트워크를 지정하지 않는 컨테이너는 default bridge 네트워크 docker0에 붙여서 연결
-- 컨테이너간 네트워크 연결
+```
+cocopam@soyo:~/docker-network-test$ brctl show br-cbbf334f7335
+bridge name	        bridge id		    STP enabled	   interfaces
+br-cbbf334f7335		8000.0af8f4c7cb37	no		       veth3931235
+							                           vethf3e5e1e
+
+````
+- 생성된 브릿지에 링크된 두 개의 veth 확인
+
+
+**Host routing table 확인**
+
+```
+cocopam@soyo:~/docker-network-test$ netstat -nr
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+0.0.0.0         192.168.0.1     0.0.0.0         UG        0 0          0 enp2s0
+172.17.0.0      0.0.0.0         255.255.0.0     U         0 0          0 docker0
+172.30.0.0      0.0.0.0         255.255.0.0     U         0 0          0 br-cbbf334f7335
+192.168.0.0     0.0.0.0         255.255.255.0   U         0 0          0 enp2s0
+192.168.0.1     0.0.0.0         255.255.255.255 UH        0 0          0 enp2s0
+
+````
+- 할당한 네트워크이 사설 대역 172.30.0.0/16 라우팅은 생성한 `br-cbbf334f733`로 감
+
+
+
+```
+cocopam@soyo:~/docker-network-test$ docker inspect -f '{{.State.Pid}}' web-bridge-1
+1615817
+
+cocopam@soyo:~/docker-network-test$ sudo nsenter -t 1615817 -n ip link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0@if88: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+    link/ether 7e:93:22:8d:92:c5 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    
+
+cocopam@soyo:~/docker-network-test$ docker exec -it web-bridge-1 ifconfig
+eth0      Link encap:Ethernet  HWaddr 7E:93:22:8D:92:C5
+          inet addr:172.30.0.10  Bcast:172.30.255.255  Mask:255.255.0.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:18 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:1752 (1.7 KiB)  TX bytes:126 (126.0 B)
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+````
+- 실제로 host 내부에서 보이는 프로세의 7e:93:22:8d:92:c5 mac의 링크가 컨테이너 eth0 링크의 주소와 동일한 것을 확인 가능
+
+
+**host bridge tcp dump**
+
+```
+cocopam@soyo:~$ docker exec -it web-bridge-1 ping 172.30.0.11
+PING 172.30.0.11 (172.30.0.11): 56 data bytes
+64 bytes from 172.30.0.11: seq=0 ttl=64 time=0.539 ms
+64 bytes from 172.30.0.11: seq=1 ttl=64 time=0.189 ms
+64 bytes from 172.30.0.11: seq=2 ttl=64 time=0.183 ms
+
+
+
+cocopam@soyo:~/docker-network-test$ sudo tcpdump -i br-cbbf334f7335
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on br-cbbf334f7335, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+21:54:33.977616 ARP, Request who-has 172.30.0.11 tell 172.30.0.10, length 28
+21:54:33.977694 ARP, Reply 172.30.0.11 is-at 7a:7c:8e:e5:dd:93 (oui Unknown), length 28
+21:54:33.977710 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 0, length 64
+21:54:33.977936 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 0, length 64
+21:54:34.978097 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 1, length 64
+21:54:34.978184 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 1, length 64
+21:54:35.978355 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 2, length 64
+21:54:35.978439 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 2, length 64
+21:54:36.978563 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 3, length 64
+21:54:36.978657 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 3, length 64
+21:54:37.978790 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 4, length 64
+21:54:37.978873 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 4, length 64
+21:54:38.979002 IP 172.30.0.10 > 172.30.0.11: ICMP echo request, id 47, seq 5, length 64
+21:54:38.979089 IP 172.30.0.11 > 172.30.0.10: ICMP echo reply, id 47, seq 5, length 64
+21:54:39.337760 ARP, Request who-has 172.30.0.10 tell 172.30.0.11, length 28
+21:54:39.337843 ARP, Reply 172.30.0.10 is-at 7e:93:22:8d:92:c5 (oui Unknown)
+````
+- web-bridge-1 에서 ping을 확인
+	- ICMP를 위해서 IP를 MAC으로 변환하는 ARP 패킷 전송
+	- 
 
 #### Ref
 https://docs.docker.com/engine/network/
