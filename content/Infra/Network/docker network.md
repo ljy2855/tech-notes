@@ -25,32 +25,6 @@ docker engine에서 네트워크를 어떻게 구성하고, 컨테이너에 연�
 - **ipvlan** : 컨테이너가 host NIC와 동일한 L2 도메인에서 IP를 직접 받음. bridge 불필요, VLAN 기반으로 L3 라우팅 
 - **macvlan** : 컨테이너가 고유한 MAC 주소를 받아 host NIC를 스위치에 “물리 장비 여러 대”처럼 보이게 함
 
-
-```
-networks:
-  intranet_net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
-````
-
-해당 docker compose stack을 만들면, 도커 네트워크가 생성된다.
-
-```sh
-cocopam@soyo:~/vpn$ docker compose up -d
-cocopam@soyo:~/vpn$ ifconfig
-br-c9234b05d1ca: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 172.28.0.1  netmask 255.255.0.0  broadcast 172.28.255.255
-        inet6 fe80::786b:2eff:fed9:a1eb  prefixlen 64  scopeid 0x20<link>
-        ether 7a:6b:2e:d9:a1:eb  txqueuelen 0  (Ethernet)
-        RX packets 0  bytes 0 (0.0 B)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 0  bytes 0 (0.0 B)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-````
-
-
 ### Linux Network Interface
 
 
@@ -87,6 +61,9 @@ br-c9234b05d1ca: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 ### 인터페이스 별 통신
 #### bridge
 
+
+
+![[Pasted image 20250906163836.png]]
 
 
 
