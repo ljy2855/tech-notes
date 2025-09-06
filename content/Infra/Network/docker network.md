@@ -83,9 +83,33 @@ br-c9234b05d1ca: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 - 물리 NIC: 외부 네트워크와 직접 연결되므로 ISP나 내부 DHCP 서버에서 IP를 받음
 - 가상 NIC: Docker나 K8s, VPN 같은 소프트웨어가 IPAM(IP Address Management)을 통해 주소를 할당
 
-### Docker DNS
+
+### 인터페이스 별 통신
+#### bridge
 
 
+
+
+```
+cocopam@soyo:~/docker-network-test$ docker exec -it web-bridge ifconfig
+eth0      Link encap:Ethernet  HWaddr 0A:09:BF:BC:2C:19
+          inet addr:172.30.0.10  Bcast:172.30.255.255  Mask:255.255.0.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:15 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:1626 (1.5 KiB)  TX bytes:126 (126.0 B)
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+````
 
 
 #### Ref
