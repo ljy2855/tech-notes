@@ -58,8 +58,7 @@ docker engine에서 네트워크를 어떻게 구성하고, 컨테이너에 연�
 - 가상 NIC: Docker나 K8s, VPN 같은 소프트웨어가 IPAM(IP Address Management)을 통해 주소를 할당
 
 
-### 인터페이스 별 통신
-#### bridge
+### 실험
 
 ```yml
 services:
@@ -101,9 +100,12 @@ networks:
 ````
 
 
+**네트워크 구성도**
+
 ![[Pasted image 20250906163836.png]]
 - 별도의 네트워크를 지정하지 않는 컨테이너는 default bridge 네트워크 docker0에 붙여서 연결
 - 컨테이너간 네트워크 연결은 bridge interface를 통해 연결
+
 
 **host의 인터페이스 확인**
 
@@ -173,6 +175,8 @@ vethf3e5e1e: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 - 새로운 `br-cbbf334f7335` 브릿지 인터페이스 생성
 - veth 가상 이더넷 링크 3개 생성
 
+**bridge에 링크된 인터페이스**
+
 ```
 cocopam@soyo:~/docker-network-test$ brctl show br-cbbf334f7335
 bridge name	        bridge id		    STP enabled	   interfaces
@@ -197,20 +201,12 @@ Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
 
 ````
 - 할당한 네트워크이 사설 대역 172.30.0.0/16 라우팅은 생성한 `br-cbbf334f733`로 감
+- 때문에 HOST에서도 bridge를 타고 컨테이너에 접근 가능
 
 
+라우팅 테스트
 
 ```
-cocopam@soyo:~/docker-network-test$ docker inspect -f '{{.State.Pid}}' web-bridge-1
-1615817
-
-cocopam@soyo:~/docker-network-test$ sudo nsenter -t 1615817 -n ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: eth0@if88: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default
-    link/ether 7e:93:22:8d:92:c5 brd ff:ff:ff:ff:ff:ff link-netnsid 0
-    
-
 cocopam@soyo:~/docker-network-test$ docker exec -it web-bridge-1 ifconfig
 eth0      Link encap:Ethernet  HWaddr 7E:93:22:8D:92:C5
           inet addr:172.30.0.10  Bcast:172.30.255.255  Mask:255.255.0.0
@@ -230,7 +226,7 @@ lo        Link encap:Local Loopback
           RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
 
 ````
-- 실제로 host 내부에서 보이는 프로세의 7e:93:22:8d:92:c5 mac의 링크가 컨테이너 eth0 링크의 주소와 동일한 것을 확인 가능
+- 컨테이너 내부의 eth0에 172.30.0.10가 할당되어있고, 해당 링크의 MAC이 `7E:93:22:8D:92:C5` 인것을 확인
 
 
 **host bridge tcp dump**
@@ -264,9 +260,35 @@ listening on br-cbbf334f7335, link-type EN10MB (Ethernet), snapshot length 26214
 21:54:39.337760 ARP, Request who-has 172.30.0.10 tell 172.30.0.11, length 28
 21:54:39.337843 ARP, Reply 172.30.0.10 is-at 7e:93:22:8d:92:c5 (oui Unknown)
 ````
-- web-bridge-1 에서 ping을 확인
+- web-bridge-1(172.30.0.10) 에서 web-bridge-2(172.30.0.11) ping을 확인
 	- ICMP를 위해서 IP를 MAC으로 변환하는 ARP 패킷 전송
-	- 
+	- 이후 web-bridge-2에서 eth0 MAC 전달 (arp reply)
+
+
+**bridge mac table 확인**
+
+```
+cocopam@soyo:~/docker-network-test$ sudo bridge fdb show | grep br-cbbf334f7335
+33:33:00:00:00:01 dev br-cbbf334f7335 self permanent
+33:33:00:00:00:02 dev br-cbbf334f7335 self permanent
+01:00:5e:00:00:6a dev br-cbbf334f7335 self permanent
+33:33:00:00:00:6a dev br-cbbf334f7335 self permanent
+01:00:5e:00:00:01 dev br-cbbf334f7335 self permanent
+33:33:ff:c7:cb:37 dev br-cbbf334f7335 self permanent
+33:33:ff:00:00:00 dev br-cbbf334f7335 self permanent
+0a:f8:f4:c7:cb:37 dev br-cbbf334f7335 vlan 1 master br-cbbf334f7335 permanent
+0a:f8:f4:c7:cb:37 dev br-cbbf334f7335 master br-cbbf334f7335 permanent
+7e:93:22:8d:92:c5 dev vethf3e5e1e master br-cbbf334f7335
+3e:f6:9b:36:24:5a dev vethf3e5e1e vlan 1 master br-cbbf334f7335 permanent
+3e:f6:9b:36:24:5a dev vethf3e5e1e master br-cbbf334f7335 permanent
+7a:7c:8e:e5:dd:93 dev veth3931235 master br-cbbf334f7335
+76:b6:a4:8e:ff:e7 dev veth3931235 vlan 1 master br-cbbf334f7335 permanent
+76:b6:a4:8e:ff:e7 dev veth3931235 master br-cbbf334f7335 permanent
+````
+- web-bridge-1
+	- 컨테이너 내부의 `7E:93:22:8D:92:C5` eth0 MAC -> vethf3e5e1e로  포워딩
+	- veth MAC `76:b6:a4:8e:ff:e7` 
+- 마찬가지로 web-bridge-2도 연결된 것 확인 가능
 
 #### Ref
 https://docs.docker.com/engine/network/
