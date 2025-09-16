@@ -35,5 +35,14 @@ TLS는 이전의 암호화 프로토콜 [SSL](https://www.cloudflare.com/learnin
 ![[Pasted image 20250916125931.png]]
 
 
-1. TCP hand shake 진행
-2. client는 
+1. TCP 3-way handshake 진행
+2. ClientHello: 클라이언트가 암호 스위트, TLS 버전, 랜덤 값 전달
+3. ServerHello: 서버가 암호 스위트 선택, 인증서(공개키 포함) 전달
+4. 클라이언트는 인증서 체인을 Root CA까지 검증 → 서버 공개키 유효성 확인
+5. (TLS 1.2) RSA 또는 ECDHE로 pre-master secret 교환
+
+   (TLS 1.3) ECDHE 기반 키 교환만 사용
+
+6. 양측은 pre-master secret + 랜덤 값으로 session key 파생
+
+7. session key로 이후 패킷 암호화
