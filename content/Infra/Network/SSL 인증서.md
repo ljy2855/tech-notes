@@ -17,8 +17,7 @@
 - Dst 주소가 정상적인 목적지가 아니라면?
 - 중간에 패킷이 변조된다면?
 
-기밀성(Confidentiality), 무결성(Integrity), 가용성(Availability)을 보장하기 위해 통신 프로토콜에 보안 계층을 추가한다.
-
+기밀성(Confidentiality), 무결성(Integrity)을 보장하기 위해 통신 프로토콜에 보안 계층을 추가
 
 ### SSL/TLS
 
@@ -103,5 +102,24 @@ https://cocopam.tistory.com/43
 
 ### client 패킷 확인
 
-1. TCP h
+https 요청을 보낼때, 어떤 과정이 일어나는지 확인
+
+1. TCP handshake
 ![[Pasted image 20250916160207.png]]
+
+
+2. hello 이후, 서버 인증서 전달
+![[Pasted image 20250916160530.png]]
+
+![[Pasted image 20250916161123.png]]
+issuer의 정보를 보고 상위 인증서를 찾음
+
+![[Pasted image 20250916161419.png]]
+브라우저에서는 해당 인증서를 로컬에서 확인 (여기서는 바로 root)
+
+3. client는 서버의 인증서를 확인하고, 키 교환 방식 전달
+![[Pasted image 20250916160812.png]]
+
+이후 session key 생성 과정은 생략
+
+
