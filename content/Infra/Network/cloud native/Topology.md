@@ -16,7 +16,8 @@ aggregation까지 L2 연결을 하다보니 agg layer에서 ARP, STP에 영향�
 단점
 - Server to Server 통신시에, path가 agg를 타고 대역폭 제한
 - 추가 대역폭을 늘리고 싶으면 링크를 추가하는 방법 밖에없음
-- 
+	- AGG는 두대 이상 집선시, STP로 사용불가
+- VLAN으로 분리할수 있는 Pod의 한정적인 개수
 ### Clos (leaf spine)
 
 ![[Pasted image 20251004141921.png]]
