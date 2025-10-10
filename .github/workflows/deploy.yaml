@@ -28,7 +28,7 @@ jobs:
       - name: Pre-render Dataview blocks (index.md only)
         run: node scripts/prerender-dataview.mjs
         env:
-          SITE_BASE: "https://ljy2855.github.io/obsidian.md"
+          SITE_BASE: "https://ljy2855.github.io/tech-notes/"
       - name: Build Quartz
         run: npx quartz build
       - name: Upload artifact

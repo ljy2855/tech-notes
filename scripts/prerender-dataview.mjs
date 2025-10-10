@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const CONTENT_DIR = path.join(REPO_ROOT, "content");
-const BASE_URL = process.env.SITE_BASE || "https://ljy2855.github.io/obsidian.md";
+const BASE_URL = process.env.SITE_BASE || "https://ljy2855.github.io/tech-notes";
 const DV_FENCE_RE = /```dataview\s+([\s\S]*?)```/g;
 
 function walk(dir) {
