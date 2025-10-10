@@ -1,7 +1,7 @@
-## 기술 문서 정리
 
-CS, Language, Infra .. 등등 필요한 문서들 정리
+컴퓨터공학을 전공하면서 공부했던 것들 (Software, Infra, Cloud)을 기록 
 
-https://ljy2855.github.io/obsidian.md/index.html
+[![status](https://img.shields.io/badge/notes-my)](https://ljy2855.github.io/obsidian.md/index.html)
+
 
 
