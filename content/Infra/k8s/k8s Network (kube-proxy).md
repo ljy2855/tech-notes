@@ -11,7 +11,7 @@ Kubernetes 클러스터에서는 애플리케이션이
 
 **서버 위가 아니라 Pod 단위**로 배치
 
-![[../../Assets/Pasted image 20251214183221.png]]
+![[../../Assets/Pasted image 20251214183906.png]]
 
 - Pod는 클러스터 내부 **Overlay Network** 위에 존재
 - Underlay(Baremetal 서버, 스위치, ToR)는 Pod나 컨테이너의 IP/Port를 **직접 인지하지 않음**
@@ -41,17 +41,17 @@ Kubernetes 클러스터 네트워크에서 발생하는 주요 트래픽
 Kubernetes에서 **Pod는 네트워크의 최소 단위**
 같은 Pod에 속한 컨테이너들은
 
-- 동일한 **Network Namespace** 공유
+- 동일한 **Network Namespace** 공유 (Host network와 분리)
 - 동일한 IP 주소 사용
 - 동일한 routing table, iptables 사용
 
-```
-Container A ── localhost ── Container B
-````
-- 127.0.0.1 또는 Pod IP로 접근 가능
+![[../../Assets/Pasted image 20251214184117.png]]
+- 127.0.0.1(localhost) 또는 Pod IP로 접근 가능
 - 포트만 다르면 충돌 없음
-- Sidecar 패턴이 가능한 이유
 
+**해당 방식을 통해 sidecar 패턴이 가능함**
+- 네트워크 namespace 공유 -> http polling 가능
+- filesystem 공유 -> log file read 가능 
 
 ### Pod to Pod
 
@@ -71,7 +71,6 @@ Service, NAT, Load Balancing은 개입 x
 
 다음 글에서 자세히 다룰 예정
 ### Pod to Service
-
 
 Service는 **Pod 집합에 대한 추상화 계층**
 
