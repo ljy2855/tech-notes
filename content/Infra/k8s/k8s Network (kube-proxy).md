@@ -7,12 +7,10 @@
 
 ![[../../Assets/Pasted image 20251214172937.png]]
 
-Kubernetes 클러스터에서는 애플리케이션이
-
-**서버 위가 아니라 Pod 단위**로 배치
+Kubernetes 클러스터에서는 애플리케이션이 **서버 위가 아니라 Pod 단위**로 배치
 
 ![[../../Assets/Pasted image 20251214183906.png]]
-
+![A figure illustrating the different network ranges in a kubernetes cluster](https://kubernetes.io/docs/images/kubernetes-cluster-network.svg)
 - Pod는 클러스터 내부 **Overlay Network** 위에 존재
 - Underlay(Baremetal 서버, 스위치, ToR)는 Pod나 컨테이너의 IP/Port를 **직접 인지하지 않음**
 
