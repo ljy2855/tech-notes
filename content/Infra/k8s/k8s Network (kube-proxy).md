@@ -11,18 +11,19 @@ Kubernetes 클러스터에서는 애플리케이션이
 
 **서버 위가 아니라 Pod 단위**로 배치
 
+![[../../Assets/Pasted image 20251214183221.png]]
+
 - Pod는 클러스터 내부 **Overlay Network** 위에 존재
 - Underlay(Baremetal 서버, 스위치, ToR)는 Pod나 컨테이너의 IP/Port를 **직접 인지하지 않음**
 
 즉, 인프라는 단순히 “Pod 네트워크를 전달하는 역할”만 수행
 
 이 추상화를 가능하게 하는 핵심 컴포넌트
-
 - **CNI (Container Network Interface)**
 - **kube-proxy**
     
 
-이번 글에서는 **기본 구성(default)** 인 **kube-proxy + CNI 환경**을 기준으로 Kubernetes 네트워크 흐름을 정리
+이번 글에서는 **기본 구성(default)** 인 kube-proxy을 기준으로 Kubernetes 네트워크 흐름을 정리
 
 ## k8s 통신 종류
 
@@ -32,8 +33,6 @@ Kubernetes 클러스터 네트워크에서 발생하는 주요 트래픽
 2. pod to pod
 3. pod to service
 4. external service
-
-> kube-proxy만으로는 Pod to Pod 통신을 만들 수 없으며, **Pod 네트워크 자체는 CNI가 담당
 
 ### Container to Container
 
@@ -53,9 +52,10 @@ Container A ── localhost ── Container B
 - 포트만 다르면 충돌 없음
 - Sidecar 패턴이 가능한 이유
 
+
 ### Pod to Pod
 
-이 통신을 가능하게 하는 것은 **CNI 플러그인**이다.
+이 통신을 가능하게 하는 것은 **CNI 플러그인**
 
 CNI가 수행하는 역할은 다음과 같음
 
@@ -64,11 +64,12 @@ CNI가 수행하는 역할은 다음과 같음
 - 노드 내/노드 간 라우팅 구성
 - Overlay(VXLAN) 또는 Underlay(BGP) 처리
 
-Service, NAT, Load Balancing은 개입하지 않는다.
+Service, NAT, Load Balancing은 개입 x
 
 > Kubernetes 네트워크 모델의 핵심 원칙
 > **“모든 Pod는 NAT 없이 서로 통신 가능해야 한다”**
 
+다음 글에서 자세히 다룰 예정
 ### Pod to Service
 
 
@@ -105,11 +106,8 @@ SNAT를 통해서 외부로 나감
 kube-proxy는 다음을 수행
 
 1. Service / Endpoint 정보를 watch
-    
 2. iptables 규칙 생성
-    
 3. Service IP로 들어온 트래픽을 **DNAT**
-    
 4. 실제 Pod IP로 전달
 
 
