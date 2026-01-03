@@ -78,7 +78,6 @@ Service는 **Pod 집합에 대한 추상화 계층**
     
 이 가상 IP를 실제 Pod IP로 변환하는 역할이 **kube-proxy**
 
-자세한 변환 과정은 아래에 작성
 ### External Service
 
 > cluster 외부로 통신할 때
