@@ -64,9 +64,6 @@ CNI가 수행하는 역할은 다음과 같음
 
 Service, NAT, Load Balancing은 개입 x
 
-> Kubernetes 네트워크 모델의 핵심 원칙
-> **“모든 Pod는 NAT 없이 서로 통신 가능해야 한다”**
-
 다음 글에서 자세히 다룰 예정
 ### Pod to Service
 
@@ -80,20 +77,42 @@ Service는 **Pod 집합에 대한 추상화 계층**
 
 ### External Service
 
-> cluster 외부로 통신할 때
+Kubernetes에서 “External Service” 통신은 **클러스터 기준 방향성**에 따라
+**Inbound(외부 → 클러스터)** 와 **Outbound(클러스터 → 외부)** 로 나눌 수 있음
 
-외부 트래픽은 다음 경로 중 하나를 따른다.
-- NodePort
-- LoadBalancer
-- Ingress
+**Inbound traffic**
 
-**Inbound**
+외부에서 **클러스터 내부 Pod(Service)** 로 접근하는 흐름
+→ 반드시 **Service 또는 Ingress** 를 통해 진입
 
-DNAT를 통해서 Service로 전달
+1. NodePort (L4)
+각 Node의 특정 포트를 열어 Service로 트래픽 전달
+```
+Client
+  → NodeIP:NodePort
+    → kube-proxy (DNAT)
+      → Service VIP (ClusterIP)
+        → Pod
+````
 
-**Outbound**
+2. LoadBalancer (L4)
+ Cloud Provider 또는 MetalLB가 **외부 IP** 할당
+```
+Client
+  → External LB IP
+    → Node
+      → Service VIP
+        → Pod
+````
 
-SNAT를 통해서 외부로 나감
+3. Ingress (L7)
+Ingress Controller를 두어 Service로 프록시 시킴
+
+**Outbound traffic**
+
+Pod가 **외부 서비스(API, DB, SaaS 등)** 로 나가는 트래픽
+→ **Service VIP와는 무관**, 순수 **egress 흐름**
+
 
 ## Kube-proxy 작동
 
