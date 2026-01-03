@@ -113,10 +113,23 @@ Ingress Controller를 두어 Service로 프록시 시킴
 Pod가 **외부 서비스(API, DB, SaaS 등)** 로 나가는 트래픽
 → **Service VIP와는 무관**, 순수 **egress 흐름**
 
+kube-proxy 기준 outbound 트래픽 (Cilium 구성시, 달라짐)
+```
+Pod
+ → veth
+   → Node routing
+     → iptables POSTROUTING
+       → SNAT (Pod IP → Node IP)
+         → External
+````
 
 ## Kube-proxy 작동
 
-> iptables 기준으로 작성
+> iptables 기준으로 작성 
+
+- kube-proxy는 **라우팅 x**
+- Overlay 네트워크 생성 x
+- 단순히 **L4 NAT 규칙을 설치**
 
 kube-proxy는 다음을 수행
 
@@ -125,8 +138,6 @@ kube-proxy는 다음을 수행
 3. Service IP로 들어온 트래픽을 **DNAT**
 4. 실제 Pod IP로 전달
 
+![[../../Assets/Pasted image 20260103182425.png]]
 
-- kube-proxy는 **라우팅 x**
-- Overlay 네트워크 생성 x
-- 단순히 **L4 NAT 규칙을 설치**
 
