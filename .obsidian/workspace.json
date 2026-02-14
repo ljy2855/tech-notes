@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Infra/k8s/k8s Network (kube-proxy).md",
+                "file": "Untitled.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "k8s Network (kube-proxy)"
+              "title": "Untitled"
             }
           }
         ]
@@ -181,47 +181,11 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "floating": {
-    "id": "4959b3bdd9b18044",
-    "type": "floating",
-    "children": [
-      {
-        "id": "f2e2949ac98c4a03",
-        "type": "window",
-        "children": [
-          {
-            "id": "6804d4f35cd0a0d9",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "9cfa1194eec66ee9",
-                "type": "leaf",
-                "state": {
-                  "type": "excalidraw",
-                  "state": {
-                    "file": "Excalidraw/k8s network.md"
-                  },
-                  "icon": "excalidraw-icon",
-                  "title": "k8s network"
-                }
-              }
-            ]
-          }
-        ],
-        "direction": "vertical",
-        "x": 907,
-        "y": 71,
-        "width": 642,
-        "height": 1085,
-        "maximize": false,
-        "zoom": 0
-      }
-    ]
-  },
-  "active": "f567d58191f9593f",
+  "active": "4a6cb812842154e7",
   "lastOpenFiles": [
-    "Excalidraw/k8s network.md",
     "content/Infra/k8s/k8s Network (kube-proxy).md",
+    "Untitled.md",
+    "Excalidraw/k8s network.md",
     "content/Assets/Pasted image 20260103182425.png",
     "content/Assets/Pasted image 20260103182039.png",
     "content/Infra/k8s/Service Network.md",
