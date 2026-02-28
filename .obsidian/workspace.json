@@ -11,14 +11,14 @@
             "id": "87af525539412e5e",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "split-diff-view",
               "state": {
-                "file": "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
-                "mode": "source",
-                "source": false
+                "aFile": ".obsidian/workspace.json",
+                "bFile": ".obsidian/workspace.json",
+                "aRef": ""
               },
-              "icon": "lucide-file",
-              "title": "k8s CoreDNS, 사설 DNS로 활용하기"
+              "icon": "diff",
+              "title": "Diff: workspace.json"
             }
           }
         ]
@@ -164,8 +164,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 290.5,
-    "collapsed": true
+    "width": 290.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,11 +182,11 @@
   },
   "active": "87af525539412e5e",
   "lastOpenFiles": [
+    "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
     "content/Infra/k8s/Core components.md",
     "content/Infra/k8s/Service Network.md",
     "content/Infra/k8s/Cloudflare Tunnel을 활용한 k8s Ingress 대체.md",
     "content/Infra/k8s/k8s Network (kube-proxy).md",
-    "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
     "content/Assets/Pasted image 20260222154016.png",
     "content/Assets/Pasted image 20260222153934.png",
     "content/Assets/Pasted image 20260222153908.png",
