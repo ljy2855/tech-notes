@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "15763e1511cb5b8c",
+        "id": "9c300cb529d5f141",
         "type": "tabs",
         "children": [
           {
-            "id": "87af525539412e5e",
+            "id": "ad52641dc31e598c",
             "type": "leaf",
             "state": {
-              "type": "split-diff-view",
+              "type": "markdown",
               "state": {
-                "aFile": ".obsidian/workspace.json",
-                "bFile": ".obsidian/workspace.json",
-                "aRef": ""
+                "file": "content/Retrospective/AI 그게 정말 업무에 도움이 될까?.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "diff",
-              "title": "Diff: workspace.json"
+              "icon": "lucide-file",
+              "title": "AI 그게 정말 업무에 도움이 될까?"
             }
           }
         ]
@@ -180,8 +180,9 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "87af525539412e5e",
+  "active": "ad52641dc31e598c",
   "lastOpenFiles": [
+    "content/Retrospective/AI 그게 정말 업무에 도움이 될까?.md",
     "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
     "content/Infra/k8s/Core components.md",
     "content/Infra/k8s/Service Network.md",
