@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Retrospective/AI 그게 정말 업무에 도움이 될까?.md",
+                "file": "content/Retrospective/AI 시대 얼마나.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AI 그게 정말 업무에 도움이 될까?"
+              "title": "AI 시대 얼마나"
             }
           }
         ]
@@ -182,7 +182,8 @@
   },
   "active": "ad52641dc31e598c",
   "lastOpenFiles": [
-    "content/Retrospective/AI 그게 정말 업무에 도움이 될까?.md",
+    "content/Assets/Pasted image 20260321164413.png",
+    "content/Retrospective/AI 시대 얼마나.md",
     "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
     "content/Infra/k8s/Core components.md",
     "content/Infra/k8s/Service Network.md",
@@ -220,7 +221,6 @@
     "content/Infra/Linux/KVM.md",
     "content/Infra/Linux/docker로 알아보는 Linux network 가상화.md",
     "content/Infra/Network/IPSec.md",
-    "content/Infra/Network/SSL VPN.md",
     "content/Infra/Network/cloud native",
     "Untitled 2.base",
     "public/AI/NLP/Lec02-revised.pdf",
