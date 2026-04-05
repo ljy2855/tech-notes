@@ -11,10 +11,14 @@
             "id": "f0dd8b3a96e75918",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "content/Open Source/cilium/Cilium 맛보기.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Cilium 맛보기"
             }
           }
         ]
@@ -74,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5
+    "width": 213.5,
+    "collapsed": true
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -178,6 +183,8 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
+    "content/Open Source/cilium/Cilium 맛보기.md",
+    "content/Open Source/cilium",
     "content/Retrospective/회사에서 AI  잘 쓰기.md",
     "content/Assets/Pasted image 20260321164413.png",
     "content/Infra/k8s/k8s CoreDNS, 사설 DNS로 활용하기.md",
@@ -222,7 +229,6 @@
     "scripts/prerender-dataview.mjs",
     "scripts",
     "content/index.base",
-    "content/Infra/Redhat/System Administration 1",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
