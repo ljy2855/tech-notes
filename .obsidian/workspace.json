@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Open Source/cilium/why ebpf?.md",
+                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "why ebpf?"
+              "title": "eBPF로 Naive L4 구현 PoC"
             }
           }
         ]
@@ -107,7 +107,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "content/Open Source/cilium/why ebpf?.md",
+                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -117,7 +117,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for why ebpf?"
+              "title": "Backlinks for eBPF로 Naive L4 구현 PoC"
             }
           },
           {
@@ -183,8 +183,10 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
-    "content/Open Source/cilium/Cilium 맛보기.md",
+    "content/Open Source/cilium/eBPF.md",
+    "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
     "content/Open Source/cilium/why ebpf?.md",
+    "content/Open Source/cilium/Cilium 맛보기.md",
     "content/Open Source/cilium",
     "content/Retrospective/회사에서 AI  잘 쓰기.md",
     "content/Assets/Pasted image 20260321164413.png",
@@ -221,8 +223,6 @@
     "content/Infra/Openstack/Barbican service.md",
     "content/Infra/Linux/certbot wildcard 인증서 갱신.md",
     "content/Infra/Linux/Cloud Storage.md",
-    "content/Infra/Linux/KVM.md",
-    "content/Infra/Linux/docker로 알아보는 Linux network 가상화.md",
     "content/Infra/Network/cloud native",
     "Untitled 2.base",
     "public/AI/NLP/Lec02-revised.pdf",
