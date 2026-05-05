@@ -20,18 +20,6 @@
               "icon": "lucide-file",
               "title": "Direct Server Return"
             }
-          },
-          {
-            "id": "a09219298c6a03a9",
-            "type": "leaf",
-            "state": {
-              "type": "diagram-edit",
-              "state": {
-                "file": "Drawio/Direct Server Return - NAT vs DSR.drawio.svg"
-              },
-              "icon": "lucide-file",
-              "title": "Direct Server Return - NAT vs DSR.drawio.svg"
-            }
           }
         ]
       }
@@ -197,9 +185,9 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
-    "Drawio/Direct Server Return - IP Header Flow.drawio.svg",
     "Drawio/Direct Server Return - NAT vs DSR.drawio.svg",
     "content/Infra/Network/Direct Server Return.md",
+    "Drawio/Direct Server Return - IP Header Flow.drawio.svg",
     "Untitled Diagram.svg",
     "Drawio",
     "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
@@ -223,7 +211,6 @@
     "Excalidraw/k8s network.md",
     "content/Assets/Pasted image 20260103182425.png",
     "content/Assets/Pasted image 20260103182039.png",
-    "content/Assets/Pasted image 20251214184117.png",
     "content/Computer Science/Network/BGP.md",
     "content/AI/AI engineering/Evaluation.md",
     "content/AI/AI engineering/Embedding.md",
