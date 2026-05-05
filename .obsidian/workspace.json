@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Infra/Network/Direct Server Return.md",
+                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Direct Server Return"
+              "title": "eBPF로 Naive L4 구현 PoC"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "cinder",
+                "query": "ebpf",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -78,8 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5,
-    "collapsed": true
+    "width": 213.5
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -108,7 +107,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "content/Infra/Network/Direct Server Return.md",
+                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +117,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Direct Server Return"
+              "title": "Backlinks for eBPF로 Naive L4 구현 PoC"
             }
           },
           {
@@ -152,13 +151,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Infra/Network/Direct Server Return.md",
+                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Direct Server Return"
+              "title": "Outline of eBPF로 Naive L4 구현 PoC"
             }
           }
         ],
@@ -185,16 +184,18 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
-    "Drawio/Direct Server Return - NAT vs DSR.drawio.svg",
+    "content/Open Source/cilium/eBPF.md",
+    "content/Open Source/cilium/Cilium 맛보기.md",
+    "content/Open Source/Cinder service set.md",
+    "content/Open Source/Barbican secret consumer.md",
     "content/Infra/Network/Direct Server Return.md",
+    "Drawio/Direct Server Return - NAT vs DSR.drawio.svg",
     "Drawio/Direct Server Return - IP Header Flow.drawio.svg",
     "Untitled Diagram.svg",
     "Drawio",
     "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
     "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
-    "content/Open Source/cilium/eBPF.md",
     "content/Open Source/cilium/why ebpf?.md",
-    "content/Open Source/cilium/Cilium 맛보기.md",
     "content/Open Source/cilium",
     "content/Retrospective/회사에서 AI  잘 쓰기.md",
     "content/Assets/Pasted image 20260321164413.png",
@@ -220,11 +221,9 @@
     "content/Retrospective/취준 로그.md",
     "content/Infra/Network/VXLAN.md",
     "content/Infra/Network/DC Topology.md",
-    "content/Open Source/Barbican secret consumer.md",
     "2025-10-19.md",
     "Untitled.base",
     "Untitled 1.base",
-    "content/Open Source/Cinder service set.md",
     "content/Infra/Network/cloud native",
     "Untitled 2.base",
     "public/AI/NLP/Lec02-revised.pdf",
