@@ -11,14 +11,12 @@
             "id": "f0dd8b3a96e75918",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "excalidraw",
               "state": {
-                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
-                "mode": "source",
-                "source": false
+                "file": "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md"
               },
-              "icon": "lucide-file",
-              "title": "eBPF로 Naive L4 구현 PoC"
+              "icon": "excalidraw-icon",
+              "title": "Direct Server Return - NAT vs DSR.excalidraw"
             }
           }
         ]
@@ -78,7 +76,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5
+    "width": 213.5,
+    "collapsed": true
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -107,7 +106,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
+                "file": "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -117,7 +116,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for eBPF로 Naive L4 구현 PoC"
+              "title": "Backlinks for Direct Server Return - NAT vs DSR.excalidraw"
             }
           },
           {
@@ -151,21 +150,22 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Infra/Network/docker로 알아보는 Linux network 가상화.md",
+                "file": "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of docker로 알아보는 Linux network 가상화"
+              "title": "Outline of Direct Server Return - NAT vs DSR.excalidraw"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 290.5
+    "width": 290.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,8 +183,10 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
-    "content/Open Source/cilium/eBPF.md",
+    "content/Infra/Network/Direct Server Return.md",
+    "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
     "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
+    "content/Open Source/cilium/eBPF.md",
     "content/Open Source/cilium/why ebpf?.md",
     "content/Open Source/cilium/Cilium 맛보기.md",
     "content/Open Source/cilium",
@@ -221,8 +223,6 @@
     "Untitled 1.base",
     "content/Open Source/Cinder service set.md",
     "content/Infra/Openstack/Barbican service.md",
-    "content/Infra/Linux/certbot wildcard 인증서 갱신.md",
-    "content/Infra/Linux/Cloud Storage.md",
     "content/Infra/Network/cloud native",
     "Untitled 2.base",
     "public/AI/NLP/Lec02-revised.pdf",
