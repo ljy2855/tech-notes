@@ -12,7 +12,13 @@ Client → VIP(L4) → Real Server
 
 Client 입장에서는 `VIP` 하나와 통신하는 것처럼 보이고, 실제로 어떤 Real Server가 처리했는지는 알 필요가 없다.
 
-![[Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md]]
+![[Drawio/Direct Server Return - NAT vs DSR.drawio.svg]]
+
+위 전체 경로 다이어그램을 기준으로 보면 왼쪽은 **NAT mode**, 오른쪽은 **DSR mode**다.
+
+파란색 화살표는 request path, 빨간색 화살표는 response path를 의미한다.
+
+이 글에서는 두 방식의 차이를 주로 **response path가 L4를 다시 거치는가**라는 관점에서 볼 것이다.
 
 ---
 
@@ -49,60 +55,45 @@ Real Server A/B/C
 
 이때 L4 장비가 패킷을 Real Server로 전달하는 방식에 따라 NAT 방식과 DSR 방식으로 나눌 수 있다.
 
+다이어그램에서 각 패널의 `L4 Load Balancer` 박스가 이 역할을 한다.
+
+NAT mode와 DSR mode 모두 request 방향에서는 Client → L4 → Real Server 흐름을 갖는다.
+
+차이는 Real Server가 응답을 보낼 때부터 생긴다.
+
 ---
 
 ## NAT 방식의 한계와 SPOF
 
 가장 직관적인 방식은 Load Balancer가 NAT를 수행하는 것이다.
 
-Client는 VIP로 요청을 보내고, L4는 목적지 IP를 Real Server IP로 바꿔서 전달한다.
+Client는 VIP로 요청을 보내고, L4는 NAT를 통해 패킷의 IP header를 바꿔 Real Server로 전달한다.
 
-```text
-request:
-Client → L4(VIP) → Real Server
+IP header 변화만 따로 보면 다음과 같다.
 
-response:
-Client ← L4(VIP) ← Real Server
-```
+![[Drawio/Direct Server Return - IP Header Flow.drawio.svg]]
+
+위 헤더 다이어그램의 왼쪽 NAT mode를 보면 request에서는 **DNAT**, response에서는 **SNAT**이 필요하다.
 
 ### Request 방향
 
-```text
-Before NAT:
-[src=Client IP][dst=VIP]
+request 방향에서는 L4가 `dst=VIP`를 `dst=Real Server IP`로 바꾼다.
 
-After DNAT:
-[src=Client IP][dst=Real Server IP]
-```
+Source IP는 Client IP 그대로 둔다.
 
-Real Server는 목적지가 자신의 IP로 바뀐 패킷을 받기 때문에 평범한 서버처럼 요청을 처리할 수 있다.
+그래서 Real Server는 목적지가 자신의 IP인 일반 패킷처럼 요청을 처리할 수 있다.
 
 ### Response 방향
 
 Real Server가 Client에게 응답할 때는 다시 L4를 거쳐야 한다.
 
-L4는 응답 패킷의 Source IP를 Real Server IP에서 VIP로 바꿔준다.
+response 방향에서는 L4가 `src=Real Server IP`를 `src=VIP`로 바꾼다.
 
-```text
-Before SNAT:
-[src=Real Server IP][dst=Client IP]
-
-After SNAT:
-[src=VIP][dst=Client IP]
-```
-
-Client는 처음에 VIP로 요청했으므로 응답도 VIP에서 와야 한다.
-
-만약 Real Server가 자신의 IP로 직접 응답하면 Client 입장에서는 예상하지 못한 IP에서 응답이 온 것이므로 정상적인 연결로 보기 어렵다.
+Client는 VIP로 요청했기 때문에, 응답도 VIP에서 온 것처럼 보여야 TCP 연결이 자연스럽게 유지된다.
 
 ### NAT 방식의 문제
 
 NAT 방식은 구조가 단순하지만 모든 요청과 응답이 L4 장비를 지나야 한다.
-
-```text
-Client → L4 → Real Server
-Client ← L4 ← Real Server
-```
 
 이 구조에서는 L4 장비가 다음 역할을 모두 담당한다.
 
@@ -111,6 +102,8 @@ Client ← L4 ← Real Server
 - DNAT/SNAT
 - Connection tracking
 - Health check
+
+전체 경로 다이어그램 왼쪽의 note에 적힌 `DNAT / SNAT`, `conntrack 필요`, `양방향 트래픽 처리`가 이 부담을 요약한다.
 
 트래픽이 작을 때는 문제가 없지만, 응답 트래픽이 커질수록 L4 장비가 병목이 되기 쉽다.
 
@@ -131,25 +124,13 @@ response: large video file
 
 **DSR(Direct Server Return)** 은 이름 그대로 Real Server가 응답을 L4 장비로 돌려보내지 않고 Client에게 직접 반환하는 방식이다.
 
-```text
-request:
-Client → L4 → Real Server
+위 헤더 다이어그램의 오른쪽 DSR mode를 보면 request는 `src=Client IP`, `dst=VIP`를 유지한 채 Real Server에 도착한다.
 
-response:
-Client ← Real Server
-```
+응답은 `src=VIP`, `dst=Client IP`로 Real Server가 직접 보낸다.
 
 NAT 방식과 가장 큰 차이는 **response path** 에 있다.
 
-```text
-NAT mode:
-Client → L4 → Real Server
-Client ← L4 ← Real Server
-
-DSR mode:
-Client → L4 → Real Server
-Client ← Real Server
-```
+전체 경로 다이어그램에서 NAT mode의 빨간색 response는 L4를 통과하지만, DSR mode의 빨간색 response는 L4를 우회한다.
 
 L4 장비는 요청 방향에서만 Real Server를 선택하고, 응답 트래픽은 처리하지 않는다.
 
@@ -157,19 +138,9 @@ L4 장비는 요청 방향에서만 Real Server를 선택하고, 응답 트래�
 
 ### DSR에서 VIP가 필요한 이유
 
-DSR에서는 Real Server가 Client에게 직접 응답한다.
+DSR에서는 요청 패킷의 목적지가 여전히 VIP다.
 
-그런데 Client는 VIP로 요청했기 때문에 응답의 Source IP도 VIP여야 한다.
-
-```text
-Client request:
-src=Client IP, dst=VIP
-
-Server response:
-src=VIP, dst=Client IP
-```
-
-이를 위해 Real Server도 VIP를 로컬 주소로 가지고 있어야 한다.
+따라서 Real Server도 VIP를 로컬 주소로 가지고 있어야 한다.
 
 일반적으로 Linux에서는 loopback interface에 VIP를 `/32` 로 설정한다.
 
@@ -179,9 +150,13 @@ ip addr add 203.0.113.10/32 dev lo
 
 이렇게 하면 Real Server는 목적지가 VIP인 패킷을 자기 자신에게 온 패킷으로 처리할 수 있고, 응답할 때도 VIP를 Source IP로 사용할 수 있다.
 
+Real Server의 실제 IP는 `10.0.1.11` 같은 backend IP일 수 있지만, Client와의 TCP 연결 관점에서는 VIP가 서버 주소처럼 보여야 한다.
+
 ### Real Server가 VIP ARP에 응답하면 안 된다
 
 DSR 구성에서 VIP의 진입점은 L4 장비여야 한다.
+
+전체 경로 다이어그램 오른쪽의 L4 박스에 `VIP entrypoint`라고 표시한 것도 이 때문이다.
 
 만약 Real Server가 VIP에 대한 ARP 요청에 응답하면 Client 또는 upstream switch/router가 L4가 아니라 Real Server로 직접 트래픽을 보낼 수 있다.
 
@@ -209,6 +184,10 @@ sysctl -w net.ipv4.conf.lo.arp_announce=2
 ## L2 DSR
 
 L2 DSR은 L4 장비가 패킷의 IP 헤더는 유지하고 **Ethernet MAC 주소만 바꿔서** Real Server로 전달하는 방식이다.
+
+위 다이어그램의 DSR mode는 개념적으로 `Client → L4 → Real Server` 요청 흐름만 보여준다.
+
+L2 DSR은 이 요청 흐름을 만들 때 L4가 IP 주소를 바꾸지 않고, 다음 홉의 MAC 주소만 Real Server MAC으로 바꾸는 방식이라고 보면 된다.
 
 ```text
 Before:
@@ -254,33 +233,13 @@ same VLAN / same L2 domain
 
 L3 DSR은 Real Server가 같은 L2 segment에 있지 않아도 되도록, L4 장비가 원본 패킷을 **터널링** 해서 Real Server로 전달하는 방식이다.
 
+다이어그램 오른쪽의 request 경로를 L3 DSR로 구현한다면, L4와 Real Server 사이의 파란색 화살표는 단순 Ethernet 전달이 아니라 IPIP/GRE 같은 tunnel 구간이 된다.
+
 대표적으로 IP-in-IP, GRE 같은 encapsulation을 사용할 수 있다.
 
-```text
-Before:
-[IP: Client IP → VIP][TCP/UDP...]
+헤더 다이어그램 하단처럼 outer header는 Real Server까지 라우팅하기 위한 껍데기고, inner header는 원래 요청인 `Client IP → VIP` 그대로 유지된다.
 
-After encapsulation:
-[Outer IP: L4 IP → Real Server IP][Inner IP: Client IP → VIP][TCP/UDP...]
-```
-
-여기서 핵심은 inner packet이 그대로 유지된다는 점이다.
-
-```text
-inner.src = Client IP
-inner.dst = VIP
-```
-
-Real Server는 outer IP header를 제거한 뒤, inner packet을 처리한다.
-
-inner packet의 목적지는 VIP이고, Real Server는 loopback에 VIP를 가지고 있으므로 정상적으로 요청을 처리할 수 있다.
-
-응답은 다음과 같이 직접 Client에게 나간다.
-
-```text
-Real Server response:
-[src=VIP][dst=Client IP]
-```
+Real Server는 outer header를 제거한 뒤 inner packet을 처리하고, 응답은 `VIP → Client IP`로 직접 보낸다.
 
 ### L3 DSR의 특징
 
@@ -333,14 +292,7 @@ IPIP는 IP 패킷 안에 또 다른 IP 패킷을 넣어 전달하는 단순한 t
 
 DSR에서는 L4 장비가 VIP 목적지 패킷을 Real Server까지 보내기 위해 IPIP를 사용할 수 있다.
 
-```text
-Original packet:
-[IP: Client IP → VIP][TCP: Client Port → 80]
-
-IPIP packet:
-[Outer IP: L4 IP → Real Server IP]
-  [Inner IP: Client IP → VIP][TCP: Client Port → 80]
-```
+헤더 다이어그램 하단의 IPIP 구간처럼, L4는 원래 패킷을 outer IP header로 한 번 더 감싼다.
 
 중간 라우터들은 outer IP header만 보고 패킷을 전달한다.
 
@@ -348,14 +300,9 @@ IPIP packet:
 outer.dst = Real Server IP
 ```
 
-Real Server에 도착하면 outer IP header를 제거한다.
+Real Server에 도착하면 outer header만 제거한다.
 
-```text
-decapsulation 후:
-[Inner IP: Client IP → VIP][TCP: Client Port → 80]
-```
-
-Real Server는 이 패킷을 VIP로 들어온 일반 요청처럼 처리한다.
+inner header는 `src=Client IP`, `dst=VIP` 그대로 남아 있으므로, Real Server는 이 패킷을 VIP로 들어온 일반 요청처럼 처리한다.
 
 Linux에서는 IPIP tunnel interface를 통해 처리할 수 있다.
 
@@ -383,10 +330,7 @@ Ethernet MTU 1500
 
 DSR의 가장 큰 장점은 응답 트래픽이 L4 장비를 거치지 않는다는 점이다.
 
-```text
-large response:
-Real Server → Client
-```
+전체 경로 다이어그램에서 가장 중요한 차이는 왼쪽 NAT mode의 빨간색 response 화살표가 L4를 통과하지만, 오른쪽 DSR mode의 빨간색 response 화살표는 L4를 우회한다는 점이다.
 
 덕분에 다음 효과를 기대할 수 있다.
 
@@ -403,6 +347,8 @@ Real Server → Client
 ## DSR의 주의점
 
 DSR은 성능상 장점이 있지만 NAT 방식보다 운영 조건이 까다롭다.
+
+전체 경로 다이어그램만 보면 DSR mode가 단순해 보이지만, 실제 운영에서는 오른쪽 그림의 `direct response`가 가능하도록 서버와 네트워크 장비를 맞춰야 한다.
 
 ### 1. Real Server에 VIP 설정이 필요하다
 
@@ -422,10 +368,9 @@ Real Server가 VIP에 대해 ARP 응답하면 L4를 우회하는 트래픽이 �
 
 DSR은 request path와 response path가 다르다.
 
-```text
-request:  Client → L4 → Real Server
-response: Client ← Real Server
-```
+전체 경로 다이어그램 오른쪽이 바로 이 비대칭 라우팅을 보여준다.
+
+파란색 request는 L4를 지나지만, 빨간색 response는 L4를 지나지 않는다.
 
 방화벽, 보안 장비, flow 기반 모니터링 시스템은 양방향 트래픽이 같은 장비를 지나간다고 가정하는 경우가 많다.
 
@@ -454,21 +399,17 @@ DSR 응답은 Real Server에서 Client로 직접 나간다.
 
 특히 Real Server가 사설망에 있고 VIP가 공인 IP인 구조라면, 네트워크 장비가 `src=VIP` 패킷을 정상적인 출발지로 허용하는지 확인해야 한다.
 
+전체 경로 다이어그램의 오른쪽 빨간색 `direct response` 경로가 실제 네트워크에서도 허용되어야 DSR이 정상 동작한다.
+
 ---
 
 ## 정리
 
 DSR은 Load Balancer가 요청 방향에서만 Real Server를 선택하고, 응답은 Real Server가 Client에게 직접 보내도록 만드는 구조다.
 
-```text
-NAT:
-Client → L4 → Real Server
-Client ← L4 ← Real Server
+NAT와 DSR 모두 요청은 L4가 Real Server를 선택하지만, 응답 경로는 다르다.
 
-DSR:
-Client → L4 → Real Server
-Client ← Real Server
-```
+NAT는 응답도 L4를 거치고, DSR은 Real Server가 Client에게 직접 응답한다.
 
 응답 트래픽이 큰 서비스에서는 L4 장비의 병목을 줄일 수 있다는 장점이 있다.
 

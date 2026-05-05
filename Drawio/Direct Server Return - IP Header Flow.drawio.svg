@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1200px" height="820px" viewBox="0 0 1200 820" content="&lt;mxfile host=&quot;app.diagrams.net&quot; modified=&quot;2026-05-05T00:00:00.000Z&quot; agent=&quot;codex&quot; version=&quot;24.7.17&quot;&gt;&lt;diagram name=&quot;IP Header Flow&quot;&gt;&lt;mxGraphModel dx=&quot;1200&quot; dy=&quot;820&quot; grid=&quot;1&quot; gridSize=&quot;10&quot; guides=&quot;1&quot; tooltips=&quot;1&quot; connect=&quot;1&quot; arrows=&quot;1&quot; fold=&quot;1&quot; page=&quot;1&quot; pageScale=&quot;1&quot; pageWidth=&quot;1200&quot; pageHeight=&quot;820&quot; math=&quot;0&quot; shadow=&quot;0&quot;&gt;&lt;root&gt;&lt;mxCell id=&quot;0&quot;/&gt;&lt;mxCell id=&quot;1&quot; parent=&quot;0&quot;/&gt;&lt;mxCell id=&quot;title&quot; value=&quot;IP Header 변화로 보는 NAT vs DSR&quot; style=&quot;text;html=1;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;345&quot; y=&quot;25&quot; width=&quot;510&quot; height=&quot;40&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;nat-zone&quot; value=&quot;NAT mode&quot; style=&quot;swimlane;html=1;rounded=1;startSize=50;fillColor=#fff7e6;strokeColor=#f59e0b;fontSize=22;fontStyle=1;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;60&quot; y=&quot;95&quot; width=&quot;520&quot; height=&quot;470&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;dsr-zone&quot; value=&quot;DSR mode&quot; style=&quot;swimlane;html=1;rounded=1;startSize=50;fillColor=#f0fff4;strokeColor=#22c55e;fontSize=22;fontStyle=1;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;620&quot; y=&quot;95&quot; width=&quot;520&quot; height=&quot;470&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;ipip-zone&quot; value=&quot;L3 DSR: IPIP encapsulation&quot; style=&quot;swimlane;html=1;rounded=1;startSize=45;fillColor=#f8f9fa;strokeColor=#868e96;fontSize=20;fontStyle=1;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;145&quot; y=&quot;610&quot; width=&quot;910&quot; height=&quot;160&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;nat-req-before&quot; value=&quot;Request before L4&amp;lt;br&amp;gt;src = Client IP&amp;lt;br&amp;gt;dst = VIP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#4a9eed;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;100&quot; y=&quot;175&quot; width=&quot;170&quot; height=&quot;90&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;nat-req-after&quot; value=&quot;After DNAT&amp;lt;br&amp;gt;src = Client IP&amp;lt;br&amp;gt;dst = Real Server IP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3bf;strokeColor=#f59e0b;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;365&quot; y=&quot;175&quot; width=&quot;170&quot; height=&quot;90&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;nat-res-before&quot; value=&quot;Response before L4&amp;lt;br&amp;gt;src = Real Server IP&amp;lt;br&amp;gt;dst = Client IP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe3e3;strokeColor=#ef4444;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;100&quot; y=&quot;350&quot; width=&quot;170&quot; height=&quot;90&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;nat-res-after&quot; value=&quot;After SNAT&amp;lt;br&amp;gt;src = VIP&amp;lt;br&amp;gt;dst = Client IP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3bf;strokeColor=#f59e0b;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;365&quot; y=&quot;350&quot; width=&quot;170&quot; height=&quot;90&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;dsr-req&quot; value=&quot;Request at Real Server&amp;lt;br&amp;gt;src = Client IP&amp;lt;br&amp;gt;dst = VIP&amp;lt;br&amp;gt;헤더 유지&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#4a9eed;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;705&quot; y=&quot;175&quot; width=&quot;190&quot; height=&quot;105&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;dsr-res&quot; value=&quot;Direct response&amp;lt;br&amp;gt;src = VIP&amp;lt;br&amp;gt;dst = Client IP&amp;lt;br&amp;gt;L4 우회&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#d3f9d8;strokeColor=#22c55e;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;935&quot; y=&quot;175&quot; width=&quot;170&quot; height=&quot;105&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;dsr-note&quot; value=&quot;Real Server는 VIP를 loopback에 가지고 있어야 함&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#22c55e;fontSize=17;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;730&quot; y=&quot;375&quot; width=&quot;330&quot; height=&quot;70&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;outer&quot; value=&quot;Outer IP header&amp;lt;br&amp;gt;src = L4 IP&amp;lt;br&amp;gt;dst = Real Server IP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#e9ecef;strokeColor=#868e96;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;205&quot; y=&quot;675&quot; width=&quot;230&quot; height=&quot;70&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;inner&quot; value=&quot;Inner IP header&amp;lt;br&amp;gt;src = Client IP&amp;lt;br&amp;gt;dst = VIP&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#4a9eed;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;485&quot; y=&quot;675&quot; width=&quot;230&quot; height=&quot;70&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;mxCell id=&quot;ipip-note&quot; value=&quot;Real Server에서 outer만 제거. inner는 그대로 VIP 요청으로 처리&quot; style=&quot;rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#868e96;fontSize=16;&quot; vertex=&quot;1&quot; parent=&quot;1&quot;&gt;&lt;mxGeometry x=&quot;765&quot; y=&quot;675&quot; width=&quot;230&quot; height=&quot;70&quot; as=&quot;geometry&quot;/&gt;&lt;/mxCell&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;&lt;/diagram&gt;&lt;/mxfile&gt;">
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#868e96"/>
+    </marker>
+    <style>
+      .title { font: 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1e1e1e; }
+      .panel-title { font: 700 23px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1e1e1e; }
+      .label { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1e1e1e; }
+      .line { font: 500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #343a40; }
+      .note { font: 600 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #495057; }
+      .blue { fill: #2563eb; }
+      .red { fill: #ef4444; }
+      .muted { fill: #6c757d; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="820" fill="#ffffff"/>
+  <text x="600" y="60" text-anchor="middle" class="title">IP Header 변화로 보는 NAT vs DSR</text>
+
+  <rect x="60" y="95" width="520" height="470" rx="14" fill="#fff7e6" stroke="#f59e0b" stroke-width="2"/>
+  <text x="320" y="135" text-anchor="middle" class="panel-title">NAT mode</text>
+
+  <rect x="620" y="95" width="520" height="470" rx="14" fill="#f0fff4" stroke="#22c55e" stroke-width="2"/>
+  <text x="880" y="135" text-anchor="middle" class="panel-title">DSR mode</text>
+
+  <rect x="100" y="175" width="170" height="90" rx="10" fill="#e7f5ff" stroke="#4a9eed" stroke-width="2"/>
+  <text x="185" y="200" text-anchor="middle" class="label">Request before L4</text>
+  <text x="185" y="226" text-anchor="middle" class="line">src = Client IP</text>
+  <text x="185" y="250" text-anchor="middle" class="line">dst = VIP</text>
+
+  <path d="M270 220 L365 220" stroke="#2563eb" stroke-width="4" fill="none" marker-end="url(#arrow-blue)"/>
+  <text x="318" y="205" text-anchor="middle" class="line blue">DNAT</text>
+
+  <rect x="365" y="175" width="170" height="90" rx="10" fill="#fff3bf" stroke="#f59e0b" stroke-width="2"/>
+  <text x="450" y="200" text-anchor="middle" class="label">After DNAT</text>
+  <text x="450" y="226" text-anchor="middle" class="line">src = Client IP</text>
+  <text x="450" y="250" text-anchor="middle" class="line">dst = Real Server IP</text>
+
+  <rect x="100" y="350" width="170" height="90" rx="10" fill="#ffe3e3" stroke="#ef4444" stroke-width="2"/>
+  <text x="185" y="375" text-anchor="middle" class="label">Response before L4</text>
+  <text x="185" y="401" text-anchor="middle" class="line">src = Real Server IP</text>
+  <text x="185" y="425" text-anchor="middle" class="line">dst = Client IP</text>
+
+  <path d="M270 395 L365 395" stroke="#ef4444" stroke-width="4" fill="none" marker-end="url(#arrow-red)"/>
+  <text x="318" y="380" text-anchor="middle" class="line red">SNAT</text>
+
+  <rect x="365" y="350" width="170" height="90" rx="10" fill="#fff3bf" stroke="#f59e0b" stroke-width="2"/>
+  <text x="450" y="375" text-anchor="middle" class="label">After SNAT</text>
+  <text x="450" y="401" text-anchor="middle" class="line">src = VIP</text>
+  <text x="450" y="425" text-anchor="middle" class="line">dst = Client IP</text>
+
+  <text x="320" y="515" text-anchor="middle" class="note">NAT는 L4가 request/response 양쪽 헤더를 모두 고친다</text>
+
+  <rect x="700" y="175" width="190" height="105" rx="10" fill="#e7f5ff" stroke="#4a9eed" stroke-width="2"/>
+  <text x="795" y="201" text-anchor="middle" class="label">Request at Real Server</text>
+  <text x="795" y="227" text-anchor="middle" class="line">src = Client IP</text>
+  <text x="795" y="251" text-anchor="middle" class="line">dst = VIP</text>
+  <text x="795" y="273" text-anchor="middle" class="line blue">헤더 유지</text>
+
+  <path d="M890 227 L935 227" stroke="#ef4444" stroke-width="4" fill="none" marker-end="url(#arrow-red)"/>
+
+  <rect x="935" y="175" width="170" height="105" rx="10" fill="#d3f9d8" stroke="#22c55e" stroke-width="2"/>
+  <text x="1020" y="201" text-anchor="middle" class="label">Direct response</text>
+  <text x="1020" y="227" text-anchor="middle" class="line">src = VIP</text>
+  <text x="1020" y="251" text-anchor="middle" class="line">dst = Client IP</text>
+  <text x="1020" y="273" text-anchor="middle" class="line red">L4 우회</text>
+
+  <rect x="730" y="375" width="330" height="70" rx="10" fill="#ffffff" stroke="#22c55e" stroke-width="2"/>
+  <text x="895" y="405" text-anchor="middle" class="note">Real Server는 VIP를 loopback에 가지고 있어야 함</text>
+  <text x="895" y="432" text-anchor="middle" class="line muted">그래야 dst=VIP 요청을 로컬 패킷으로 처리</text>
+
+  <text x="880" y="515" text-anchor="middle" class="note">DSR은 request 헤더를 유지하고, response는 VIP로 직접 반환한다</text>
+
+  <rect x="145" y="610" width="910" height="160" rx="14" fill="#f8f9fa" stroke="#868e96" stroke-width="2"/>
+  <text x="600" y="648" text-anchor="middle" class="panel-title">L3 DSR: IPIP encapsulation</text>
+
+  <rect x="205" y="675" width="230" height="70" rx="10" fill="#e9ecef" stroke="#868e96" stroke-width="2"/>
+  <text x="320" y="699" text-anchor="middle" class="label">Outer IP header</text>
+  <text x="320" y="722" text-anchor="middle" class="line">src = L4 IP, dst = Real Server IP</text>
+
+  <path d="M435 710 L485 710" stroke="#868e96" stroke-width="4" fill="none" marker-end="url(#arrow-gray)"/>
+
+  <rect x="485" y="675" width="230" height="70" rx="10" fill="#e7f5ff" stroke="#4a9eed" stroke-width="2"/>
+  <text x="600" y="699" text-anchor="middle" class="label">Inner IP header</text>
+  <text x="600" y="722" text-anchor="middle" class="line">src = Client IP, dst = VIP</text>
+
+  <path d="M715 710 L765 710" stroke="#868e96" stroke-width="4" fill="none" marker-end="url(#arrow-gray)"/>
+
+  <rect x="765" y="675" width="230" height="70" rx="10" fill="#ffffff" stroke="#868e96" stroke-width="2"/>
+  <text x="880" y="700" text-anchor="middle" class="label">Decapsulation</text>
+  <text x="880" y="724" text-anchor="middle" class="line">outer만 제거, inner는 그대로 처리</text>
+</svg>
