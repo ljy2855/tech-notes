@@ -13,12 +13,24 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
+                "file": "content/Infra/Network/인증서, 분산 시스템 클러스터링.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "eBPF로 Naive L4 구현 PoC"
+              "title": "인증서, 분산 시스템 클러스터링"
+            }
+          },
+          {
+            "id": "1916c3700c958367",
+            "type": "leaf",
+            "state": {
+              "type": "image",
+              "state": {
+                "file": "content/Assets/Pasted image 20260607154029.png"
+              },
+              "icon": "lucide-image",
+              "title": "Pasted image 20260607154029"
             }
           }
         ]
@@ -184,6 +196,9 @@
   },
   "active": "f0dd8b3a96e75918",
   "lastOpenFiles": [
+    "content/Assets/Pasted image 20260607154029.png",
+    "content/Infra/Network/인증서, 분산 시스템 클러스터링.md",
+    "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
     "content/Open Source/cilium/eBPF.md",
     "content/Open Source/cilium/Cilium 맛보기.md",
     "content/Open Source/Cinder service set.md",
@@ -194,7 +209,6 @@
     "Untitled Diagram.svg",
     "Drawio",
     "Excalidraw/Direct Server Return - NAT vs DSR.excalidraw.md",
-    "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
     "content/Open Source/cilium/why ebpf?.md",
     "content/Open Source/cilium",
     "content/Retrospective/회사에서 AI  잘 쓰기.md",
@@ -211,7 +225,6 @@
     "Untitled.md",
     "Excalidraw/k8s network.md",
     "content/Assets/Pasted image 20260103182425.png",
-    "content/Assets/Pasted image 20260103182039.png",
     "content/Computer Science/Network/BGP.md",
     "content/AI/AI engineering/Evaluation.md",
     "content/AI/AI engineering/Embedding.md",
@@ -221,7 +234,6 @@
     "content/Retrospective/취준 로그.md",
     "content/Infra/Network/VXLAN.md",
     "content/Infra/Network/DC Topology.md",
-    "2025-10-19.md",
     "Untitled.base",
     "Untitled 1.base",
     "content/Infra/Network/cloud native",
