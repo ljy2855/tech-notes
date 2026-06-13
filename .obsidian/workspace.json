@@ -163,22 +163,21 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
+                "file": "content/Infra/Network/인증서, 분산 시스템 클러스터링.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of eBPF로 Naive L4 구현 PoC"
+              "title": "Outline of 인증서, 분산 시스템 클러스터링"
             }
           }
         ],
-        "currentTab": 4
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 290.5,
-    "collapsed": true
+    "width": 290.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -194,7 +193,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "f0dd8b3a96e75918",
+  "active": "8b009c7e6331adcc",
   "lastOpenFiles": [
     "content/Assets/Pasted image 20260607154029.png",
     "content/Infra/Network/인증서, 분산 시스템 클러스터링.md",
