@@ -11,10 +11,14 @@
             "id": "4bb4a10ddc84e00f",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "SW LB를 위한 배경 1편"
             }
           }
         ]
@@ -147,20 +151,22 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of SW LB를 위한 배경 1편"
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 290.5
+    "width": 290.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -178,6 +184,9 @@
   },
   "active": "4bb4a10ddc84e00f",
   "lastOpenFiles": [
+    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
+    "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
+    "content/Infra/Network/SW LB",
     "content/Assets/Pasted image 20260607154029.png",
     "content/Infra/Network/인증서, 분산 시스템 클러스터링.md",
     "content/Open Source/cilium/eBPF로 Naive L4 구현 PoC.md",
@@ -214,15 +223,12 @@
     "content/AI/AI engineering",
     "content/Infra/Docker/Docker Swarm.md",
     "content/Retrospective/취준 로그.md",
-    "content/Infra/Network/VXLAN.md",
-    "content/Infra/Network/DC Topology.md",
     "Untitled.base",
     "Untitled 1.base",
     "content/Infra/Network/cloud native",
     "Untitled 2.base",
     "public/AI/NLP/Lec02-revised.pdf",
     "scripts/prerender-dataview.mjs",
-    "scripts",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
