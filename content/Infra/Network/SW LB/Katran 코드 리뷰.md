@@ -1,6 +1,6 @@
 # Katran 코드 리뷰 (2편)
 
-[[SW LB를 위한 배경 1편]]에서 본 조각들 — XDP, DSR/IPIP, RSS, Session Table, Maglev — 이 실제 코드에서 어떻게 맞물리는지 Meta의 **Katran**으로 본다.
+[[SW L4를 위한 배경]]에서 본 조각들 — XDP, DSR/IPIP, RSS, Session Table, Maglev — 이 실제 코드에서 어떻게 맞물리는지 Meta의 **Katran**으로 본다.
 
 > Katran = XDP/eBPF로 만든 L4 Load Balancer. 데이터 평면은 한 개의 XDP 프로그램, 제어 평면은 C++ 라이브러리 + gRPC.
 
@@ -206,7 +206,7 @@ real = lookup(lru, flow_key);     // 그 안에서 연결 조회
 
 ### 왜 CPU별로 쪼개나
 
-[[SW LB를 위한 배경 1편]]의 **RSS**가 답이다. NIC이 5-tuple을 해시해 연결을 CPU에 고정하므로, **한 연결의 패킷은 항상 같은 CPU = 같은 inner LRU**로 온다. 그래서 CPU끼리 테이블을 공유할 필요가 없다.
+[[SW L4를 위한 배경]]의 **RSS**가 답이다. NIC이 5-tuple을 해시해 연결을 CPU에 고정하므로, **한 연결의 패킷은 항상 같은 CPU = 같은 inner LRU**로 온다. 그래서 CPU끼리 테이블을 공유할 필요가 없다.
 
 ```mermaid
 flowchart LR
@@ -278,7 +278,7 @@ flowchart LR
 
 ## 참고
 
-- [[SW LB를 위한 배경 1편]] — 이 글의 배경 (XDP, RSS, Session Table, Maglev)
+- [[SW L4를 위한 배경]] — 이 글의 배경 (XDP, RSS, Session Table, Maglev)
 - [facebookincubator/katran](https://github.com/facebookincubator/katran) — 소스
 - [Open-sourcing Katran (Meta Engineering)](https://engineering.fb.com/2018/05/22/open-source/open-sourcing-katran-a-scalable-network-load-balancer/)
 - [The Linux Kernel - BPF map types](https://docs.kernel.org/bpf/maps.html)

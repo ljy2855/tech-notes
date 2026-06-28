@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
+                "file": "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "SW LB를 위한 배경 1편"
+              "title": "SW L4를 위한 배경"
             }
           },
           {
@@ -92,7 +92,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5
+    "width": 213.5,
+    "collapsed": true
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -165,13 +166,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
+                "file": "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of SW LB를 위한 배경 1편"
+              "title": "Outline of SW L4를 위한 배경"
             }
           }
         ],
@@ -198,10 +199,13 @@
   },
   "active": "4bb4a10ddc84e00f",
   "lastOpenFiles": [
+    "content/Infra/Network/Direct Server Return.md",
+    "content/Infra/Network/SW LB/Untitled Diagram.svg",
+    "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
+    "content/Infra/Network/SW LB/rss-cpu-distribution.png",
+    "content/Infra/Network/SW LB/Direct-Server-Return-NAT-vs-DSR.svg",
     "content/Assets/Pasted image 20260628152610.png",
     "content/Open Source/cilium/why ebpf?.md",
-    "content/Infra/Network/Direct Server Return.md",
-    "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md",
     "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
     "content/Infra/Network/SW LB/Katran 코드 리뷰.md.tmp.27159.1dd5d4e158cf",
     "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md.tmp.27159.8c26641fd6e5",
@@ -227,12 +231,8 @@
     "content/Infra/k8s/Cloudflare Tunnel을 활용한 k8s Ingress 대체.md",
     "content/Infra/k8s/k8s Network (kube-proxy).md",
     "content/Assets/Pasted image 20260222154016.png",
-    "content/Assets/Pasted image 20260222153934.png",
-    "content/Assets/Pasted image 20260222153908.png",
-    "content/Assets/Pasted image 20260222150751.png",
     "Untitled.md",
     "Excalidraw/k8s network.md",
-    "content/Assets/Pasted image 20260103182425.png",
     "content/Computer Science/Network/BGP.md",
     "content/AI/AI engineering/Evaluation.md",
     "content/AI/AI engineering/Embedding.md",

@@ -1,9 +1,7 @@
 
 L4 Load Balancer를 소프트웨어로 구현하려면 필요한 부분을 정리해보자
 
-
 ## L7 vs L4 LB
-
 가장 큰 차이는 **연결을 끊는가, 패킷을 흘려보내는가**다.
 
 ```mermaid
@@ -15,13 +13,7 @@ flowchart TB
         HTTP 파싱`"]
         P -->|"TCP 연결 B"| B1["`**Backend**`"]
     end
-
-    style P fill:#d1ecf1,stroke:#17a2b8,color:#000
-```
-
-```mermaid
-flowchart TB
-
+    
     subgraph L4["L4 LB (Packet)"]
         direction TB
         C2["`**Client**`"] -->|"TCP 연결 1개"| L["`**L4 LB**
@@ -30,7 +22,8 @@ flowchart TB
         L -.->|"l4 라우팅"| B2["`**Backend**`"]
     end
 
-    style L fill:#fff3cd,stroke:#ffc107,color:#000
+    style L fill:#fff3cd,stroke:#ffc107,color:#000    
+    style P fill:#d1ecf1,stroke:#17a2b8,color:#000
 ```
 
 | 항목       | L7 LB                                 | L4 LB                 |
@@ -58,31 +51,18 @@ TLS offload를 결국 처리해주는 지점 + WAF를 붙이기엔 운영상 이
 
 전통적으로 L4는 전용 어플라이언스(F5, Citrix 등)의 몫이었다. SW L4는 **commodity 서버 + 커널 기술**로 같은 일을 한다.
 
-```mermaid
-flowchart LR
-    subgraph HW["HW L4"]
-        direction TB
-        A["`전용 ASIC 장비`"] --> A2["`scale-up
-        장비 교체로 증설`"]
-    end
-    subgraph SW["SW L4 (XDP/eBPF)"]
-        direction TB
-        B["`x86 서버 N대`"] --> B2["`scale-out
-        ECMP로 수평 확장`"]
-    end
-
-    style A fill:#f8d7da,stroke:#dc3545,color:#000
-    style B fill:#d4edda,stroke:#28a745,color:#000
-```
-
 | 항목  | HW L4            | SW L4                    |
 | --- | ---------------- | ------------------------ |
 | 확장  | scale-up (장비 교체) | scale-out (서버 추가 + ECMP) |
 | 비용  | 고가 어플라이언스        | commodity 서버             |
 | 유연성 | 벤더 펌웨어에 종속       | 코드로 로직 추가                |
 | 한계  | 용량이 박스에 고정       | NIC/CPU/커널 성능에 의존        |
-실제 가격적인 면을 생각하면 HW L4의 장비 + 라이센스 값은 굉장히 비싸다. 
-게다가 거의 독점 HW L4 인 citrix에서 라이센스를 구독제로 변경하고 인상하는 걸 보면, HW l4만 유지하는것이 크나큰 부담이 되고 있다.
+
+이런저런 이유가 있겠지만 가장 큰 문제는 HW L4 가격이다.
+
+HW L4의 장비 + 라이센스 값은 굉장히 비싸다. 
+
+게다가 거의 독점 HW L4 인 citrix에서 라이센스를 구독제로 변경하고 및 가격 인상하는 걸 보면, HW l4를 유지하는것이 크나큰 부담이 되고 있다.
 
 https://wtit.com/blog/2023/12/11/citrix-netscaler-f5-big-ip-history-migration-features/
 
@@ -94,10 +74,10 @@ https://wtit.com/blog/2023/12/11/citrix-netscaler-f5-big-ip-history-migration-fe
 
 L4도 응답까지 다 받으면 병목이 된다. 그래서 응답은 LB를 우회하는 **DSR**을 쓴다. 
 
-![[Drawio/Direct Server Return - NAT vs DSR.drawio.svg]]
+
 
 ```mermaid
-flowchart LR
+flowchart TB
     C["`**Client**`"] -->|"dst=VIP"| LB["`**L4 LB**
     backend 선택
     IPIP encap`"]
@@ -124,20 +104,7 @@ After:  [Outer IP: LB → RIP][IP: Client → VIP][payload]
 
 ## eBPF
 
-SW L4를 user space proxy로 만들면 패킷마다 커널↔유저 왕복이 생긴다. eBPF는 그 로직을 **커널 안에서** 돌린다. 자세한 동작은 [[eBPF]], [[why ebpf?]] 참고.
-
-```mermaid
-flowchart LR
-    SRC["`C 코드`"] --> CLANG["`clang/LLVM
-    BPF bytecode`"] --> VERI["`Verifier
-    안전성 검증`"] --> JIT["`JIT
-    네이티브 코드`"] --> HOOK["`hook attach
-    XDP / TC`"]
-
-    style VERI fill:#fff3cd,stroke:#ffc107,color:#000
-    style JIT fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style HOOK fill:#d4edda,stroke:#28a745,color:#000
-```
+SW L4를 user space proxy로 만들면 패킷마다 커널↔유저 왕복이 생긴다. eBPF는 그 로직을 **커널 안에서** 돌린다. verifier·JIT 같은 내부 동작은 이 글의 범위를 넘으니, 여기서는 핵심만 짚는다.
 
 기억할 두 가지.
 
@@ -167,12 +134,12 @@ flowchart LR
     style STACK fill:#d1ecf1,stroke:#17a2b8,color:#000
 ```
 
-| Action | 의미 | L4 LB에서 |
-| --- | --- | --- |
-| `XDP_PASS` | 커널 스택으로 | VIP가 아닌 패킷 |
-| `XDP_DROP` | 즉시 폐기 | DDoS, 비정상 |
-| `XDP_TX` | 받은 NIC로 되돌려 전송 | **encap 후 backend로** |
-| `XDP_REDIRECT` | 다른 NIC/CPU로 | 멀티 NIC 구성 |
+| Action         | 의미             | L4 LB에서              |
+| -------------- | -------------- | -------------------- |
+| `XDP_PASS`     | 커널 스택으로        | VIP가 아닌 패킷           |
+| `XDP_DROP`     | 즉시 폐기          | DDoS, 비정상            |
+| `XDP_TX`       | 받은 NIC로 되돌려 전송 | **encap 후 backend로** |
+| `XDP_REDIRECT` | 다른 NIC/CPU로    | 멀티 NIC 구성            |
 
 > L4 LB의 빠른 경로는 `encap → XDP_TX`다. 커널에 올리지 않고 드라이버에서 backend로 쏜다.
 
@@ -197,9 +164,9 @@ flowchart LR
     style Q1 fill:#d1ecf1,stroke:#17a2b8,color:#000
 ```
 
-![[../../../Assets/Pasted image 20260628152610.png]]
+![RSS: 같은 client(src IP·Port)는 항상 같은 CPU로 분배된다](rss-cpu-distribution.png)
 
-> 결론: **한 연결 = 한 CPU**. 이 성질 덕분에 다음 절의 Session Table을 CPU별로 쪼개 락 없이 관리할 수 있다. (2편의 핵심 포인트로 이어진다)
+> 같은 client(src IP, src Port) -> 같은 CPU가 처리한다.
 
 ---
 
@@ -247,13 +214,49 @@ flowchart LR
     style RING fill:#d4edda,stroke:#28a745,color:#000
 ```
 
-| 성질 | 설명 |
-| --- | --- |
-| 균등 분배 | ring 슬롯이 backend에 고르게 채워짐 |
-| 최소 교란 | backend 1대 추가/제거 시 영향받는 연결 최소 |
-| 빠른 조회 | 패킷당 ring 인덱싱 1회 (O(1)) |
+### 예시: backend 한 대가 빠지면
 
-> 같은 ring을 모든 LB 노드가 공유하면, **어느 노드로 가도 같은 연결은 같은 backend**로 향한다. ECMP scale-out과 Session Table을 동시에 지탱하는 핵심이다.
+backend **C**가 빠진다고 하자. (`A, B, C` → `A, B`)
+
+**modulo 방식** — 나누는 수가 `3 → 2`로 바뀌니 C와 무관한 연결까지 자리가 밀린다.
+
+```text
+backend:  A B C  →  A B          (C 제거,  A=0 B=1 C=2)
+
+hash      0    1    2    3    4    5
+%3        A    B    C    A    B    C
+%2        A    B    A    B    A    B
+          =    =    C    x    x    C
+                         └────┴── A·B로 잘 가던 hash 3,4까지 끊긴다
+```
+
+**Maglev 방식** — ring에서 C가 차지하던 칸만 메우고 나머지는 그대로 둔다.
+
+```text
+backend:  A B C  →  A B          (C 제거)
+
+slot      0    1    2    3    4    5    6
+before    A    B    C    A    C    B    A
+after     A    B    B    A    A    B    A
+          =    =    C    =    C    =    =
+                    └─────────┴── C의 칸(2,4)만 교체, A·B 연결은 전부 유지
+
+legend:  = 유지   x 멀쩡한 연결이 끊김   C 제거된 backend(불가피)
+```
+
+> Maglev도 실제론 약간의 추가 이동이 있지만 modulo와 비교할 수 없을 만큼 적다. 이 안정성 덕분에 Session Table이 miss여도 — 항목이 밀려났거나 다른 노드로 가도 — 같은 연결은 같은 backend로 다시 향한다.
+
+| 성질    | 설명                            |
+| ----- | ----------------------------- |
+| 균등 분배 | ring 슬롯이 backend에 고르게 채워짐     |
+| 최소 교란 | backend 1대 추가/제거 시 영향받는 연결 최소 |
+| 빠른 조회 | 패킷당 ring 인덱싱 1회 (O(1))        |
+
+> session table이 있는데, 굳이 비싼 연산이 필요한 Maglev가 필요할까?
+
+물론 LB 단일 노드면 그렇게 큰 문제는 없다. 하지만 대부분 이중화를 위해 멀티 노드 구성이 필요하다.
+
+같은 ring을 모든 LB 노드가 공유하면, **어느 노드로 가도 같은 연결은 같은 backend**로 향한다. ECMP scale-out과 Session Table을 동시에 지탱하는 핵심이다.
 
 ---
 
@@ -278,13 +281,12 @@ flowchart LR
     style F fill:#d4edda,stroke:#28a745,color:#000
 ```
 
-이 조각들이 한 군데서 실제 코드로 맞물리는 게 Meta의 **Katran**이다. 2편 [[Katran 코드 리뷰]]에서 control plane / data plane 구조와 BPF map 설계, 그리고 **per-CPU session table이 왜 그렇게 생겼는지**를 코드로 본다.
+이 조각들이 한 군데서 실제 코드로 맞물리는 게 Meta의 오픈소스 프로젝트 **Katran**이다. 2편 *Katran 코드 리뷰*에서 control plane / data plane 구조와 BPF map 설계, 그리고 **per-CPU session table이 왜 그렇게 생겼는지**를 코드로 본다.
 
 ---
 
 ## 참고
 
-- [[Direct Server Return]] — NAT vs DSR, L2/L3 DSR, IPIP
-- [[eBPF로 Naive L4 구현 PoC]] — eBPF로 VIP + L3 DSR 직접 구현
-- [[eBPF]], [[why ebpf?]] — eBPF 동작과 iptables 대비 이점
 - [Maglev: A Fast and Reliable Software Network Load Balancer (NSDI 2016)](https://www.usenix.org/conference/nsdi16/technical-sessions/presentation/eisenbud)
+- [eBPF.io](https://ebpf.io) — eBPF 개요
+- [facebookincubator/katran](https://github.com/facebookincubator/katran) — XDP 기반 L4 LB (2편에서 다룬다)
