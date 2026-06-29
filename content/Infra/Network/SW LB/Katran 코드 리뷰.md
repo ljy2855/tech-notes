@@ -1,6 +1,6 @@
-# Katran 코드 리뷰 (2편)
 
-이전 포스트에서 체크한 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념을 **Katran** 코드로 확인해보자
+
+이전 포스트에서 체크한 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념을 **Katran**의 dataplane 코드로 확인해보자
 
 ## Katran Overview
 
@@ -30,6 +30,10 @@ flowchart TB
 ```
 
 > 둘은 **BPF Map을 사이에 두고만 만난다**. control plane은 map을 쓰고, data plane은 map을 읽는다.
+
+> BPF Maps??
+
+eBPF는 커널에서 코드를 실행가능하게 해주며, 커널과 유저스페이스에서 접근 가능한 자료구조인 Map을 제공한다. 자세한 Map type들은 아래에 정리
 
 ---
 
@@ -63,9 +67,11 @@ flowchart LR
 | 역할 | map 작성, ring 계산, 통계 수집 | lookup, 선택, encap, 전송 |
 | 상태 | 갖지 않음(전부 map) | 갖지 않음(전부 map) |
 
-> 패킷 처리 로직에는 **분기와 lookup만** 있고 정책/설정은 없다. 무엇을 할지는 control plane이 map에 미리 적어둔다.
+> 이번 글은 Data Plane 파트에 집중
 
 ---
+## 무중단 XDP hook 부착
+
 
 ## XDP hook
 
