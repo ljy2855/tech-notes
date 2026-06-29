@@ -1,12 +1,8 @@
 # Katran 코드 리뷰 (2편)
 
-[[SW L4를 위한 배경]]에서 본 조각들 — XDP, DSR/IPIP, RSS, Session Table, Maglev — 이 실제 코드에서 어떻게 맞물리는지 Meta의 **Katran**으로 본다.
+이전 포스트에서 체크한 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념을 **Katran** 코드로 확인해보자
 
-> Katran = XDP/eBPF로 만든 L4 Load Balancer. 데이터 평면은 한 개의 XDP 프로그램, 제어 평면은 C++ 라이브러리 + gRPC.
-
----
-
-## Katran 한눈에
+## Katran Overview
 
 ```mermaid
 flowchart TB

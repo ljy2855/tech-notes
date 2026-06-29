@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
+                "file": "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "SW L4를 위한 배경"
+              "title": "Katran 코드 리뷰"
             }
           },
           {
@@ -92,8 +92,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5,
-    "collapsed": true
+    "width": 213.5
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -199,10 +198,10 @@
   },
   "active": "4bb4a10ddc84e00f",
   "lastOpenFiles": [
-    "content/Infra/Network/Direct Server Return.md",
-    "content/Infra/Network/SW LB/Untitled Diagram.svg",
-    "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
     "content/Infra/Network/SW LB/rss-cpu-distribution.png",
+    "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
+    "content/Infra/Network/SW LB/Untitled Diagram.svg",
+    "content/Infra/Network/Direct Server Return.md",
     "content/Infra/Network/SW LB/Direct-Server-Return-NAT-vs-DSR.svg",
     "content/Assets/Pasted image 20260628152610.png",
     "content/Open Source/cilium/why ebpf?.md",
