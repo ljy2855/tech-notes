@@ -1,4 +1,4 @@
-이전 포스트에서 다룬 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념이 **Katran**의 dataplane 코드에서 어떻게 구현되는지 확인한다.
+이전 포스트에서 정리한 XDP, DSR/IPIP, RSS, Session Table, Maglev가 실제로 어떻게 구현되는지 **Katran** 코드를 까보면서 확인해보자.
 
 ## Katran Overview
 
@@ -180,7 +180,7 @@ flowchart LR
 
 여기가 Katran 설계에서 제일 재밌는 부분이다.
 
-연결 추적 테이블은 **CPU마다 따로** 둔다. 단, 흔한 오해와 달리 `LRU_PERCPU_HASH`가 아니라, **`ARRAY_OF_MAPS` 바깥 + 각 칸에 일반 `LRU_HASH`** 구조다.
+연결 추적 테이블은 **CPU마다 따로** 둔다. 그런데 이름만 보면 `LRU_PERCPU_HASH`를 쓸 것 같은데, 실제로는 **`ARRAY_OF_MAPS` 안에 CPU별 `LRU_HASH`를 하나씩** 넣는 구조다.
 
 ```mermaid
 flowchart LR
@@ -231,9 +231,9 @@ flowchart LR
 - `LRU_PERCPU_HASH`라면 key는 공유하면서 value를 CPU 수만큼 들고 있어, 정작 그 연결을 만지는 CPU는 하나인데 **메모리만 N배** 쓴다.
 - 우리가 원하는 값은 "이 연결이 가야 할 real **하나**"다. 일반 `LRU_HASH`의 단일 value가 정확히 그 의미다.
 
-### fallback_cache가 증거다
+### 그래도 빗나가면? fallback_cache
 
-RSS 가정이 깨질 수 있다 — 큐 재해시, CPU 수 초과, `XDP_REDIRECT`로 CPU가 바뀌는 경우. 그래서 **공용 `fallback_cache (LRU_HASH)`** 를 둔다.
+RSS 가정이 항상 성립하는 건 아니다. 큐 재해시, CPU 수 초과, `XDP_REDIRECT`로 CPU가 바뀌는 경우가 있다. 그래서 **공용 `fallback_cache (LRU_HASH)`** 를 하나 더 둔다.
 
 ```mermaid
 flowchart TD
@@ -251,7 +251,7 @@ flowchart TD
     style C fill:#d4edda,stroke:#28a745,color:#000
 ```
 
-> per-CPU 테이블은 **속도(락 없음)** 를 위해, fallback은 **정확성(연결이 다른 CPU로 가도 유지)** 을 위해 둔다. 이 이중 구조가 "per-CPU지만 PERCPU_HASH는 아닌" 설계의 이유를 그대로 보여준다.
+> per-CPU 테이블은 **속도(락 없음)** 를 위해, fallback은 **정확성(연결이 다른 CPU로 가도 유지)** 을 위해 둔다.
 
 ---
 
@@ -295,12 +295,12 @@ B2 제거 전:  B1  B0  B1  B0  B2  B2  B0
 B2 제거 후:  B1  B0  B1  B0  B0  B0  B1
             =   =   =   =   x   x   x
 
-= 유지   x 변경 (B2 몫 2칸 + 부수 이동 1칸)
+= 유지   x 변경 (B2 몫 2칸 + 덤으로 1칸)
 ```
 
-> real이 빠져도 남은 real들의 `offset`/`skip`은 그대로라 선호 순서가 안 바뀐다. 그래서 재배치가 국소적이다. 기본값인 65537칸 ring에서는 부수 이동이 대략 1% 수준이다.
+> real이 빠져도 남은 real들의 `offset`/`skip`은 그대로라 선호 순서가 안 바뀐다. 그래서 빠진 real 몫 위주로만 재배치되고 나머지는 거의 그대로다. 기본값인 65537칸 ring에서는 엉뚱하게 옮겨가는 slot이 대략 1% 수준이다.
 
-원 논문과 달리 Katran은 **weight**도 지원한다 — 첫 라운드에서 weight 수만큼 slot을 연달아 가져가는 방식이다(`generateHashRing`의 inner loop).
+원 논문과 달리 Katran은 **weight**도 지원한다. 첫 라운드에서 weight 수만큼 slot을 연달아 가져가는 방식이다(`generateHashRing`의 inner loop).
 
 ### ring 조회 (data plane)
 
@@ -334,7 +334,7 @@ after encap (LB → real):
   ETH*: dst = 다음 홉(라우터) mac (ctl_array에서), src = LB 자신의 mac
 ```
 
-`encap_v4`(`pckt_encap.h`)의 요지:
+`encap_v4`(`pckt_encap.h`)에서 하는 일은 사실 이게 전부다.
 
 ```c
 bpf_xdp_adjust_head(xdp, -sizeof(struct iphdr));   // 패킷 앞에 20 byte 확보
@@ -371,9 +371,9 @@ flowchart LR
 
 > client의 (ip, port)를 outer src에 XOR로 심어서, **real server에서도 RSS가 퍼지게** 만든다. LB에서 통했던 "flow당 CPU 고정"이 real에서도 그대로 성립한다.
 
-IPv6는 같은 방식으로 RFC 6666 discard prefix(`0100::/64`)에 flow 정보를 심는다. UDP 기반 **GUE encap**도 옵션(`GUE_ENCAP`)으로 지원하는데, 이때는 outer UDP source port가 이 entropy 역할을 한다.
+IPv6도 같은 방식으로 RFC 6666 discard prefix(`0100::/64`)에 flow 정보를 심는다. UDP 기반 **GUE encap**도 옵션(`GUE_ENCAP`)으로 지원하는데, 이때는 outer UDP source port가 같은 역할을 한다.
 
-real server에서는 ipip tunnel device가 outer 헤더를 벗기고, dst=VIP인 원본 패킷이 드러난다 (VIP는 real의 loopback에 붙어 있다). 응답은 src=VIP로 client에 직행한다 — 앞에서 말한 DSR이 여기서 완성된다.
+real server에서는 ipip tunnel device가 outer 헤더를 벗겨내면 dst=VIP인 원본 패킷이 나온다 (VIP는 real의 loopback에 붙어 있다). 응답은 real이 src=VIP로 client에 직접 보낸다. 이게 앞에서 말한 DSR이다.
 
 ```mermaid
 flowchart LR
@@ -391,7 +391,6 @@ flowchart LR
 
 ## 참고
 
-- [[SW L4를 위한 배경]] — 이 글의 배경 (XDP, RSS, Session Table, Maglev)
 - [facebookincubator/katran](https://github.com/facebookincubator/katran) — 소스
 - [Open-sourcing Katran (Meta Engineering)](https://engineering.fb.com/2018/05/22/open-source/open-sourcing-katran-a-scalable-network-load-balancer/)
 - [The Linux Kernel - BPF map types](https://docs.kernel.org/bpf/maps.html)
