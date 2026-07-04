@@ -1,6 +1,4 @@
-
-
-이전 포스트에서 체크한 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념을 **Katran**의 dataplane 코드로 확인해보자
+이전 포스트에서 다룬 XDP, DSR/IPIP, RSS, Session Table, Maglev 개념이 **Katran**의 dataplane 코드에서 어떻게 구현되는지 확인한다.
 
 ## Katran Overview
 
@@ -29,45 +27,37 @@ flowchart TB
     style MAPS fill:#d4edda,stroke:#28a745,color:#000
 ```
 
+Katran은 크게 두 컴포넌트로 이루어진다.
+
+### Data Plane
+
+메인 로드밸런싱 로직을 처리하는 부분이다.
+
+NIC 드라이버의 XDP hook에 붙어서, 패킷이 커널 네트워크 스택에 올라가기 전에 곧바로 NIC으로 TX 해버린다.
+![[../../../Assets/Pasted image 20260704145603.png]]
+
+BPF Map을 확인해 로드밸런싱이 필요한 패킷만 IPIP encap 하고, 나머지는 커널 스택으로 올려보낸다.
+
+### Control Plane
+user space 애플리케이션으로, backend 추가/삭제 같은 설정 변경을 담당한다.
+
+설정이 바뀌면 BPF map을 업데이트해서, data plane이 로드밸런싱할 backend 목록을 바꾼다.
+
+
 > 둘은 **BPF Map을 사이에 두고만 만난다**. control plane은 map을 쓰고, data plane은 map을 읽는다.
 
 > BPF Maps??
 
-eBPF는 커널에서 코드를 실행가능하게 해주며, 커널과 유저스페이스에서 접근 가능한 자료구조인 Map을 제공한다. 자세한 Map type들은 아래에 정리
+eBPF는 커널 안에서 코드를 실행할 수 있게 해주고, 커널과 user space 양쪽에서 접근 가능한 자료구조인 Map을 제공한다. Katran이 쓰는 map type들은 아래 섹션에서 정리한다.
 
----
+|     | Control Plane          | Data Plane            |
+| --- | ---------------------- | --------------------- |
+| 위치  | user space (C++)       | kernel (XDP)          |
+| 언어  | C++ / libbpf           | C → BPF bytecode      |
+| 빈도  | 설정 변경 시                | 패킷마다                  |
+| 역할  | map 작성, ring 계산, 통계 수집 | lookup, 선택, encap, 전송 |
+| 상태  | 갖지 않음(전부 map)          | 갖지 않음(전부 map)         |
 
-## Control plane vs Data plane 구조
-
-```mermaid
-flowchart LR
-    subgraph slow["느린 경로 · 가끔"]
-        direction TB
-        C["`설정 변경
-        backend 추가/제거
-        health check 반영`"] --> C2["`Maglev ring 재계산
-        → ch_rings 갱신`"]
-    end
-    subgraph fast["빠른 경로 · 패킷마다"]
-        direction TB
-        F["`map lookup
-        backend 선택
-        encap → XDP_TX`"]
-    end
-
-    style C fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style F fill:#fff3cd,stroke:#ffc107,color:#000
-```
-
-| | Control Plane | Data Plane |
-| --- | --- | --- |
-| 위치 | user space (C++) | kernel (XDP) |
-| 언어 | C++ / libbpf | C → BPF bytecode |
-| 빈도 | 설정 변경 시 | 패킷마다 |
-| 역할 | map 작성, ring 계산, 통계 수집 | lookup, 선택, encap, 전송 |
-| 상태 | 갖지 않음(전부 map) | 갖지 않음(전부 map) |
-
-> 이번 글은 Data Plane 파트에 집중
 
 ---
 ## 무중단 XDP hook 부착
@@ -134,14 +124,22 @@ flowchart TD
 ```
 
 ```text
-요약: parse → VIP? → 연결 있으면 재사용 / 없으면 Maglev로 선택 → encap → XDP_TX
+parse → VIP? → 연결 있으면 재사용 / 없으면 Maglev로 선택 → encap → XDP_TX
 ```
 
 > 정상 트래픽의 절대다수는 **lru hit** 경로로 빠진다. Maglev 계산은 새 연결(또는 lru miss)일 때만 탄다.
 
+> Session Table이 왜 필요할까?
+
+운영 중인 LB에서는 backend 목록이 수시로 바뀐다. (health check fail, scale out 등)
+
+backend가 바뀌어도 기존 연결의 패킷은 원래 가던 backend로 계속 가야 한다. (TCP처럼 stateful한 통신일수록 더욱)
+
+물론 뒷단의 Maglev 해시도 5-tuple 기반이라 웬만하면 같은 backend가 나오지만, ring이 다시 계산되면 일부 flow는 다른 backend로 옮겨간다. 그래서 앞단에서 session table을 먼저 확인해 더 확실하게 sticky한 session을 보장한다.
+
 ---
 
-## ebpf map 종류
+## eBPF map 종류
 
 Katran의 map은 크게 **포워딩용**과 **통계용**으로 나뉜다. (실제 `balancer_maps.h` 기준)
 
@@ -208,7 +206,9 @@ real = lookup(lru, flow_key);     // 그 안에서 연결 조회
 
 ### 왜 CPU별로 쪼개나
 
-[[SW L4를 위한 배경]]의 **RSS**가 답이다. NIC이 5-tuple을 해시해 연결을 CPU에 고정하므로, **한 연결의 패킷은 항상 같은 CPU = 같은 inner LRU**로 온다. 그래서 CPU끼리 테이블을 공유할 필요가 없다.
+이전 포스트에서 설명한 **RSS** 때문이다.
+
+NIC이 5-tuple을 해시해 연결을 CPU에 고정하므로, **한 연결의 패킷은 항상 같은 CPU = 같은 inner LRU**로 온다. 그래서 CPU끼리 테이블을 공유할 필요가 없다.
 
 ```mermaid
 flowchart LR
@@ -255,26 +255,137 @@ flowchart TD
 
 ---
 
-## 정리
+## Maglev 해시
+
+lru miss일 때 타는 경로다. ring 자체는 **control plane(C++)이 미리 계산**해서 `ch_rings`에 써두고, data plane은 패킷당 **배열 인덱싱 한 번**만 한다.
+
+### ring 생성 (control plane)
+
+`MaglevHash::generateHashRing`(`MaglevHash.cpp`)이 만든다. real마다 MurmurHash3로 `offset`/`skip`을 뽑아 **자기만의 slot 선호 순서**를 만들고, 라운드로빈으로 빈 slot을 하나씩 가져간다.
+
+```c
+// MaglevBase.cpp — real마다 고유한 순회 순서
+offset = MurmurHash3(real.hash, seed_a) % ring_size;
+skip   = MurmurHash3(real.hash, seed_b) % (ring_size - 1) + 1;
+// i번째 선호 slot = (offset + i * skip) % ring_size
+```
+
+ring_size 7로 줄인 예시 (실제 기본값은 `RING_SIZE 65537`, 소수):
+
+```text
+B0: offset=3, skip=4  →  선호 순서: 3, 0, 4, 1, 5, 2, 6
+B1: offset=0, skip=2  →  선호 순서: 0, 2, 4, 6, 1, 3, 5
+B2: offset=3, skip=1  →  선호 순서: 3, 4, 5, 6, 0, 1, 2
+
+라운드마다 각자 "선호 순서상 아직 빈 slot"을 하나씩 가져간다.
+
+round 1:  B0→3    B1→0    B2→(3 점유라 패스)→4
+round 2:  B0→(0,4 점유)→1    B1→2    B2→5
+round 3:  B0→(5,2 점유)→6    ... 7칸 다 참 → 종료
+
+slot   :  0   1   2   3   4   5   6
+backend:  B1  B0  B1  B0  B2  B2  B0
+```
+
+여기서 B2가 죽어서 빠지면 (남은 B0, B1로 다시 fill):
+
+```text
+slot     :  0   1   2   3   4   5   6
+B2 제거 전:  B1  B0  B1  B0  B2  B2  B0
+B2 제거 후:  B1  B0  B1  B0  B0  B0  B1
+            =   =   =   =   x   x   x
+
+= 유지   x 변경 (B2 몫 2칸 + 부수 이동 1칸)
+```
+
+> real이 빠져도 남은 real들의 `offset`/`skip`은 그대로라 선호 순서가 안 바뀐다. 그래서 재배치가 국소적이다. 기본값인 65537칸 ring에서는 부수 이동이 대략 1% 수준이다.
+
+원 논문과 달리 Katran은 **weight**도 지원한다 — 첫 라운드에서 weight 수만큼 slot을 연달아 가져가는 방식이다(`generateHashRing`의 inner loop).
+
+### ring 조회 (data plane)
+
+계산된 ring은 `programHashRing`(`KatranLb.cpp`)이 `key = vip_num * ring_size + pos` 형태로 batch write한다. data plane 쪽은:
+
+```c
+// balancer.bpf.c — get_packet_dst()
+hash = jhash(src ip, src/dst ports) % RING_SIZE;
+key  = RING_SIZE * vip_num + hash;
+
+real_id = *bpf_map_lookup_elem(&ch_rings, &key);  // slot → real id
+real    =  bpf_map_lookup_elem(&reals, &real_id); // real id → IP
+```
+
+> 해시 입력에 **dst(VIP)가 없다**. VIP 구분은 `vip_num * RING_SIZE` offset이 대신한다. 즉 `ch_rings`는 모든 VIP의 ring을 이어붙인 1차원 `ARRAY` 하나다.
+
+---
+
+## IPIP encap
+
+real이 정해졌으면 원본 패킷은 건드리지 않고 **앞에 outer IP 헤더만 덧붙여서** real로 쏜다.
+
+```text
+before (client → VIP):
+  [ ETH ][ IP src=client, dst=VIP ][ TCP ][ payload ]
+
+after encap (LB → real):
+  [ ETH* ][ outer IP src=172.16.x.y, dst=real, proto=IPIP ][ IP src=client, dst=VIP ][ TCP ][ payload ]
+            ^ 새로 붙인 20 byte                               ^ 원본 그대로
+
+  ETH*: dst = 다음 홉(라우터) mac (ctl_array에서), src = LB 자신의 mac
+```
+
+`encap_v4`(`pckt_encap.h`)의 요지:
+
+```c
+bpf_xdp_adjust_head(xdp, -sizeof(struct iphdr));   // 패킷 앞에 20 byte 확보
+memcpy(new_eth->h_dest, cval->mac, 6);             // 다음 홉 mac
+memcpy(new_eth->h_source, old_eth->h_dest, 6);     // 원래 받던 mac = LB 자신
+
+ip_src = create_encap_ipv4_src(sport, client_ip);  // outer src 생성 (아래)
+create_v4_hdr(iph, tos, ip_src, real->dst, len, IPPROTO_IPIP);
+```
+
+### outer src가 LB IP가 아니다?
+
+```c
+// encap_helpers.h — RFC1918 172.16/16 + flow에서 유도한 하위 16bit
+__u32 ip_suffix = bpf_htons(port) << 16 ^ src;
+return (0xFFFF0000 & ip_suffix) | IPIP_V4_PREFIX;  // 172.16.x.y
+```
+
+outer src를 LB IP 하나로 고정하면, real server 입장에서 모든 tunneled 패킷이 같은 (src, dst) 쌍이 된다. IPIP에는 port가 없어서 real의 NIC RSS가 IP로만 해시하는데, 그러면 **전부 한 CPU로 몰린다**.
 
 ```mermaid
 flowchart LR
-    A["`Control plane
-    C++ + gRPC`"] -->|map write| M[("`BPF Maps`")]
-    M -->|map read| B["`Data plane
-    XDP balancer`"]
-    B --> C["`per-CPU LRU + Maglev
-    + IPIP encap → XDP_TX`"]
+    LB["`**LB**
+    outer src = 172.16.x.y
+    (flow마다 다름)`"] --> NIC["`real의 NIC
+    outer 헤더로 RSS`"]
+    NIC --> C0["`CPU0`"]
+    NIC --> C1["`CPU1`"]
+    NIC --> CN["`CPUn`"]
 
-    style A fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style M fill:#d4edda,stroke:#28a745,color:#000
-    style B fill:#fff3cd,stroke:#ffc107,color:#000
+    style LB fill:#fff3cd,stroke:#ffc107,color:#000
+    style NIC fill:#6c757d,stroke:#495057,color:#fff
 ```
 
-- control / data plane은 **BPF map으로만** 결합한다.
-- data plane은 상태가 없다. **lookup → 선택 → encap → XDP_TX**가 전부다.
-- 통계는 `PERCPU_ARRAY`로 락 없이 더하고, 합산은 user space에서.
-- session table은 **RSS로 연결을 CPU에 고정**한 위에서 CPU별 `LRU_HASH`로 쪼갠다. `LRU_PERCPU_HASH`가 아닌 이유는 바깥에서 이미 CPU별로 나뉘었기 때문이고, `fallback_cache`가 RSS 가정이 깨질 때의 안전망이다.
+> client의 (ip, port)를 outer src에 XOR로 심어서, **real server에서도 RSS가 퍼지게** 만든다. LB에서 통했던 "flow당 CPU 고정"이 real에서도 그대로 성립한다.
+
+IPv6는 같은 방식으로 RFC 6666 discard prefix(`0100::/64`)에 flow 정보를 심는다. UDP 기반 **GUE encap**도 옵션(`GUE_ENCAP`)으로 지원하는데, 이때는 outer UDP source port가 이 entropy 역할을 한다.
+
+real server에서는 ipip tunnel device가 outer 헤더를 벗기고, dst=VIP인 원본 패킷이 드러난다 (VIP는 real의 loopback에 붙어 있다). 응답은 src=VIP로 client에 직행한다 — 앞에서 말한 DSR이 여기서 완성된다.
+
+```mermaid
+flowchart LR
+    C["`client`"] -->|"dst=VIP"| LB["`**katran**
+    encap + XDP_TX`"]
+    LB -->|"outer dst=real (IPIP)"| R["`**real server**
+    decap 후 처리`"]
+    R -->|"src=VIP로 직접 응답"| C
+
+    style LB fill:#fff3cd,stroke:#ffc107,color:#000
+    style R fill:#d4edda,stroke:#28a745,color:#000
+```
 
 ---
 
@@ -284,3 +395,4 @@ flowchart LR
 - [facebookincubator/katran](https://github.com/facebookincubator/katran) — 소스
 - [Open-sourcing Katran (Meta Engineering)](https://engineering.fb.com/2018/05/22/open-source/open-sourcing-katran-a-scalable-network-load-balancer/)
 - [The Linux Kernel - BPF map types](https://docs.kernel.org/bpf/maps.html)
+- [Maglev: A Fast and Reliable Software Network Load Balancer (Google, NSDI '16)](https://research.google/pubs/maglev-a-fast-and-reliable-software-network-load-balancer/)

@@ -11,10 +11,14 @@
             "id": "01e0e1517afa79fa",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Katran 코드 리뷰"
             }
           }
         ]
@@ -180,10 +184,11 @@
   },
   "active": "01e0e1517afa79fa",
   "lastOpenFiles": [
-    "content/Infra/Network/Direct Server Return.md",
-    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
-    "content/Infra/Network/SW LB/rss-cpu-distribution.png",
     "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
+    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
+    "content/Assets/Pasted image 20260704145603.png",
+    "content/Infra/Network/SW LB/rss-cpu-distribution.png",
+    "content/Infra/Network/Direct Server Return.md",
     "content/Infra/Network/SW LB/Untitled Diagram.svg",
     "content/Infra/Network/SW LB/Direct-Server-Return-NAT-vs-DSR.svg",
     "content/Assets/Pasted image 20260628152610.png",
@@ -211,7 +216,6 @@
     "content/Infra/k8s/Service Network.md",
     "content/Infra/k8s/Cloudflare Tunnel을 활용한 k8s Ingress 대체.md",
     "content/Infra/k8s/k8s Network (kube-proxy).md",
-    "content/Assets/Pasted image 20260222154016.png",
     "Untitled.md",
     "Excalidraw/k8s network.md",
     "content/Computer Science/Network/BGP.md",
