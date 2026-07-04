@@ -4,35 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "1761b92b64e005e3",
+        "id": "e9d8bc8d371f67a2",
         "type": "tabs",
         "children": [
           {
-            "id": "4bb4a10ddc84e00f",
+            "id": "01e0e1517afa79fa",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Katran 코드 리뷰"
-            }
-          },
-          {
-            "id": "cf3c4fd897af7e3e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "content/Infra/Network/Direct Server Return.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Direct Server Return"
+              "title": "New tab"
             }
           }
         ]
@@ -196,16 +178,16 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "4bb4a10ddc84e00f",
+  "active": "01e0e1517afa79fa",
   "lastOpenFiles": [
+    "content/Infra/Network/Direct Server Return.md",
+    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
     "content/Infra/Network/SW LB/rss-cpu-distribution.png",
     "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
     "content/Infra/Network/SW LB/Untitled Diagram.svg",
-    "content/Infra/Network/Direct Server Return.md",
     "content/Infra/Network/SW LB/Direct-Server-Return-NAT-vs-DSR.svg",
     "content/Assets/Pasted image 20260628152610.png",
     "content/Open Source/cilium/why ebpf?.md",
-    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
     "content/Infra/Network/SW LB/Katran 코드 리뷰.md.tmp.27159.1dd5d4e158cf",
     "content/Infra/Network/SW LB/SW LB를 위한 배경 1편.md.tmp.27159.8c26641fd6e5",
     "content/Infra/Network/SW LB",
