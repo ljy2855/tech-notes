@@ -151,13 +151,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
+                "file": "content/Infra/k8s/NCP server k8s worker로 쓰기.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of SW L4를 위한 배경"
+              "title": "Outline of NCP server k8s worker로 쓰기"
             }
           }
         ],
@@ -165,8 +165,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 290.5,
-    "collapsed": true
+    "width": 290.5
   },
   "left-ribbon": {
     "hiddenItems": {
