@@ -29,13 +29,35 @@
 
 만약 외부 Cloud 서버가 해당 사설 대역과 통신이 필요한경우 IPsec과 같은 터널이 필요하다.
 
-기존 K8s Cluster 
+**기존 K8s Cluster와 통합**
+
+k8s cluster에 포함되어있는
+
+- Internal DNS
+- Storage
+- cilium CNI
+- monitoring stack
+
+
+
 
 ## 구성 방안
 
 일단 가능한 방향 모두 생각해보자
 
+
+### IPsec Service
+
+
+###
+
 ### on-premise wireguard 
 
 
 
+## trouble shooting
+
+### MTU size 
+Cloud Server들은 대부분 VM들과 overlay Network(VPC)위에서 제공된다.
+
+때문에 대부분의 서비스들의 
