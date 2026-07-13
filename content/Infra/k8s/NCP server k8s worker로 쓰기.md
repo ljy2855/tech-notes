@@ -42,7 +42,7 @@ NCP 서버가 워커로 붙으려면 이 사설 대역과 양방향 통신이 �
 
 NCP는 VPC용 관리형 IPsec VPN Gateway 상품을 제공한다. 다만 온프레미스 데이터센터급 연동을 상정한 구성이라, 집 쪽에도 고정 공인 IP를 가진 IPsec 피어 장비가 있어야 한다. (해당 내용은 AWS와 같은 외부 클라우드 서비드와 동일)
 
-우리집 회선은 공유기 포트포워딩으로 버티는 구조라 고정 IP가 아니고, 게이트웨이 이중화 같은 기능도 워커 노드 하나 붙이는 용도로는 과했다. 그래서 기각.
+공인 IP는 고정이지만, 지금 공유기는 포트포워딩만 해주는 수준이라 IPsec 피어 역할을 할 전용 게이트웨이가 없다. 게이트웨이 이중화 같은 기능도 워커 노드 하나 붙이는 용도로는 과했다. 그래서 기각.
 
 ### 기존 WireGuard(wg-easy) 재사용 시도
 
@@ -53,7 +53,7 @@ docker exec wg-easy iptables -t nat -S POSTROUTING
 # -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
 ```
 
-wg-easy는 브리지 네트워크 안에서 도는 컨테이너라 VPN 클라이언트 트래픽을 전부 **MASQUERADE(SNAT)** 함. 개인이 노트북으로 집에 들어올 땐 문제없지만, k8s 노드 간 통신에는 치명적이다.
+wg-easy는 브리지 네트워크 안에서 도는 컨테이너라 VPN 클라이언트 트래픽을 전부 **MASQUERADE(SNAT)** 함. 개인이 노트북으로 집에 들어올 땐 문제없지만, k8s 노드 간 통신은 불가능하다.
 
 - soyo → NCP 방향(`kubectl exec`, kubelet 10250) 라우팅이 없음(NAT는 단방향)
 - NCP → 클러스터 방향도 SNAT 때문에 kubelet/Cilium이 보는 소스 IP가 실제 노드 IP와 달라짐
@@ -64,14 +64,27 @@ wg-easy는 브리지 네트워크 안에서 도는 컨테이너라 VPN 클라이
 
 ```mermaid
 flowchart LR
-    subgraph Home["집 (soyo)"]
+    subgraph Home["집 사설망"]
+        direction TB
+        LAN["172.16.0.0/16<br/>soyo 등"]
+        W1SUB["192.168.50.0/24<br/>k8s-worker-1"]
+    end
+
+    subgraph Tunnel["WireGuard 터널<br/>192.168.250.0/24"]
+        direction LR
         wg1["wg1<br/>192.168.250.1"]
+        wg0["wg0<br/>192.168.250.2"]
     end
-    subgraph NCP["NCP (k8s-ncp-worker)"]
-        wg0["wg0<br/>192.168.250.2<br/>203.0.113.10:51820"]
+
+    subgraph NCP["NCP VPC"]
+        NCPSUB["10.0.90.0/24<br/>k8s-ncp-worker"]
     end
-    wg1 -->|"outbound, keepalive 25s"| wg0
-    wg0 -.->|"응답 트래픽"| wg1
+
+    LAN --- wg1
+    W1SUB --- wg1
+    wg1 -->|"outbound<br/>203.0.113.10:51820, keepalive 25s"| wg0
+    wg0 -.->|응답 트래픽| wg1
+    wg0 --- NCPSUB
 ```
 
 NCP 서버는 공인 IP를 갖고 있어서 리스너로 두고, soyo가 클라이언트로 접속하는 방향으로 잡았다.
@@ -106,6 +119,31 @@ PersistentKeepalive = 25
 ```
 
 NCP 콘솔의 ACG(방화벽)는 집 공인 IP에서만 `UDP/51820`, `TCP/22`를 열어뒀다.
+
+#### Pod 네트워크 (Cilium CNI)
+
+여기에 Cilium CNI까지 얹으면 파드 대역은 이렇게 나뉜다.
+
+```mermaid
+flowchart LR
+    subgraph Pool["Cilium cluster-pool 10.0.0.0/8"]
+        direction LR
+        subgraph NodeSoyo["soyo"]
+            PodSoyo["Pod CIDR<br/>10.0.0.0/24"]
+        end
+        subgraph NodeW1["k8s-worker-1"]
+            PodW1["Pod CIDR<br/>10.0.1.0/24"]
+        end
+        subgraph NodeNCP["k8s-ncp-worker"]
+            PodNCP["Pod CIDR<br/>10.0.2.0/24"]
+        end
+    end
+
+    PodSoyo <-->|"VXLAN<br/>(홈 LAN 직결)"| PodW1
+    PodSoyo <-->|"VXLAN over WireGuard<br/>MTU 1370"| PodNCP
+```
+
+WireGuard 터널은 물리 대역(172/192/10.0.90)만 이어주고, 그 위에서 Cilium이 파드 대역(10.0.0.0/8)을 한 번 더 VXLAN으로 캡슐화해서 올리는 구조다.
 
 ### kubeadm join
 
@@ -211,14 +249,17 @@ kubectl -n kube-system patch cm cilium-config -p '{"data":{"mtu":"1370"}}'
 kubectl -n kube-system rollout restart ds/cilium
 ```
 
-값을 감으로 잡고 끝내지 않고, 파드 두 개(홈 쪽 / NCP 쪽)를 띄워서 페이로드 크기를 이진탐색으로 검증했다.
+파드 두 개(on-prem 쪽 / NCP 쪽)를 띄워서 페이로드 크기를 변경해가면서 테스트 진행
 
 ```bash
 kubectl exec home-nettest -- ping -c 2 -s 1292 -W 2 $NCP_POD_IP   # 0% loss
 kubectl exec home-nettest -- ping -c 2 -s 1293 -W 2 $NCP_POD_IP   # 100% loss
 ```
 
-실측 임계값은 payload 1292바이트(IP+ICMP 헤더 28바이트 포함 총 1320바이트). 설정한 파드 인터페이스 MTU(1370)보다 50바이트 낮은데, 이 차이가 **Cilium VXLAN 오버헤드와 정확히 일치**한다. 파드 간 트래픽이 노드 사이 구간에서 Cilium 자체 VXLAN 캡슐화를 한 번 더 타면서 유효 MTU가 그만큼 줄어든다. TCP는 MSS 협상 덕에 문제없지만, ICMP나 UDP처럼 협상 없이 나가는 트래픽은 이 값을 넘으면 **조용히 드롭**되니 실측 검증이 필요하다.
+실측 임계값은 payload 1292바이트(IP+ICMP 헤더 28바이트 포함 총 1320바이트). 
+
+설정한 파드 인터페이스 MTU(1370)보다 50바이트 낮은데, 이 차이가 **Cilium VXLAN 오버헤드와 정확히 일치**한다. 
+파드 간 트래픽이 노드 사이 구간에서 Cilium 자체 VXLAN 캡슐화를 한 번 더 타면서 유효 MTU가 그만큼 줄어든다. TCP는 MSS 협상 덕에 문제없지만, **ICMP나 UDP처럼 협상 없이 나가는 트래픽은 이 값을 넘으면 드롭**되니 실측 검증이 필요하다.
 
 ### Harbor 레지스트리 TLS
 
