@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/Infra/k8s/NCP server k8s worker로 쓰기.md",
+                "file": "private/여행/26.10 다카마스.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "NCP server k8s worker로 쓰기"
+              "title": "26.10 다카마스"
             }
           }
         ]
@@ -151,13 +151,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/Infra/k8s/NCP server k8s worker로 쓰기.md",
+                "file": "private/여행/26.10 다카마스.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of NCP server k8s worker로 쓰기"
+              "title": "Outline of 26.10 다카마스"
             }
           }
         ],
@@ -183,8 +183,12 @@
   },
   "active": "01e0e1517afa79fa",
   "lastOpenFiles": [
-    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
     "content/Infra/k8s/NCP server k8s worker로 쓰기.md",
+    "private/여행/26.10 다카마스.md",
+    "private/여행",
+    "private",
+    "Untitled.md",
+    "content/Infra/Network/SW LB/Katran 코드 리뷰.md",
     "content/Infra/Network/SW LB/Katran 코드 리뷰.md.tmp.72504.a1739a2b79a2",
     "content/Assets/Pasted image 20260704145603.textClipping",
     "content/Infra/Network/SW LB/SW L4를 위한 배경.md",
@@ -218,7 +222,6 @@
     "content/Infra/k8s/Service Network.md",
     "content/Infra/k8s/Cloudflare Tunnel을 활용한 k8s Ingress 대체.md",
     "content/Infra/k8s/k8s Network (kube-proxy).md",
-    "Untitled.md",
     "Excalidraw/k8s network.md",
     "content/Computer Science/Network/BGP.md",
     "content/AI/AI engineering/Evaluation.md",
@@ -226,9 +229,6 @@
     "content/AI/Vector Search.md",
     "content/AI/AI engineering",
     "content/Infra/Docker/Docker Swarm.md",
-    "content/Retrospective/취준 로그.md",
-    "Untitled.base",
-    "Untitled 1.base",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
