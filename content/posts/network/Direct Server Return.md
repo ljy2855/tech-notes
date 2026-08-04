@@ -12,7 +12,7 @@ Client → VIP(L4) → Real Server
 
 Client 입장에서는 `VIP` 하나와 통신하는 것처럼 보이고, 실제로 어떤 Real Server가 처리했는지는 알 필요가 없다.
 
-![[Drawio/Direct Server Return - NAT vs DSR.drawio.svg]]
+![[Direct Server Return - NAT vs DSR.drawio.svg]]
 
 위 전체 경로 다이어그램을 기준으로 보면 왼쪽은 **NAT mode**, 오른쪽은 **DSR mode**다.
 
@@ -71,7 +71,7 @@ Client는 VIP로 요청을 보내고, L4는 NAT를 통해 패킷의 IP header를
 
 IP header 변화만 따로 보면 다음과 같다.
 
-![[Drawio/Direct Server Return - IP Header Flow.drawio.svg]]
+![[Direct Server Return - IP Header Flow.drawio.svg]]
 
 위 헤더 다이어그램의 왼쪽 NAT mode를 보면 request에서는 **DNAT**, response에서는 **SNAT**이 필요하다.
 

@@ -31,11 +31,9 @@ export const defaultContentPageLayout: PageLayout = {
     }),
     Component.Explorer(),
   ],
-  right: [
-    Component.Graph(),
-    Component.DesktopOnly(Component.TableOfContents()),
-    Component.Backlinks(),
-  ],
+  // Graph 와 Backlinks 도 뺐다. 글 사이 상호 링크가 3개뿐이라 둘 다 사실상 빈 상자다.
+  // 글끼리 엮이기 시작하면 그때 되살리면 된다.
+  right: [Component.DesktopOnly(Component.TableOfContents())],
 }
 
 // components for pages that display lists of pages  (e.g. tags or folders)
