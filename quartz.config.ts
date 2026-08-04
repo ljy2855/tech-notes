@@ -17,7 +17,17 @@ const config: QuartzConfig = {
     },
     locale: "ko-KR",
     baseUrl: "https://ljy2855.github.io/tech-notes/",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    // posts/ 만 발행한다. index.md 와 Assets/ 는 남겨야 목차와 이미지가 산다.
+    ignorePatterns: [
+      "private",
+      "templates",
+      ".obsidian",
+      "notes/**",
+      "logs/**",
+      "archive/**",
+      "clips/**",
+      "inbox/**",
+    ],
     defaultDateType: "created",
     theme: {
       fontOrigin: "googleFonts",

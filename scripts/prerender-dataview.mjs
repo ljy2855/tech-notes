@@ -9,7 +9,11 @@ const __dirname = path.dirname(__filename);
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const CONTENT_DIR = path.join(REPO_ROOT, "content");
-const BASE_URL = process.env.SITE_BASE || "https://ljy2855.github.io/tech-notes";
+// 끝 슬래시를 떼지 않으면 `${BASE_URL}/...` 가 `tech-notes//posts/...` 로 나온다.
+const BASE_URL = (process.env.SITE_BASE || "https://ljy2855.github.io/tech-notes").replace(
+  /\/+$/,
+  "",
+);
 const DV_FENCE_RE = /```dataview\s+([\s\S]*?)```/g;
 
 function walk(dir) {
@@ -23,19 +27,42 @@ function walk(dir) {
 }
 
 function getTitle(mdPath, raw) {
-  const h1 = raw.match(/^#\s+(.*)$/m);
+  // 펜스 코드블록 안의 `# 주석` 이 제목으로 잡히지 않게 먼저 제거한다.
+  const withoutCode = raw.replace(/^(```|~~~).*?^\1/gms, "");
+  const h1 = withoutCode.match(/^#\s+(.*)$/m);
   if (h1) return h1[1].trim();
   return path.basename(mdPath, ".md");
 }
 
-function stripContentPrefix(mdPath) {
+// `from "..."` 와 `replace(string(file.folder), "...", "")` 를 실제로 반영한다.
+// 이게 없으면 어떤 쿼리를 쓰든 content 전체가 나온다.
+function parseQuery(block) {
+  const from = block.match(/from\s+"([^"]+)"/i);
+  const prefix = block.match(/replace\(\s*string\(\s*file\.folder\s*\)\s*,\s*"([^"]*)"/i);
+  return {
+    fromDir: from ? from[1].replace(/\/+$/, "") : "content",
+    stripPrefix: prefix ? prefix[1] : "content/",
+  };
+}
+
+function stripContentPrefix(mdPath, stripPrefix = "content/") {
   const rel = path.relative(REPO_ROOT, mdPath).replaceAll("\\", "/");
   const folder = path.posix.dirname(rel);
+  const p = stripPrefix.endsWith("/") ? stripPrefix : stripPrefix + "/";
+  if (folder + "/" === p) return "-"; // prefix 디렉토리 바로 아래 파일
+  if (folder.startsWith(p)) return folder.slice(p.length);
   return folder.startsWith("content/") ? folder.slice("content/".length) : folder;
 }
 
+// quartz/util/path.ts 의 sluggify() 와 규칙을 맞춘다. 어긋나면 링크가 404 난다.
 function slugifySegment(s) {
-  return s.trim().replace(/\s+/g, "-");
+  return s
+    .trim()
+    .replace(/\s/g, "-")
+    .replace(/&/g, "-and-")
+    .replace(/%/g, "-percent")
+    .replace(/\?/g, "")
+    .replace(/#/g, "");
 }
 
 function toQuartzUrl(mdAbsPath) {
@@ -58,7 +85,7 @@ function toQuartzUrl(mdAbsPath) {
 }
 
 function shouldHandleQuery(block) {
-  return /from\s+"content"/i.test(block);
+  return /from\s+"[^"]+"/i.test(block);
 }
 
 function renderTableRows(files) {
@@ -95,7 +122,14 @@ function processIndexMarkdown(mdPath) {
       /where\s+(?:lower\(file\.name\)\s*!=\s*"index"|file\.name\s*!=\s*"index")/i.test(block);
     const sortByMtimeDesc = /sort\s+file\.mtime\s+desc/i.test(block);
 
-    const all = walk(CONTENT_DIR).map(p => {
+    const { fromDir, stripPrefix } = parseQuery(block);
+    const scanDir = path.resolve(REPO_ROOT, fromDir);
+    if (!fs.existsSync(scanDir)) {
+      console.warn(`[prerender-dataview] from "${fromDir}" 경로 없음, 블록 유지`);
+      return whole;
+    }
+
+    const all = walk(scanDir).map(p => {
       const stat = fs.statSync(p);
       const gitMtime = getGitModifiedTime(p);
       const md = fs.readFileSync(p, "utf8");
@@ -104,7 +138,7 @@ function processIndexMarkdown(mdPath) {
         mtime: gitMtime || stat.mtimeMs,
         title: getTitle(p, md),
         base: path.basename(p, ".md"),
-        category: stripContentPrefix(p),
+        category: stripContentPrefix(p, stripPrefix),
       };
     });
 
