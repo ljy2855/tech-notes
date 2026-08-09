@@ -25,12 +25,14 @@
             "id": "47beb79bb48ed382",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "markdown",
               "state": {
-                "currentVersion": "1.13.4"
+                "file": "private/여행/26.10 다카마스.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.13.4"
+              "icon": "lucide-file",
+              "title": "26.10 다카마스"
             }
           }
         ],
@@ -166,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/posts/retrospective/입사 1주년 회고.md",
+                "file": "private/여행/26.10 다카마스.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -198,6 +200,8 @@
   },
   "active": "47beb79bb48ed382",
   "lastOpenFiles": [
+    "CLAUDE.md",
+    "private/여행/26.10 다카마스.md",
     "public/Assets/Direct-Server-Return---NAT-vs-DSR.drawio.svg",
     "public/Assets/Direct-Server-Return---IP-Header-Flow.drawio.svg",
     "content/Assets/Direct Server Return - NAT vs DSR.drawio.svg",
@@ -208,7 +212,6 @@
     "public/posts/retrospective/소마-회고록-og-image.webp",
     "public/posts/network/인증서,-분산-시스템-클러스터링-og-image.webp",
     "public/posts/network/sw-lb/SW-L4를-위한-배경-og-image.webp",
-    "public/posts/network/sw-lb/Katran-코드-리뷰-og-image.webp",
     "public/Assets/Pasted-image-20260704145603.textClipping",
     "public/posts/network/인증서,-분산-시스템-클러스터링.html",
     "public/posts/linux/docker로-알아보는-Linux-network-가상화.html",
@@ -243,7 +246,6 @@
     "content/inbox/GIL.md",
     "content/clips/Redis deepdive.md",
     "content/clips/proxy.md",
-    "content/clips/Interpreter.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
