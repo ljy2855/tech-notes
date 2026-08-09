@@ -20,8 +20,21 @@
               "icon": "lucide-file",
               "title": "입사 1주년 회고"
             }
+          },
+          {
+            "id": "47beb79bb48ed382",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.13.4"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.13.4"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -41,7 +54,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -157,7 +172,7 @@
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 입사 1주년 회고"
+              "title": "Outline"
             }
           }
         ],
@@ -181,7 +196,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "01e0e1517afa79fa",
+  "active": "47beb79bb48ed382",
   "lastOpenFiles": [
     "public/Assets/Direct-Server-Return---NAT-vs-DSR.drawio.svg",
     "public/Assets/Direct-Server-Return---IP-Header-Flow.drawio.svg",
