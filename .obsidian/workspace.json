@@ -55,15 +55,30 @@
             "state": {
               "type": "webviewer",
               "state": {
+                "url": "https://www.google.com/maps/place/%EC%84%B8%ED%86%A0%EB%85%B8%EB%A7%88%EC%93%B0%EB%A6%AC+%EC%8A%A4%EC%8B%9C+%ED%9A%A8%EA%B3%A0%EB%A7%88%EC%B9%98%EC%A0%90/@34.3459902,134.0498007,17z/data=!3m1!4b1!4m6!3m5!1s0x3553eb57b77497fb:0xbab04626daf8b50b!8m2!3d34.3459902!4d134.0498007!16s%2Fg%2F11h0b3m_cq?entry=ttu&g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D",
                 "title": "세토노마쓰리 스시 효고마치점 - Google 지도",
-                "mode": "blank"
+                "mode": "webview"
               },
               "icon": "globe-2",
               "title": "세토노마쓰리 스시 효고마치점 - Google 지도"
             }
+          },
+          {
+            "id": "47215de26e55196b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Untitled.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Untitled"
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -195,7 +210,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "private/여행/26.10 다카마스.md",
+                "file": "Untitled.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -225,8 +240,9 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "47beb79bb48ed382",
+  "active": "47215de26e55196b",
   "lastOpenFiles": [
+    "Untitled.md",
     "private/여행/26.10 다카마스.md",
     "content/posts/retrospective/입사 1주년 회고.md",
     "CLAUDE.md",
@@ -272,7 +288,6 @@
     "content/inbox/libuv.md",
     "content/inbox/Functional Language.md",
     "content/inbox/GIL.md",
-    "content/clips/Redis deepdive.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
