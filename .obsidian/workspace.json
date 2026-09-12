@@ -27,28 +27,16 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "private/여행/26.10 다카마스.md",
+                "file": "content/posts/network/vxlan multitant cloud service.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "26.10 다카마스"
-            }
-          },
-          {
-            "id": "c5249f904b2fa92d",
-            "type": "leaf",
-            "state": {
-              "type": "release-notes",
-              "state": {
-                "currentVersion": "1.13.7"
-              },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.13.7"
+              "title": "vxlan multitant cloud service"
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -107,7 +95,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5
+    "width": 369.86328125
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -180,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "private/여행/26.10 다카마스.md",
+                "file": "content/posts/network/vxlan multitant cloud service.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -210,10 +198,13 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "c5249f904b2fa92d",
+  "active": "47beb79bb48ed382",
   "lastOpenFiles": [
-    "Untitled.md",
+    "content/Assets/Pasted image 20260912213947.png",
+    "content/posts/network/DC Topology.md",
+    "content/posts/network/vxlan multitant cloud service.md",
     "private/여행/26.10 다카마스.md",
+    "Untitled.md",
     "content/posts/retrospective/입사 1주년 회고.md",
     "CLAUDE.md",
     "public/Assets/Direct-Server-Return---NAT-vs-DSR.drawio.svg",
@@ -255,9 +246,6 @@
     "content/logs/docker/Image.md",
     "content/logs/aws/AWS openSearch trouble shooting.md",
     "content/logs/aws/AWS Batch.md",
-    "content/inbox/libuv.md",
-    "content/inbox/Functional Language.md",
-    "content/inbox/GIL.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
