@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 215" width="940" height="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>VXLAN Frame Format (RFC 7348)</title>
+
+  <text x="30" y="24" font-size="15" font-weight="700" fill="#888">VXLAN Frame Format (RFC 7348)</text>
+
+  <!-- overhead bracket over the four outer headers -->
+  <path d="M30 54 L30 46 L526 46 L526 54" fill="none" stroke="#dc3545" stroke-width="1.5"/>
+  <rect x="196" y="33" width="164" height="18" rx="3" fill="#f8d7da" stroke="#dc3545" stroke-width="1"/>
+  <text x="278" y="46" font-size="12" font-weight="700" fill="#000" text-anchor="middle">50 bytes of overhead</text>
+
+  <!-- header boxes -->
+  <g stroke-width="1.5">
+    <rect x="30"  y="60" width="130" height="58" rx="4" fill="#6c757d" stroke="#495057"/>
+    <rect x="162" y="60" width="120" height="58" rx="4" fill="#6c757d" stroke="#495057"/>
+    <rect x="284" y="60" width="110" height="58" rx="4" fill="#6c757d" stroke="#495057"/>
+    <rect x="396" y="60" width="130" height="58" rx="4" fill="#fff3cd" stroke="#ffc107"/>
+    <rect x="528" y="60" width="330" height="58" rx="4" fill="#d4edda" stroke="#28a745"/>
+    <rect x="860" y="60" width="50"  height="58" rx="4" fill="#6c757d" stroke="#495057"/>
+  </g>
+
+  <g font-size="13" font-weight="700" text-anchor="middle">
+    <text x="95"  y="85" fill="#fff">Outer</text>
+    <text x="95"  y="101" fill="#fff">Ethernet</text>
+    <text x="222" y="85" fill="#fff">Outer</text>
+    <text x="222" y="101" fill="#fff">IP</text>
+    <text x="339" y="85" fill="#fff">Outer</text>
+    <text x="339" y="101" fill="#fff">UDP</text>
+    <text x="461" y="85" fill="#000">VXLAN</text>
+    <text x="461" y="101" fill="#000">Header</text>
+    <text x="693" y="87" fill="#000">Original Layer 2 Frame</text>
+    <text x="693" y="104" font-size="11" font-weight="400" fill="#000">inner Ethernet + IP + payload</text>
+    <text x="885" y="93" fill="#fff">FCS</text>
+  </g>
+
+  <!-- size row -->
+  <g font-size="12" text-anchor="middle" fill="#888">
+    <text x="95"  y="136" font-weight="700">14 bytes</text>
+    <text x="222" y="136" font-weight="700">20 bytes</text>
+    <text x="339" y="136" font-weight="700">8 bytes</text>
+    <text x="461" y="136" font-weight="700">8 bytes</text>
+    <text x="693" y="136">carried as-is, VM never sees the outer headers</text>
+    <text x="885" y="136">new</text>
+  </g>
+
+  <!-- dst port callout -->
+  <path d="M339 142 L339 160" stroke="#888" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="246" y="162" width="186" height="22" rx="3" fill="#d1ecf1" stroke="#17a2b8" stroke-width="1"/>
+  <text x="339" y="177" font-size="11.5" fill="#000" text-anchor="middle">src port = hash(inner), dst port 4789</text>
+
+  <!-- VNI callout -->
+  <path d="M461 142 L461 160" stroke="#888" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="440" y="162" width="176" height="22" rx="3" fill="#fff3cd" stroke="#ffc107" stroke-width="1"/>
+  <text x="528" y="177" font-size="11.5" fill="#000" text-anchor="middle">carries the 24-bit VNI</text>
+
+  <text x="30" y="205" font-size="11.5" fill="#888">Outer IPv4 transport. IPv6 outer header adds 20 more bytes (70 total).</text>
+</svg>

@@ -105,32 +105,17 @@ Pod A와 Pod B는 `10.0.0.0/24` 하나에 같이 붙어있다고 생각하고 AR
 
 VTEP은 원본 Ethernet frame을 통째로 UDP payload에 집어넣고, 그 앞에 outer header를 덧씌운다.
 
-```text
-Before (Pod가 내보낸 원본 frame):
-[Inner Eth: MAC-A → MAC-B][Inner IP: 10.0.0.10 → 10.0.0.20][payload]
+![[vxlan-frame-format.svg]]
 
-After (VTEP이 encap):
-[Outer Eth][Outer IP: VTEP1 → VTEP2][UDP: sport=hash, dport=4789][VXLAN: VNI][Inner Eth][Inner IP][payload]
- └── 14 ──┘└─────── 20 ───────────┘└─────────── 8 ───────────┘└──── 8 ────┘
-                                                          총 50 byte 추가
-```
+맨 앞 Outer Ethernet/IP/UDP가 underlay를 타기 위한 껍데기고, 그 안에 VXLAN header와 원본 frame이 통째로 들어간다. 붙는 양은 14 + 20 + 8 + 8, 합쳐서 **50 byte**다. 뒤에 나올 MTU 문제가 여기서 나온다.
 
-VXLAN header는 8 byte다.
+그 중 VXLAN header 8 byte는 이렇게 생겼다.
 
-```text
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|R|R|R|R|I|R|R|R|            Reserved                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                VXLAN Network Identifier (VNI) |   Reserved    |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                 └────────── 24 bit ───────────┘
+![[vxlan-header-fields.svg]]
 
-legend:  I = VNI 유효 플래그 (항상 1)   R = reserved (0)
-```
+Flags 8 bit 중 I bit만 1로 세우고(VNI가 유효하다는 표시), 나머지 R bit와 Reserved 필드는 전부 0으로 보내고 받는 쪽은 무시한다.
 
-> 8 byte 중에 실제로 쓰는 건 I flag 1 bit랑 VNI 24 bit가 전부다. 나머지는 다 reserved다.
+> 8 byte 중에 실제로 쓰는 건 I bit 1개랑 VNI 24 bit가 전부다. 나머지 39 bit는 다 reserved다.
 
 VNI가 24 bit니까 약 1600만개(16M) segment를 같은 관리 도메인 안에 둘 수 있다.
 
@@ -303,7 +288,7 @@ BUM 복제는 **l2population** mechanism driver가 줄여준다. remote MAC/IP�
 
 ## Cloud Service 제공
 
-테넌트마다 VNI만 다르게 주면 IP 대역이 통째로 겹쳐도 상관없다.
+테넌트마다 VNI만 다르게 주면 IP 대역이 겹쳐도 상관없다.
 
 ```text
 tenant A:  10.0.0.10 → 10.0.0.20     VNI 5001
@@ -365,8 +350,6 @@ flowchart TB
 ---
 
 ## side effect
-
-한 겹 씌운 대가를 네 군데서 받는다.
 
 | side effect | 증상                      | 대응                             |
 | ----------- | ----------------------- | ------------------------------ |

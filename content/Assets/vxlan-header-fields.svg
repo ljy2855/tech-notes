@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 310" width="700" height="310" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>VXLAN Header (8 bytes) - RFC 7348</title>
+
+  <text x="30" y="24" font-size="15" font-weight="700" fill="#888">VXLAN Header (8 bytes)</text>
+
+  <!-- bit ruler: 32 bits over 640px, 20px per bit -->
+  <g font-size="11" fill="#888" text-anchor="middle">
+    <text x="30"  y="48">0</text>
+    <text x="190" y="48">8</text>
+    <text x="350" y="48">16</text>
+    <text x="510" y="48">24</text>
+    <text x="668" y="48">31</text>
+  </g>
+  <g stroke="#888" stroke-width="1">
+    <path d="M30 54 L670 54"/>
+    <path d="M30 51 L30 57"/><path d="M190 51 L190 57"/><path d="M350 51 L350 57"/>
+    <path d="M510 51 L510 57"/><path d="M670 51 L670 57"/>
+  </g>
+
+  <!-- word 1 -->
+  <g stroke-width="1.5">
+    <rect x="30"  y="66" width="160" height="52" rx="4" fill="#d1ecf1" stroke="#17a2b8"/>
+    <rect x="190" y="66" width="480" height="52" rx="4" fill="#e9ecef" stroke="#adb5bd"/>
+  </g>
+  <text x="110" y="88" font-size="13" font-weight="700" fill="#000" text-anchor="middle">Flags</text>
+  <text x="110" y="105" font-size="11" fill="#000" text-anchor="middle">8 bits</text>
+  <text x="430" y="88" font-size="13" font-weight="700" fill="#495057" text-anchor="middle">Reserved</text>
+  <text x="430" y="105" font-size="11" fill="#495057" text-anchor="middle">24 bits</text>
+
+  <!-- word 2 -->
+  <g stroke-width="1.5">
+    <rect x="30"  y="124" width="480" height="52" rx="4" fill="#fff3cd" stroke="#ffc107"/>
+    <rect x="510" y="124" width="160" height="52" rx="4" fill="#e9ecef" stroke="#adb5bd"/>
+  </g>
+  <text x="270" y="146" font-size="13" font-weight="700" fill="#000" text-anchor="middle">VXLAN Network Identifier (VNI)</text>
+  <text x="270" y="163" font-size="11" fill="#000" text-anchor="middle">24 bits &#8594; about 16M segments</text>
+  <text x="590" y="146" font-size="13" font-weight="700" fill="#495057" text-anchor="middle">Reserved</text>
+  <text x="590" y="163" font-size="11" fill="#495057" text-anchor="middle">8 bits</text>
+
+  <!-- flags detail -->
+  <path d="M110 182 L110 200" stroke="#888" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="30" y="219" font-size="12" font-weight="700" fill="#888">Flags, bit by bit</text>
+
+  <g stroke-width="1.5" font-size="13" font-weight="700" text-anchor="middle">
+    <rect x="30"  y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="48"  y="250" fill="#495057">R</text>
+    <rect x="70"  y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="88"  y="250" fill="#495057">R</text>
+    <rect x="110" y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="128" y="250" fill="#495057">R</text>
+    <rect x="150" y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="168" y="250" fill="#495057">R</text>
+    <rect x="190" y="228" width="36" height="34" rx="3" fill="#fff3cd" stroke="#ffc107"/>
+    <text x="208" y="250" fill="#000">I</text>
+    <rect x="230" y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="248" y="250" fill="#495057">R</text>
+    <rect x="270" y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="288" y="250" fill="#495057">R</text>
+    <rect x="310" y="228" width="36" height="34" rx="3" fill="#e9ecef" stroke="#adb5bd"/>
+    <text x="328" y="250" fill="#495057">R</text>
+  </g>
+
+  <path d="M208 266 L208 278 L360 278" fill="none" stroke="#ffc107" stroke-width="1.5"/>
+  <text x="368" y="282" font-size="12" fill="#888"><tspan font-weight="700" fill="#888">I = 1</tspan> means the VNI field is valid</text>
+  <text x="30" y="300" font-size="11.5" fill="#888">R bits and Reserved fields: sent as 0, ignored on receipt. Only 25 of the 64 bits carry meaning.</text>
+</svg>
