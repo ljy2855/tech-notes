@@ -34,9 +34,21 @@
               "icon": "lucide-file",
               "title": "26.10 다카마스"
             }
+          },
+          {
+            "id": "c5249f904b2fa92d",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.13.7"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.13.7"
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -198,7 +210,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "47beb79bb48ed382",
+  "active": "c5249f904b2fa92d",
   "lastOpenFiles": [
     "Untitled.md",
     "private/여행/26.10 다카마스.md",
