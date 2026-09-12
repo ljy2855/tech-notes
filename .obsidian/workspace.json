@@ -200,6 +200,7 @@
   },
   "active": "47beb79bb48ed382",
   "lastOpenFiles": [
+    "blocks.json",
     "content/Assets/openstack-ovs-selfservice-vxlan.png",
     "content/Assets/Pasted image 20260912214316.png",
     "content/Assets/Pasted image 20260912214111.png",
@@ -216,7 +217,6 @@
     "content/Assets/Direct Server Return - IP Header Flow.drawio.svg",
     "public/posts/retrospective/회사에서-AI--잘-쓰기-og-image.webp",
     "public/posts/retrospective/취준-로그-og-image.webp",
-    "public/posts/retrospective/입사-1주년-회고-og-image.webp",
     "public/Assets/Pasted-image-20260704145603.textClipping",
     "public/posts/network/인증서,-분산-시스템-클러스터링.html",
     "public/posts/linux/docker로-알아보는-Linux-network-가상화.html",

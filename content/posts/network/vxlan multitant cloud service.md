@@ -1,4 +1,4 @@
-cilium이나 openstack neutron 문서를 보다보면 pod to pod 통신, VM 가상화 네트워크를 vxlan으로 구성한다는 설정들을 볼 수 있다. vxlan이 뭐고, 비슷한 구조를 가는지 확인해보자
+cilium이나 openstack neutron 문서를 보다보면 pod to pod 통신, VM 가상화 네트워크를 vxlan으로 구성한다는 설정들을 볼 수 있다. vxlan이 뭐고, 왜 둘 다 비슷한 구조를 쓰는지 확인해보자
 
 ![[Pasted image 20260912213947.png]]
 
@@ -8,14 +8,19 @@ cilium이나 openstack neutron 문서를 보다보면 pod to pod 통신, VM 가�
 
 ## 배경
 
-전통적으로 하나의 서버에서 여러 서비스(vm or baremetal server)를 제공하려면 두가지 방식이 있다. 
+전통적으로 하나의 서버에서 여러 서비스(vm or baremetal server)를 제공하려면 두가지 방식이 있다.
 
 1. IP 대역을 분리해서 방화벽으로 제어 (l3)
 2. vlan을 나눠 broadcast 도메인 분리 (l2)
 
-하지만 이 방식은 확장에서나, 현대 서비스엔 적합하기 않다.
+| 방식                | 격리 단위          | 걸리는 부분                    |
+| ----------------- | -------------- | ------------------------- |
+| IP 대역 분리 + 방화벽 (L3) | subnet         | 워크로드가 옮겨가면 IP가 바뀐다        |
+| VLAN (L2)         | broadcast 도메인  | 4094개가 상한, 같은 스위치 아래에서만 통한다 |
 
-container 기반 서비스는 container가 다른 서버로 이동해가기도 하고, 증설시에  물리적으로 스위치가 같은 네트워크안에 공유되어야만 한다.
+하지만 이 방식은 확장에서나, 현대 서비스엔 적합하지 않다.
+
+container 기반 서비스는 container가 다른 서버로 옮겨다니고, 증설을 하려면 새 서버가 물리적으로 같은 스위치 아래 같은 네트워크에 물려 있어야 한다.
 
 때문에 이를 해결하기 위해 나온 네트워크 가상화를 위한 프로토콜이 vxlan이다.
 
@@ -35,22 +40,21 @@ container 기반 서비스는 container가 다른 서버로 이동해가기도 �
 > Protocol (STP) for a loop-free topology can result in a large number
 > of disabled links. (RFC 7348)
 
-
-
 추가적인 궁금증
 
 > 테넌트마다 VLAN 하나씩 주면 되는 거 아닌가?
 
-물론 그것도 가능하다
+물론 그것도 가능하다.
 
-다만, VLAN ID는 12 bit라 4094개가 상한이다. 그리고 VLAN은 결국 같은 L2 도메인 안에서만 통한다. rack이 다르고 L3로 라우팅되는 별도 대역에 있는 서버끼리는 VLAN으로 묶을 방법이 없다.
-
+다만 VLAN ID는 12 bit라 4094개가 상한이다. 그리고 VLAN은 결국 같은 L2 도메인 안에서만 통한다. rack이 다르고 L3로 라우팅되는 별도 대역에 있는 서버끼리는 VLAN으로 묶을 방법이 없다.
 
 ---
 
 ## vxlan
 
 VXLAN (Virtual eXtensible Local Area Network). 큰 개념은 다음과 같다. **L3 통신을 underlay로 깔고 그 위로 L2 통신을 터널화한다.**
+
+기본적인 컨셉은 ipsec 터널과 비슷하다.
 
 ![[Pasted image 20260912214316.png]]
 
@@ -59,29 +63,41 @@ VXLAN (Virtual eXtensible Local Area Network). 큰 개념은 다음과 같다. *
 encap/decap을 하는 지점을 **VTEP** (VXLAN Tunnel End Point)이라고 부른다. 하이퍼바이저 안이든, 물리 스위치든, 커널 인터페이스든 상관없다.
 
 ```mermaid
+flowchart TD
+    subgraph HA["`**Host A** &nbsp;&nbsp; 192.168.1.11`"]
+        direction TB
+        PA["`**Pod / VM A**
+        10.0.0.10`"]
+        V1["`**vxlan0 (VTEP)**
+        VNI 5001`"]
+        PA -->|eth0| V1
+    end
 
-(수정 필요 잘 안보임 인프라 구성도처럼 보이게)
-flowchart LR
-    VM1["`**VM / Pod A**
-    10.0.0.10`"] --> V1["`**VTEP 1**
-    encap
-    VNI 5001`"]
-    V1 -->|"outer IP: 192.168.1.11 → 192.168.2.22\nUDP dport 4789"| NET(["`**Underlay (L3)**
-    그냥 라우팅되는 IP 망`"])
-    NET --> V2["`**VTEP 2**
-    decap
-    VNI 확인`"]
-    V2 --> VM2["`**VM / Pod B**
-    10.0.0.20`"]
+    FAB(["`**L3 Fabric (underlay)**
+    VTEP끼리 라우팅만 되면 됨`"])
 
+    subgraph HB["`**Host B** &nbsp;&nbsp; 192.168.2.22`"]
+        direction TB
+        V2["`**vxlan0 (VTEP)**
+        VNI 5001`"]
+        PB["`**Pod / VM B**
+        10.0.0.20`"]
+        V2 -->|eth0| PB
+    end
+
+    V1 -->|"encap\nUDP dport 4789"| FAB
+    FAB -->|"decap\nVNI 확인"| V2
+
+    style PA fill:#e2d9f3,stroke:#6f42c1,color:#000
+    style PB fill:#e2d9f3,stroke:#6f42c1,color:#000
     style V1 fill:#fff3cd,stroke:#ffc107,color:#000
     style V2 fill:#fff3cd,stroke:#ffc107,color:#000
-    style NET fill:#6c757d,stroke:#495057,color:#fff
-    style VM1 fill:#e2d9f3,stroke:#6f42c1,color:#000
-    style VM2 fill:#d4edda,stroke:#28a745,color:#000
+    style FAB fill:#6c757d,stroke:#495057,color:#fff
 ```
 
-> VNI와 outer header는 VTEP만 안다. 안에 있는 VM은 자기가 터널을 타고 있는 줄도 모른다.
+Pod A와 Pod B는 `10.0.0.0/24` 하나에 같이 붙어있다고 생각하고 ARP를 쏜다. 실제로는 서로 다른 IP 대역의 물리 서버에 올라가 있다.
+
+> VNI랑 outer header는 VTEP만 안다. Pod는 자기가 터널을 타는 줄 모른다.
 
 ---
 
@@ -90,7 +106,7 @@ flowchart LR
 VTEP은 원본 Ethernet frame을 통째로 UDP payload에 집어넣고, 그 앞에 outer header를 덧씌운다.
 
 ```text
-Before (VM이 내보낸 원본 frame):
+Before (Pod가 내보낸 원본 frame):
 [Inner Eth: MAC-A → MAC-B][Inner IP: 10.0.0.10 → 10.0.0.20][payload]
 
 After (VTEP이 encap):
@@ -114,9 +130,9 @@ VXLAN header는 8 byte다.
 legend:  I = VNI 유효 플래그 (항상 1)   R = reserved (0)
 ```
 
-> 8 byte 중에 실제로 의미 있는 건 I flag 1 bit랑 VNI 24 bit가 전부다. 나머지는 다 reserved다.
+> 8 byte 중에 실제로 쓰는 건 I flag 1 bit랑 VNI 24 bit가 전부다. 나머지는 다 reserved다.
 
-VNI가 24 bit라 약 1600만개(16M) segment를 같은 관리 도메인 안에 둘 수 있다. VLAN의 4094와 비교하면 자릿수가 다르다.
+VNI가 24 bit니까 약 1600만개(16M) segment를 같은 관리 도메인 안에 둘 수 있다.
 
 | 항목     | VLAN                      | VXLAN                      |
 | ------ | ------------------------- | -------------------------- |
@@ -138,7 +154,7 @@ flow B (inner 5-tuple Y) → sport 60021 ─┼→ underlay ECMP가 서로 다�
 flow C (inner 5-tuple Z) → sport 49800 ─┘
 ```
 
-> outer src port는 사실상 flow 구분용 entropy다. 이게 고정이면 VTEP 한 쌍 사이 트래픽이 링크 하나에 전부 몰린다.
+> src port를 고정해버리면 VTEP 한 쌍 사이 트래픽이 링크 하나에 전부 몰린다.
 
 ---
 
@@ -146,7 +162,7 @@ flow C (inner 5-tuple Z) → sport 49800 ─┘
 
 encap을 하려면 `inner dst MAC` → `remote VTEP IP` 매핑을 알아야 한다. 이 FDB를 누가 채우느냐가 control plane 얘기다.
 
-RFC 7348이 기본으로 설명하는 건 **data plane learning**이다.
+RFC 7348이 기본으로 설명하는 건 **data plane learning**이다. 모르면 일단 뿌리고, 답이 오면 외운다.
 
 ```mermaid
 flowchart TD
@@ -182,7 +198,7 @@ bridge fdb show dev vxlan0
 
 ### BGP EVPN
 
-일반적인 네트워크 장비 환경에서는 **EVPN**을 올리고 BGP로 MAC/IP 정보를 교환한다. 학습을 데이터 플레인이 아니라 control plane에서 해버린다.
+네트워크 장비 환경에서는 **EVPN**을 올리고 BGP로 MAC/IP 정보를 교환한다. 학습을 데이터 플레인이 아니라 control plane에서 해버린다.
 
 > Control-plane learning is used for MAC (and IP) addresses instead of
 > data-plane learning.  The latter requires the flooding of unknown
@@ -208,20 +224,20 @@ flowchart TB
 
 쓰는 route type은 크게 둘이다.
 
-| Route type                         | 뭘 나르나                        | 효과                        |
-| ---------------------------------- | ---------------------------- | ------------------------- |
-| Type 2 (MAC/IP Advertisement)      | MAC ↔ IP ↔ 그게 붙어있는 VTEP      | FDB를 미리 채움, ARP 응답을 로컬 처리 |
+| Route type                                | 뭘 나르나                       | 효과                        |
+| ----------------------------------------- | --------------------------- | ------------------------- |
+| Type 2 (MAC/IP Advertisement)             | MAC ↔ IP ↔ 그게 붙어있는 VTEP     | FDB를 미리 채움, ARP 응답을 로컬 처리 |
 | Type 3 (Inclusive Multicast Ethernet Tag) | 이 VNI에 참여 중인 VTEP 목록과 터널 타입 | BUM 복제 대상을 자동 발견          |
 
 VNI는 EVPN instance(EVI)에 매핑되고, route target을 VNI에서 auto-derive 하게 만들 수 있다. 네트워크를 하나 더 만들 때 수동으로 붙일 설정이 줄어든다.
 
-| 방식              | MAC 학습          | BUM 처리                    | underlay 요구사항  |
-| --------------- | --------------- | ------------------------- | -------------- |
-| flood and learn | 데이터 플레인         | multicast group           | 멀티캐스트 라우팅 필요   |
-| BGP EVPN        | BGP Type 2      | ingress replication (Type 3로 목록 확보) | 유니캐스트 라우팅만     |
-| 소프트웨어 agent     | agent가 FDB에 주입  | 거의 안 씀 (ARP를 프록시로 끊음)     | 유니캐스트 라우팅만     |
+| 방식              | MAC 학습         | BUM 처리                                | underlay 요구사항 |
+| --------------- | -------------- | ------------------------------------- | ------------- |
+| flood and learn | 데이터 플레인        | multicast group                       | 멀티캐스트 라우팅 필요  |
+| BGP EVPN        | BGP Type 2     | ingress replication (Type 3로 목록 확보)   | 유니캐스트 라우팅만    |
+| 소프트웨어 agent     | agent가 FDB에 주입 | 거의 안 씀 (ARP를 프록시로 끊음)                 | 유니캐스트 라우팅만    |
 
-> 셋 다 결론은 같다. FDB를 미리 채워서 flooding을 없앤다. 장비 쪽은 BGP로 하고, k8s나 openstack은 각자 agent가 그 자리를 대신한다.
+> 셋 다 하는 일은 같다. FDB를 미리 채워서 flooding을 없앤다. 장비 쪽은 BGP로, k8s나 openstack은 각자 agent로 한다.
 
 ---
 
@@ -237,14 +253,14 @@ cilium을 tunnel mode(`routing-mode: tunnel`)로 깔면 모든 노드가 서로 
 - FDB를 flood-and-learn으로 안 채운다. cilium agent가 노드 정보를 알고 eBPF map에 직접 넣는다
 - VXLAN header에 **source security identity**를 같이 실어 보낸다. 받는 노드가 identity를 다시 찾지 않고 policy 판정을 바로 한다
 
-| 항목          | Encapsulation (vxlan) | Native routing       |
-| ----------- | --------------------- | -------------------- |
-| underlay 요구 | 노드끼리 IP 도달만 되면 끝      | PodCIDR 라우팅이 깔려 있어야  |
-| 노드 추가       | 자동으로 mesh에 편입         | 라우팅을 따로 배포 (BGP 등)   |
-| MTU         | 패킷당 50 byte 손해        | 손해 없음                |
-| 주소 공간       | underlay와 독립적으로 할당    | underlay 제약을 받음      |
+| 항목          | Encapsulation (vxlan) | Native routing      |
+| ----------- | --------------------- | ------------------- |
+| underlay 요구 | 노드끼리 IP 도달만 되면 끝      | PodCIDR 라우팅이 깔려 있어야 |
+| 노드 추가       | 자동으로 mesh에 편입         | 라우팅을 따로 배포 (BGP 등)  |
+| MTU         | 패킷당 50 byte 손해        | 손해 없음               |
+| 주소 공간       | underlay와 독립적으로 할당    | underlay 제약을 받음     |
 
-> underlay를 전혀 안 건드리고 pod 네트워크를 얹을 수 있다는 게 tunnel mode를 고르는 가장 큰 이유다.
+> underlay를 안 건드리고 pod 네트워크를 얹을 수 있다는 게 tunnel mode를 고르는 이유다.
 
 ### openstack neutron
 
@@ -253,8 +269,6 @@ neutron은 ML2 type driver로 vxlan을 쓴다. 테넌트가 네트워크를 하�
 ![[Pasted image 20260912214111.png]]
 
 OVS agent 기준으로 브릿지가 두 개 있다.
-
-![[openstack-ovs-selfservice-vxlan.png]]
 
 ```mermaid
 flowchart LR
@@ -277,17 +291,19 @@ flowchart LR
 - **br-int**: instance의 VIF가 전부 여기 꽂힌다. 같은 가상 네트워크에 속한 VIF끼리 **로컬 VLAN tag**를 공유한다. 이 tag는 노드 밖으로 안 나간다
 - **br-tun**: 다른 하이퍼바이저로 가는 터널이 여기서 시작하고 끝난다. 로컬 VLAN tag를 VNI로 번역해서 encap한다
 
+![[openstack-ovs-selfservice-vxlan.png]]
+
 > br-int의 VLAN tag는 노드 안에서만 의미 있는 번호다. 노드를 넘는 순간 VNI로 바뀐다.
 
 이래서 VLAN 4094 제약을 피해간다. 노드 안에서는 VLAN 번호를 노드마다 재사용하고, 노드 밖으로 나갈 때만 전역으로 유일한 VNI를 쓴다.
 
-BUM 복제는 **l2population** mechanism driver가 줄여준다. remote MAC/IP를 미리 학습해서 터널 FDB를 채워두고, `arp_responder`를 켜면 ARP 요청을 오버레이로 뿌리지 않고 로컬 스위치가 바로 응답해버린다. 앞에서 본 EVPN이 하는 일을 neutron 안에서 agent가 하는 셈이다.
+BUM 복제는 **l2population** mechanism driver가 줄여준다. remote MAC/IP를 미리 학습해서 터널 FDB를 채워두고, `arp_responder`를 켜면 ARP 요청을 오버레이로 뿌리지 않고 로컬 스위치가 바로 응답해버린다. EVPN이 하는 일을 neutron은 agent로 한다.
 
 ---
 
 ## Cloud Service 제공
 
-여기까지 오면 클라우드가 파는 것들이 왜 성립하는지가 보인다. 핵심은 테넌트마다 VNI가 다르다는 것 하나다.
+테넌트마다 VNI만 다르게 주면 IP 대역이 통째로 겹쳐도 상관없다.
 
 ```text
 tenant A:  10.0.0.10 → 10.0.0.20     VNI 5001
@@ -334,25 +350,32 @@ flowchart TB
     style B2 fill:#e2d9f3,stroke:#6f42c1,color:#000
 ```
 
-| 서비스로 파는 것            | overlay가 대주는 것                |
-| -------------------- | ---------------------------- |
-| 테넌트마다 독립된 VPC        | VNI로 분리된 L2 segment          |
-| IP 대역을 마음대로 (겹쳐도 됨)  | inner header는 VTEP 밖으로 안 나간다 |
-| VM/pod을 아무 노드에나 배치   | underlay가 L3라 rack 경계를 안 탄다  |
-| 마이그레이션 후에도 IP 그대로 유지 | L2가 DC 전역으로 늘어나 있다           |
-| 노드 추가 = 용량 추가        | VTEP끼리 IP만 닿으면 mesh에 편입      |
+| 클라우드에서 보이는 것    | vxlan에서 실제로 일어나는 것         |
+| --------------- | -------------------------- |
+| 테넌트마다 독립된 VPC   | VNI로 분리된 L2 segment        |
+| IP 대역을 겹쳐 써도 됨  | inner header가 VTEP 밖으로 안 나간다 |
+| VM/pod을 아무 노드에나 | underlay가 L3라 rack 경계를 안 탄다 |
+| 마이그레이션해도 IP 유지  | L2가 DC 전역으로 늘어나 있다         |
+| 노드 추가 = 용량 추가   | VTEP끼리 IP만 닿으면 mesh에 편입    |
 
-> 물리 토폴로지랑 테넌트가 보는 토폴로지를 떼어버리는 것. 이게 overlay를 쓰는 이유다.
+> 테넌트가 보는 토폴로지랑 실제 물리 배치가 따로 논다.
 
-하이퍼스케일러들은 각자 만든 encap 포맷과 control plane을 쓴다(세부 구현은 대부분 공개돼 있지 않다). 다만 "L3 underlay 위에 테넌트 ID를 박은 터널을 얹는다"는 구조 자체는 같다.
+하이퍼스케일러는 각자 만든 encap 포맷과 control plane을 쓴다. 세부 구현은 대부분 공개돼 있지 않지만, L3 underlay 위에 테넌트 ID를 박은 터널을 얹는다는 구조는 같다.
 
 ---
 
 ## side effect
 
-공짜는 아니다. 한 겹 씌운 대가를 네 군데서 받는다.
+한 겹 씌운 대가를 네 군데서 받는다.
 
-### 1. MTU
+| side effect | 증상                      | 대응                             |
+| ----------- | ----------------------- | ------------------------------ |
+| MTU 50 byte | handshake는 되는데 큰 전송이 멈춤 | overlay 1450 또는 underlay jumbo |
+| BUM 복제      | 노드 수에 비례해서 flooding     | ARP 프록시, control plane으로 사전 배포 |
+| 가시성         | 덤프에 outer header만 보임    | `-T vxlan`, tunnel offload 확인  |
+| 암호화 없음      | underlay 접근 = segment 침투 | IPsec / WireGuard 병행           |
+
+### MTU
 
 ```text
 underlay MTU 1500
@@ -368,9 +391,9 @@ VTEP은 VXLAN 패킷을 fragment하면 안 된다(RFC상 MUST NOT). 중간 라�
 
 그래서 증상이 고약하게 나온다. TCP handshake는 멀쩡히 되는데 큰 전송만 멈춘다. PMTUD가 ICMP 차단에 막히면 딱 이런 식이다.
 
-> 해결은 둘 중 하나다. overlay MTU를 1450으로 낮추거나, underlay에 jumbo frame(9000)을 깔고 1500을 그대로 쓰거나.
+> overlay MTU를 1450으로 낮추거나, underlay에 jumbo frame(9000)을 깔고 1500을 그대로 쓰거나 둘 중 하나다.
 
-### 2. BUM 복제
+### BUM 복제
 
 ARP 한 번이 전체 VTEP으로 복제된다. multicast를 안 쓰면 head-end replication, 즉 VTEP 수만큼 유니캐스트로 똑같은 패킷을 쏜다.
 
@@ -382,7 +405,7 @@ ARP 한 번이 전체 VTEP으로 복제된다. multicast를 안 쓰면 head-end 
 
 > 그래서 실제 구현들은 ARP를 오버레이로 안 내보낸다. cilium은 eBPF로, neutron은 `arp_responder`로, 장비는 EVPN Type 2로 로컬에서 끊어버린다.
 
-### 3. 가시성과 offload
+### 가시성과 offload
 
 tcpdump로 까면 outer header만 보인다. inner를 보려면 풀어야 한다.
 
@@ -394,7 +417,7 @@ tcpdump -i eth0 -nn 'udp port 4789'
 tcpdump -i eth0 -nn -T vxlan 'udp port 8472'
 ```
 
-참고로 `ip link add ... type vxlan`에서 `dstport`를 생략하면 리눅스는 8472를 쓴다. VXLAN 커널 구현이 IANA가 4789를 배정하기 전에 들어갔고, 기존 배포를 안 깨려고 그 값을 그대로 두고 있다. 덤프 뜰 때 포트 두 개를 다 봐야 하는 이유다.
+`ip link add ... type vxlan`에서 `dstport`를 생략하면 리눅스는 8472를 쓴다. VXLAN 커널 구현이 IANA가 4789를 배정하기 전에 들어갔고, 기존 배포를 안 깨려고 그 값을 그대로 두고 있다. 덤프 뜰 때 포트 두 개를 다 봐야 하는 이유다.
 
 NIC offload도 확인해야 한다. 터널을 인식하는 offload가 꺼져 있으면 encap/decap이랑 세그멘테이션을 전부 CPU가 떠안는다.
 
@@ -404,21 +427,16 @@ ethtool -k eth0 | grep tnl
 # tx-udp_tnl-csum-segmentation: on
 ```
 
-### 4. 암호화가 없다
+### 암호화가 없다
 
 VXLAN 자체에는 인증도 암호화도 없다. VNI는 그냥 24 bit 숫자라서, underlay에 패킷을 쏠 수 있는 누군가가 VNI를 맞춰서 보내면 그 segment 안으로 프레임이 들어간다. RFC도 대책을 명시하지 않고 IPsec 같은 걸 위에 얹으라고만 한다.
 
 > A MAC-over-IP mechanism for delivering Layer 2 traffic significantly
 > extends this attack surface. (RFC 7348, Security Considerations)
 
-> underlay를 신뢰 경계로 잡고, 부족하면 IPsec이나 WireGuard를 겹쳐 쓴다. cilium은 transparent encryption으로 이걸 제공한다.
+underlay를 신뢰 경계로 잡고, 부족하면 IPsec이나 WireGuard를 겹쳐 쓴다. cilium은 transparent encryption으로 이걸 제공한다.
 
-| side effect | 증상                      | 대응                            |
-| ----------- | ----------------------- | ----------------------------- |
-| MTU 50 byte | handshake는 되는데 큰 전송이 멈춤 | overlay 1450 또는 underlay jumbo |
-| BUM 복제      | 노드 수에 비례해서 flooding     | ARP 프록시, control plane으로 사전 배포 |
-| 가시성         | 덤프에 outer header만 보임    | `-T vxlan`, tunnel offload 확인  |
-| 암호화 없음      | underlay 접근 = segment 침투 | IPsec / WireGuard 병행           |
+---
 
 ## 참고
 
