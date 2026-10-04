@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/notes/network/split tunnel.md",
+                "file": "content/notes/network/split tunnel (2편) k8s network.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "split tunnel"
+              "title": "split tunnel (2편) k8s network"
             }
           }
         ],
@@ -168,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/notes/network/split tunnel.md",
+                "file": "content/notes/network/split tunnel (2편) k8s network.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -200,8 +200,11 @@
   },
   "active": "47beb79bb48ed382",
   "lastOpenFiles": [
+    "content/notes/network/split tunnel (1편) VPN.md",
+    "content/notes/network/split tunnel (2편) k8s network.md",
     "content/posts/network/vxlan multitant cloud service.md",
     "content/notes/network/split tunnel.md",
+    "content/Assets/Pasted image 20261004150524.png",
     "content/Assets/vxlan-header-fields.svg",
     "content/Assets/vxlan-frame-format.svg",
     "content/Assets/vxlan-header-fields.png",
@@ -217,7 +220,6 @@
     "content/posts/retrospective/입사 1주년 회고.md",
     "CLAUDE.md",
     "public/Assets/Direct-Server-Return---NAT-vs-DSR.drawio.svg",
-    "public/Assets/Direct-Server-Return---IP-Header-Flow.drawio.svg",
     "public/Assets/Pasted-image-20260704145603.textClipping",
     "public/posts/network/인증서,-분산-시스템-클러스터링.html",
     "public/posts/linux/docker로-알아보는-Linux-network-가상화.html",
@@ -244,8 +246,6 @@
     "content/logs/docker/Network.md",
     "content/logs/docker/latest 태그 사용 시, 혼동.md",
     "content/logs/docker/Image.md",
-    "content/logs/aws/AWS openSearch trouble shooting.md",
-    "content/logs/aws/AWS Batch.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",

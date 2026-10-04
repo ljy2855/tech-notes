@@ -8,12 +8,7 @@
 
 밖에서 사설망에 붙을 때는 보통 IPsec이나 WireGuard로 IP 패킷을 한 번 더 감싸서(encap) 보낸다.
 
-```text
-inner (원래 패킷)   [ IP 10.8.0.3 → 172.16.200.20 | TCP 443 | payload ]
-                                   │ encrypt + encap
-                                   ▼
-outer (실제 전송)   [ IP 192.168.0.4 → <VPN 서버 공인 IP> | UDP 51820 | WG header | ███ 암호화된 inner ███ ]
-```
+![[../../Assets/Pasted image 20261004150524.png]]
 
 ```mermaid
 flowchart LR
@@ -29,7 +24,7 @@ flowchart LR
     style LAN fill:#d4edda,stroke:#28a745,color:#000
 ```
 
-이때 클라이언트의 default route를 터널로 잡아서 **모든 트래픽**을 터널 종단으로 보내는 게 full tunnel이다. 회사 VPN이 대부분 이렇게 되어 있다.
+이때 클라이언트의 default route를 터널로 잡아서 **모든 트래픽**을 터널 종단으로 보내는 게 full tunnel이다. 기업 VPN은 대부분 이렇게 되어 있다.
 
 | 이유           | 설명                                                           |
 | ------------ | ------------------------------------------------------------ |
@@ -69,7 +64,7 @@ flowchart LR
 
 ## Split tunnel
 
-사설 대역만 터널로 보내고 나머지는 로컬 gateway로 그냥 내보낸다. 핵심은 routing table의 **longest prefix match**다.
+사설 대역만 터널로 보내고 나머지는 로컬 gateway로 그냥 내보낸다. routing table의 **longest prefix match**로 패킷 전송을 결정한다.
 
 ```text
 routing table (split tunnel)
@@ -82,7 +77,7 @@ lookup 10.8.0.1        /24, /0 둘 다 매칭 → 더 긴 /24 승   → utun6
 lookup 142.250.196.14  /0 만 매칭                         → en0
 ```
 
-터널로 보낼 대역은 사설망이 실제로 쓰는 대역이다. 사내망이면 `10.0.0.0/8` 같은 대역, 여기서는 `172.16.0.0/16`이다.
+터널로 보낼 대역은 사설망이 실제로 쓰는 대역이다. 여기서는 `172.16.0.0/16`이다.
 
 참고로 full tunnel도 사실 longest match로 동작한다. `wg-quick`은 `0.0.0.0/0`을 받으면 기존 default를 지우지 않고 `0.0.0.0/1` + `128.0.0.0/1` 두 개로 쪼개서 넣는다. 둘 다 `/0`보다 길어서 기존 default를 이겨버린다.
 
@@ -163,7 +158,6 @@ default            link#24            UCSIg               utun6      ← I = int
 172.16             link#24            UCS                 utun6      ← 172.16.0.0/16 → 터널
 ```
 
-- `172.16`은 `172.16.0.0/16`의 축약 표기다.
 - utun6에도 default가 보이지만 `I` 플래그(interface-scoped)가 붙어 있다. utun6에 명시적으로 bind한 소켓만 쓰는 route라 일반 lookup에는 안 걸린다.
 
 목적지별로 실제 어디로 나가는지는 `route get`으로 바로 보인다.
@@ -275,26 +269,15 @@ Link 5 (wg0)
         DNS Domain: ~corp.internal
 ```
 
-**Windows**
 
-```powershell
-Add-DnsClientNrptRule -Namespace ".corp.internal" -NameServers "172.16.200.53"
-```
-
-| 항목 | full tunnel | split tunnel | split tunnel + split DNS |
-|---|---|---|---|
-| 인터넷 트래픽 | 사설망 경유 | 로컬로 바로 | 로컬로 바로 |
-| DNS 질의 | 사설 DNS | 사설 DNS (터널) | `corp.internal`만 사설 DNS, 나머지 로컬 |
-| GSLB가 보는 사용자 위치 | VPN 서버 리전 | VPN 서버 리전 | 사용자 리전 |
-| 공용 Wi-Fi에서 보호 범위 | 전부 암호화 | 사설 대역만 | 사설 대역만 (DNS 질의도 로컬에 노출) |
-| VPN 서버 회선 부담 | 전부 | 사설 트래픽만 | 사설 트래픽만 |
 
 > route는 `AllowedIPs`로, DNS는 OS resolver로 나눈다. 둘 다 해야 사설만 사설망으로 가고 나머지는 사용자 로컬 인터넷으로 나간다.
 
+## 다음 편
+
+같은 구조가 k8s pod 네트워크에도 있다. pod 간 통신은 overlay 터널로 가고, 클러스터 밖으로 나가는 트래픽은 노드에서 바로 나간다. 2편에서 Cilium 기준으로 까보면서 정리해보자.
+
 ---
-
-### K8S에서의 cont
-
 
 ## 참고
 
