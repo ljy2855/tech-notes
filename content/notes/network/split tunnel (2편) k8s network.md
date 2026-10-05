@@ -114,7 +114,7 @@ IP PREFIX/ADDRESS    IDENTITY
 
 ---
 
-## 밖으로 나가는 트래픽은 노드가 SNAT
+## Egress traffic SNAT
 
 터널을 안 타는 트래픽은 커널 stack으로 넘어가서 노드 IP로 SNAT된 뒤 eth0으로 나간다. pod IP는 클러스터 밖에선 모르는 IP라서 노드가 SNAT해줘야 응답이 돌아온다.
 
@@ -134,35 +134,6 @@ $ iptables -t nat -S CILIUM_POST_nat      # node-b
 | Calico | IPPool `natOutgoing: true` | Calico IP pool 밖으로 나갈 때만 SNAT |
 
 > VPN의 "어디까지 터널로 보낼까"가 여기서는 "어디까지 SNAT 없이 보낼까"가 된다.
-
----
-
-## 원격 리전 노드: 노드 단위 split tunnel + VXLAN over WireGuard
-
-원격 리전(클라우드)의 노드를 WireGuard로 클러스터에 붙이면 두 개가 겹친다. node-c의 routing table을 보면 1편에서 본 split tunnel이 노드에 그대로 걸려 있다.
-
-```bash
-$ ip -4 route        # node-c (원격 리전)
-default via 10.0.200.1 dev eth0                                  ← 클라우드 로컬 인터넷
-10.0.0.0/24 via 10.0.2.185 dev cilium_host mtu 1320              ← 다른 노드 pod CIDR (VXLAN)
-10.0.1.0/24 via 10.0.2.185 dev cilium_host mtu 1320
-10.0.2.0/24 via 10.0.2.185 dev cilium_host                       ← 자기 pod CIDR
-172.16.0.0/16 dev wg0 scope link                                 ← 사설망 (WireGuard)
-192.168.121.0/24 dev wg0 scope link                              ← 사설망 (WireGuard)
-192.168.200.0/24 dev wg0 scope link src 192.168.200.2            ← wg 대역
-```
-
-- 사설망 대역만 `wg0`, 나머지는 클라우드 쪽 default로 나간다. 그래서 node-c에 뜬 pod의 인터넷 트래픽은 사설망을 안 거치고 원격 리전에서 바로 나간다.
-- pod 간 통신은 VXLAN으로 감싼 패킷이 다시 WireGuard로 감싸져서 간다. 터널을 두 번 타니 MTU도 두 번 깎인다.
-
-```text
-pod → pod (node-c → node-a)                                                         크기 (대략)
-[ IP 10.0.2.234 → 10.0.0.34 | TCP | payload ]                                       ≤ 1320  (route mtu)
-[ IP 192.168.200.2 → 172.16.1.21 | UDP 8472 | VXLAN | (inner) ]                     ≤ 1370  (+50 VXLAN)
-[ IP <node-c 공인 IP> → <사설망 공인 IP> | UDP 51820 | WG | ███ (VXLAN 패킷) ███ ]   wg0 mtu 1420 안, +60 WG
-```
-
-> 노드도 결국 VPN 클라이언트다. `AllowedIPs`를 사설망 대역으로 좁혀두면 원격 노드 pod의 인터넷 트래픽까지 사설망으로 끌고 오지 않는다.
 
 ---
 
