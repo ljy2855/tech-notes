@@ -1,6 +1,6 @@
 1편에서 VPN의 split tunnel을 정리했다. 사설 대역만 터널로 보내고 나머지는 로컬 인터넷으로 바로 내보내는 구조였다.
 
-k8s pod 네트워크에서도 같은 일이 일어난다. pod가 다른 노드의 pod로 가는 트래픽은 overlay 터널로, 클러스터 밖으로 나가는 트래픽은 노드의 로컬 인터페이스로 그냥 내보낸다. Cilium 기준으로 까보면서 정리해보자.
+k8s pod 네트워크에서도 같은 일이 일어난다. pod가 다른 노드의 pod로 가는 트래픽은 overlay 터널로, 클러스터 밖으로 나가는 트래픽은 노드의 로컬 인터페이스로 그냥 내보낸다. Cilium 기준으로 정리해보자.
 
 ---
 
@@ -14,14 +14,17 @@ cluster-pool 10.0.0.0/8, 노드당 /24
 
 node-a   node IP 172.16.1.21       pod CIDR 10.0.0.0/24
 node-b   node IP 192.168.121.166   pod CIDR 10.0.1.0/24
-node-c   node IP 192.168.200.2     pod CIDR 10.0.2.0/24   ← 원격 리전, WireGuard로 합류
+node-c   node IP 192.168.200.2     pod CIDR 10.0.2.0/24
 ```
+
+- node IP가 실제 서버의 underlay IP
+- pod IP가 실제 pod가 할당받는 overlay IP
 
 ---
 
 ## pod 간 통신은 VXLAN 터널로
 
-1편의 WireGuard에서 `10.8.0.3 → 172.16.200.20`을 VPN 서버 공인 IP로 감싸던 것 비슷하다. 바깥 IP가 node IP로 바뀌었을 뿐이다 (VXLAN이라 암호화 x).
+WireGuard에서 `10.8.0.3 → 172.16.200.20`을 VPN 서버 공인 IP로 감싸던 것 비슷하다. 바깥 IP가 node IP로 바뀌었을 뿐이다 (VXLAN이라 암호화 x).
 
 ```mermaid
 flowchart LR
@@ -51,7 +54,7 @@ flowchart LR
 
 ## 노드 routing table
 
-node-b의 routing table을 보면 1편에서 본 split tunnel과 같은 모양이다.
+node-b의 routing table을 보면 split tunnel과 같은 모양이다.
 
 ```bash
 $ ip -4 route        # node-b
@@ -62,18 +65,20 @@ default via 192.168.121.1 dev eth0                                    ← 클러
 192.168.121.0/24 dev eth0 scope link src 192.168.121.166
 ```
 
-- 다른 노드 pod CIDR에만 `mtu 1320`이 붙어 있다. 클러스터 MTU 1370에서 VXLAN header 50 byte를 뺀 값이다. 터널을 타는 대역이라 그만큼 줄여둔다.
+- 다른 노드 pod CIDR에만 `mtu 1320`이 붙어 있다. 클러스터 MTU 1370에서 VXLAN header 50 byte를 뺀 값
 - `cilium_host`는 Cilium이 만든 노드 쪽 gateway 인터페이스다. 노드(host)에서 시작한 트래픽은 대략 이 route를 타고 터널로 들어간다.
 
-> pod CIDR → 터널, default → eth0. VPN 클라이언트의 `AllowedIPs`와 같은 구조다.
 
 ---
 
-## 실제 결정은 BPF map이 한다
+## BPF map
 
-그런데 pod에서 나온 패킷은 이 routing table까지 가기 전에 갈 곳이 이미 정해진다. 
+pod에서 나온 패킷은 이 routing table까지 가기 전에 갈 곳이 이미 정해진다. 
 
 pod의 veth(`lxc*`)에 붙은 eBPF 프로그램이 **ipcache**를 lookup해서, 목적지에 tunnel endpoint가 있으면 바로 encap해서 `cilium_vxlan`으로 redirect해버린다. 커널 routing table은 안 거친다.
+
+> 여기서 cilium의 이점이 보인다. 만약 신규 pod로의 경로를 iptables로 처리해야 했다면, O(n)의 iptables을 하나하나 각 노드에 업데이트 해줘야한다 (read, write 모두 O(n)).
+> cilium은 iptables는 고정으로 두고, ebpf ipcache를 앞단에 두어, iptables의 단점을 커버한다.
 
 ```c
 // bpf/lib/eps.h (Cilium v1.18.0)
@@ -137,11 +142,12 @@ $ iptables -t nat -S CILIUM_POST_nat      # node-b
 
 ---
 
-## Egress Gateway: 필요한 트래픽만 full tunnel처럼
+## Egress Gateway
 
-노드마다 SNAT하니까 pod의 egress IP는 **pod가 뜬 노드 IP**가 된다. pod가 다른 노드로 옮겨가면 egress IP도 바뀌고, 외부 SaaS에 걸어둔 IP allowlist가 깨진다. VPN에서 full tunnel을 쓰던 이유(egress IP 고정)가 여기서 다시 나온다.
+노드마다 SNAT하니까 pod의 egress IP는 **pod가 뜬 노드 IP**가 된다. pod가 다른 노드로 옮겨가면 egress IP도 바뀌고, 모니터링 및 가시성이 떨어진다.
 
-Egress Gateway는 **특정 pod**가 **특정 목적지**로 갈 때만 gateway 노드로 몰아서 고정 IP로 SNAT한다. split tunnel과 full tunnel 사이 어딘가다.
+
+Egress Gateway는 **특정 pod**가 **특정 목적지**로 갈 때만 gateway 노드로 몰아서 고정 IP로 SNAT한다.
 
 ```mermaid
 flowchart LR
@@ -179,13 +185,11 @@ spec:
     egressIP: 198.51.100.10  # gateway 노드 인터페이스에 붙어 있는 IP
 ```
 
-Cilium Egress Gateway는 `egressGateway.enabled`, `bpf.masquerade`, `kubeProxyReplacement`가 모두 켜져 있어야 한다. 위 예시 클러스터처럼 iptables masquerade에 kube-proxy를 쓰면 바로는 못 쓴다.
-
 ---
 
 ## CoreDNS: 클러스터 단위 split DNS
 
-DNS도 똑같다. pod의 `/etc/resolv.conf`는 CoreDNS를 가리키고, CoreDNS가 도메인별로 갈 곳을 나눈다. 1편에서 macOS `/etc/resolver`로 하던 걸 클러스터 전체에 한 번에 거는 셈이다.
+pod의 `/etc/resolv.conf`는 CoreDNS를 가리키고, CoreDNS가 도메인별로 갈 곳을 나눈다. 1편에서 macOS `/etc/resolver`로 하던 걸 클러스터 전체에 적용한다.
 
 ```corefile
 .:53 {
@@ -210,23 +214,6 @@ corp.internal:53 {                                     # *.corp.internal → 사
 | 그 외 | 로컬 인터넷의 DNS | `forward . /etc/resolv.conf` (노드 resolver) |
 
 ---
-
-## 정리: VPN ↔ k8s 대응
-
-| 개념 | VPN (WireGuard) | k8s (Cilium) |
-|---|---|---|
-| 터널 | WireGuard (UDP 51820, 암호화) | VXLAN (UDP 8472, 암호화 없음) |
-| 어디로 encap할지 | `AllowedIPs` (prefix → peer) | ipcache (prefix → tunnel endpoint) |
-| 누가 채우나 | 사람이 설정 파일에 | Cilium agent가 k8s API를 watch하며 |
-| 터널 밖 트래픽 | 로컬 gateway로 | 노드 IP로 SNAT 후 eth0 |
-| egress IP 고정 | full tunnel | Egress Gateway (`destinationCIDRs`) |
-| 도메인별 DNS 분기 | `/etc/resolver`, `resolvectl` | CoreDNS server block |
-| 대역 충돌 | 로컬 LAN과 사설망 대역이 겹침 | pod CIDR와 노드/VPC 대역이 겹침 |
-
-> 내부 대역만 터널로, 나머지는 가까운 출구로. VPN이나 k8s나 같다.
-
----
-
 ## 참고
 
 - [WireGuard: Cryptokey Routing](https://www.wireguard.com/#cryptokey-routing) - `AllowedIPs`가 route이자 ACL인 이유

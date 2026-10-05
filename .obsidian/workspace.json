@@ -11,10 +11,14 @@
             "id": "517441c814e0f045",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "content/notes/network/split tunnel (2편) k8s network.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "split tunnel (2편) k8s network"
             }
           }
         ]
@@ -149,6 +153,7 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "content/notes/network/split tunnel (2편) k8s network.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
