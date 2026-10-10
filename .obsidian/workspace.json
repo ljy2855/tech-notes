@@ -20,8 +20,21 @@
               "icon": "lucide-file",
               "title": "split tunnel (2편) k8s network"
             }
+          },
+          {
+            "id": "c08b753f0bd57c0c",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.14.4"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.14.4"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -178,12 +191,11 @@
       "daily-notes:Open today's daily note": true,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "markdown-importer:Open format converter": false,
       "obsidian-git:Open Git source control": false,
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "517441c814e0f045",
+  "active": "c08b753f0bd57c0c",
   "lastOpenFiles": [
     "content/posts/AI/AI.md",
     "content/notes/network/split tunnel (2편) k8s network.md",
