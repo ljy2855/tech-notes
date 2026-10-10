@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/network/bottom-up/L1 physical.md",
+                "file": "content/posts/network/bottom-up/L2 datalink.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "L1 physical"
+              "title": "L2 datalink"
             }
           }
         ],
@@ -168,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/posts/network/bottom-up/L1 physical.md",
+                "file": "content/posts/network/bottom-up/L2 datalink.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -199,12 +199,14 @@
   },
   "active": "c08b753f0bd57c0c",
   "lastOpenFiles": [
+    "content/posts/network/bottom-up/L1 physical.md",
+    "content/Assets/Pasted image 20261010161921.png",
+    "content/Assets/Pasted image 20261010161339.png",
     "content/Assets/Pasted image 20261010160837.png",
     "content/Assets/Pasted image 20261010155834.png",
     "content/Assets/Pasted image 20261010155501.png",
     "content/posts/network/bottom-up/L4 Transport.md",
     "content/posts/network/bottom-up/L3 Network Layer.md",
-    "content/posts/network/bottom-up/L1 physical.md",
     "content/posts/network/bottom-up/L2 datalink.md",
     "content/posts/network/bottom-up",
     "content/posts/AI/AI.md",
@@ -221,9 +223,6 @@
     "content/Assets/vxlan-header-fields.png",
     "content/Assets/vxlan-frame-format.png",
     "blocks.json",
-    "content/Assets/openstack-ovs-selfservice-vxlan.png",
-    "content/Assets/Pasted image 20260912214316.png",
-    "content/Assets/Pasted image 20260912214111.png",
     "content/posts/network/DC Topology.md",
     "private/여행/26.10 다카마스.md",
     "Untitled.md",
