@@ -25,12 +25,14 @@
             "id": "c08b753f0bd57c0c",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "markdown",
               "state": {
-                "currentVersion": "1.14.4"
+                "file": "content/posts/network/bottom-up/L1 physical.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.14.4"
+              "icon": "lucide-file",
+              "title": "L1 physical"
             }
           }
         ],
@@ -166,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/notes/network/split tunnel (2편) k8s network.md",
+                "file": "content/posts/network/bottom-up/L1 physical.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -197,6 +199,14 @@
   },
   "active": "c08b753f0bd57c0c",
   "lastOpenFiles": [
+    "content/Assets/Pasted image 20261010160837.png",
+    "content/Assets/Pasted image 20261010155834.png",
+    "content/Assets/Pasted image 20261010155501.png",
+    "content/posts/network/bottom-up/L4 Transport.md",
+    "content/posts/network/bottom-up/L3 Network Layer.md",
+    "content/posts/network/bottom-up/L1 physical.md",
+    "content/posts/network/bottom-up/L2 datalink.md",
+    "content/posts/network/bottom-up",
     "content/posts/AI/AI.md",
     "content/notes/network/split tunnel (2편) k8s network.md",
     "content/posts/AI",
@@ -214,12 +224,10 @@
     "content/Assets/openstack-ovs-selfservice-vxlan.png",
     "content/Assets/Pasted image 20260912214316.png",
     "content/Assets/Pasted image 20260912214111.png",
-    "content/Assets/Pasted image 20260912213947.png",
     "content/posts/network/DC Topology.md",
     "private/여행/26.10 다카마스.md",
     "Untitled.md",
     "CLAUDE.md",
-    "public/Assets/Direct-Server-Return---NAT-vs-DSR.drawio.svg",
     "public/Assets/Pasted-image-20260704145603.textClipping",
     "public/posts/network/인증서,-분산-시스템-클러스터링.html",
     "public/posts/linux/docker로-알아보는-Linux-network-가상화.html",
@@ -227,7 +235,6 @@
     "public/posts/linux/KVM.html",
     "public/posts/kubernetes/k8s-Network-(kube-proxy).html",
     "public/posts/kubernetes/k8s-CoreDNS,-사설-DNS로-활용하기.html",
-    "public/postscript.js",
     "content/index.md",
     "content/archive/cs224n/02 N gram.md",
     "content/inbox/Resolve Deadlock.md",
@@ -238,11 +245,6 @@
     "content/inbox/VXLAN.md",
     "content/inbox/What Cache (Redis, CDN).md",
     "content/notes/db/WAR.md",
-    "content/notes/db/Transaction.md",
-    "content/notes/db/Index.md",
-    "content/notes/ai/Vector Search.md",
-    "content/notes/ai/Evaluation.md",
-    "content/logs/docker/Network.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
