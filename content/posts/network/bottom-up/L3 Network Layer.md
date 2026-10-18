@@ -1,10 +1,13 @@
 2편에선 L2를 leaf에서 끝내고, 그 위는 L3로 라우팅하는 구성을 봤다. 이번엔 그 라우팅이 어떻게 동작하는지 정리해보자.
 
-L3는 네트워크를 구성하면서 알아둬야 할 게 가장 많은 부분이다. 우선 서버와 스위치의 routing table을 보고, 이 테이블을 채우는 BGP로 넘어간다. 뒤에서는 이걸 데이터센터의 Clos 구성과 VXLAN/EVPN, k8s 네트워크에 어떻게 쓰는지 살펴본다.
+L3는 네트워크를 구성하면서 알아할것이 가장 많은 부분이다. 우선 서버와 스위치의 routing table을 보고, 이 테이블을 채우는 BGP로 넘어간다. 뒤에서는 이걸 데이터센터의 Clos 구성과 VXLAN/EVPN, k8s 네트워크에 어떻게 쓰는지 살펴본다.
 
 ## 라우팅 테이블
 
 라우팅은 패킷을 다음에 어디로 보낼지 정하는 과정이다. L3 스위치뿐 아니라 서버도 자기 routing table을 보고 패킷을 보낸다.
+
+![[Pasted image 20261018143540.png]]
+
 
 서버에서 `ip route`를 실행하면 아래처럼 확인할 수 있다.
 
@@ -184,10 +187,10 @@ VXLAN은 이런 L2 프레임을 L3 망 위의 터널로 전달한다. 물리망�
 
 VXLAN에서는 망을 구분할 때 VLAN ID 대신 **VNI(VXLAN Network Identifier)**를 사용한다. 그림에는 VNI가 없으니, 여기서는 설명을 위해 아래처럼 매핑했다고 하자.
 
-| VM이 연결된 VLAN | VM 대역 | VXLAN VNI (예시) |
-| --- | --- | --- |
-| VLAN 11 | 10.1.1.0/24 | 10011 |
-| VLAN 12 | 10.1.2.0/24 | 10012 |
+| VM이 연결된 VLAN | VM 대역       | VXLAN VNI |
+| ------------ | ----------- | --------- |
+| VLAN 11      | 10.1.1.0/24 | 10011     |
+| VLAN 12      | 10.1.2.0/24 | 10012     |
 
 이제 Leaf1 아래의 `10.1.1.10`이 Leaf3 아래의 `10.1.1.12`로 보내는 경우를 따라가 보자. 목적지 MAC과 목적지 VTEP은 이미 알고 있다고 가정한다.
 
@@ -195,7 +198,7 @@ VXLAN에서는 망을 구분할 때 VLAN ID 대신 **VNI(VXLAN Network Identifie
 2. 패킷은 underlay의 라우팅 결과에 따라 Spine1 또는 Spine2를 거쳐 Leaf3으로 간다. spine은 바깥 IP 헤더로 라우팅하므로 VM의 MAC이나 VLAN을 보고 경로를 고를 필요가 없다.
 3. Leaf3은 바깥 헤더를 벗기고, VNI `10011`에 해당하는 L2 망으로 원본 프레임을 전달한다. 목적지 VM `10.1.1.12`는 일반 Ethernet 프레임을 받는다.
 
-여기서 패킷을 감싸고 벗기는(encap/decap) 역할을 하는 지점이 **VTEP(VXLAN Tunnel Endpoint)**이다. 이 그림에서는 leaf가 VTEP을 맡고, spine은 그 사이의 IP 패킷을 전달한다. Leaf1이 만든 패킷을 펼쳐보면 아래와 같다.
+여기서 패킷을 감싸고 벗기는(encap/decap) 역할을 하는 지점이 **VTEP(VXLAN Tunnel Endpoint) **이다. 이 그림에서는 leaf가 VTEP을 맡고, spine은 그 사이의 IP 패킷을 전달한다. Leaf1이 만든 패킷을 펼쳐보면 아래와 같다.
 
 ```text
 Outer Ethernet
@@ -283,6 +286,8 @@ VXLAN overlay
 overlay에서는 물리망이 바깥의 Node IP로 라우팅하고, 오른쪽 노드가 헤더를 벗겨 Pod로 전달한다. 앞 절의 VXLAN 예시는 leaf가 VTEP을 맡았지만, 여기서는 **k8s 노드가 터널의 양 끝**을 맡는다. 그래서 물리망에 Pod 대역을 모두 알려줄 필요가 없다. ([Cilium의 encapsulation 설명](https://docs.cilium.io/en/stable/network/concepts/routing/#encapsulation))
 
 ### Pod 경로를 leaf에 BGP로 광고하기
+
+> pod를 직접 IP로 접근해야하나? 라는 생각이 당연히 들것이다. 일반적인 통신은 모두 Service 레이어를 타고 pod에게 트래픽이 전달되지만, 로드밸런싱없이 곧바로
 
 Pod 대역을 물리망에서도 직접 라우팅하려면 그 경로를 알려줘야 한다. BGP를 쓰면 각 노드가 자신에게 할당된 Pod 대역을 leaf에 광고할 수 있다. 앞 그림의 노드 주소와 Pod 대역으로 예를 들면, leaf에서는 아래처럼 보인다. 위 그림은 노드의 테이블이고, 아래는 **광고를 받은 leaf의 테이블**이다.
 

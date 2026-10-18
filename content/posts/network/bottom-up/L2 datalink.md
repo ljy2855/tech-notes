@@ -8,6 +8,7 @@
 - 망을 어떻게 쪼개는지 (VLAN)
 - 링크와 스위치를 어떻게 이중화하는지 (LACP, MLAG)
 
+> 사실 Ethernet 외에도 스토리지(Fibre Channel), GPU(Infiniband) 등이 있지만 여기선 일반적인 서비스 트래픽인 이더넷만 다룬다
 ## 스위치는 어떻게 프레임을 보내나
 
 L2에서 주고받는 단위는 Ethernet 프레임이다.
