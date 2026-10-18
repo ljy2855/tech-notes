@@ -22,6 +22,18 @@
             }
           },
           {
+            "id": "f5b5febcd1e70553",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "Excalidraw/Drawing 2026-10-18 13.44.23.excalidraw.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "Drawing 2026-10-18 13.44.23.excalidraw"
+            }
+          },
+          {
             "id": "c08b753f0bd57c0c",
             "type": "leaf",
             "state": {
@@ -35,7 +47,8 @@
               "title": "L3 Network Layer"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -167,7 +180,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "content/posts/network/bottom-up/L2 datalink.md",
+                "file": "content/posts/network/bottom-up/L3 Network Layer.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -197,13 +210,18 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "517441c814e0f045",
+  "active": "c08b753f0bd57c0c",
   "lastOpenFiles": [
+    "content/posts/network/bottom-up/L2 datalink.md",
+    "content/posts/network/bottom-up/L3 Network Layer.md",
+    "content/Assets/Pasted image 20261018134738.png",
+    "Excalidraw/Drawing 2026-10-18 13.44.23.excalidraw.md",
+    "content/Assets/Pasted Image 20261018134523_088.png",
+    "content/Assets/Pasted Image 20261018134445_678.png",
+    "content/Assets/Pasted Image 20261018134437_441.png",
     "content/Assets/Pasted image 20261018133046.png",
     "content/posts/network/bottom-up/L1 physical.md",
-    "content/posts/network/bottom-up/L2 datalink.md",
     "content/notes/network/split tunnel (2편) k8s network.md",
-    "content/posts/network/bottom-up/L3 Network Layer.md",
     "content/posts/network/bottom-up/L2 datalink.md.tmp.74454.1f72179f57da",
     "content/Assets/Pasted image 20261010161921.png",
     "content/Assets/Pasted image 20261010161339.png",
@@ -219,11 +237,6 @@
     "content/notes/network/split tunnel (1편) VPN.md",
     "content/posts/network/vxlan multitant cloud service.md",
     "content/notes/network/split tunnel.md",
-    "content/Assets/Pasted image 20261004150524.png",
-    "content/Assets/vxlan-header-fields.svg",
-    "content/Assets/vxlan-frame-format.svg",
-    "content/Assets/vxlan-header-fields.png",
-    "content/Assets/vxlan-frame-format.png",
     "blocks.json",
     "content/posts/network/DC Topology.md",
     "private/여행/26.10 다카마스.md",
@@ -244,7 +257,6 @@
     "content/inbox/Virtual Memory.md",
     "content/inbox/VXLAN.md",
     "content/inbox/What Cache (Redis, CDN).md",
-    "content/notes/db/WAR.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
