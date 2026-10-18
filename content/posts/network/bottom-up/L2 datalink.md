@@ -29,6 +29,8 @@ Payload 최대 1500B가 흔히 말하는 MTU다. (DC 안에선 9000B jumbo frame
 
 스위치는 처음부터 누가 어느 포트에 있는지 알지 못한다. 프레임이 들어올 때마다 배운다.
 
+
+
 ```mermaid
 flowchart LR
     IN(["`**프레임 수신**
@@ -45,6 +47,10 @@ flowchart LR
 ```
 
 > 스위치는 src MAC으로 배우고, dst MAC을 보고 보낸다.
+
+![[../../../Assets/Pasted image 20261018133046.png]]
+
+- 같은 subnet 대역의 단말들은 IP가 아닌, MAC을 통해서 이더넷 프레임을 전달하게 된다.
 
 ---
 
@@ -83,6 +89,8 @@ dst IP  = 8.8.8.8       (최종 목적지, 안 바뀐다)
 
 ### GARP
 
+> ARP의 반대로, 패킷 전송 주체가 알려주는것이 아닌 수신 주체가 광고하는 트로토콜이다.
+
 on-prem에서 서비스 VIP를 keepalived(VRRP)로 이중화하면 ARP가 바로 골치 아파진다. master가 죽고 VIP가 backup으로 넘어가도, 주변 장비 ARP cache엔 옛날 MAC이 남아 있다.
 
 그래서 VIP를 가져간 쪽이 GARP(Gratuitous ARP)를 broadcast로 쏴서 직접 알린다.
@@ -95,13 +103,11 @@ After  : 10.0.0.100 (VIP) -> bb:bb:bb  (Server B, 새 master)
 
 ---
 
-## VLAN: 망 쪼개기
+## VLAN
 
-> 스위치 하나에 다 물려 있으면 뭐가 문제지?
+ARP 같은 broadcast는 같은 L2 망 전체에 뿌려진다. 웹 서버, DB, 관리망이 한 망에 있으면 broadcast도 다 같이 맞고, L2 간 통신도 제어하기 어려워진다.
 
-ARP 같은 broadcast는 같은 L2 망 전체에 뿌려진다. 웹 서버, DB, 관리망이 한 망에 있으면 broadcast도 다 같이 맞고, L2로 서로 다 보인다. 그렇다고 용도마다 스위치를 따로 사기엔 돈이 아깝다.
-
-그래서 스위치 하나를 논리적으로 여러 개로 쪼갠다. 이게 VLAN이다.
+그래서 스위치 하나를 논리적인 L2로 여러 개로 쪼갠다
 
 ```mermaid
 flowchart LR
