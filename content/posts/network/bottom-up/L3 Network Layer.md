@@ -1,6 +1,6 @@
 2편에선 L2를 leaf에서 끝내고, 그 위는 L3로 라우팅하는 구성을 봤다. 이번엔 그 라우팅이 어떻게 동작하는지 정리해보자.
 
-L3는 네트워크를 구성하면서 알아할것이 가장 많은 부분이다. 우선 서버와 스위치의 routing table을 보고, 이 테이블을 채우는 BGP로 넘어간다. 뒤에서는 이걸 데이터센터의 Clos 구성과 VXLAN/EVPN, k8s 네트워크에 어떻게 쓰는지 살펴본다.
+L3는 네트워크를 구성하면서 알아둘 것이 가장 많은 부분이라 두 편으로 나눠 정리하려고 한다. 1편에서는 서버와 스위치의 routing table부터 BGP, Clos, VXLAN/EVPN까지 보자
 
 ## 라우팅 테이블
 
@@ -242,84 +242,4 @@ Leaf3 --(BGP EVPN Route Type 2)--> Leaf1, Leaf2
 
 ---
 
-## k8s에서 Pod 대역 연결하기
-
-일반적인 서버 구성에서는 서버에 할당한 IP와 랙 대역을 기준으로 라우팅하면 된다. k8s를 올리면 같은 물리 서버 위에 Pod별 IP가 추가된다. Pod가 생성되거나 다른 노드에 다시 만들어지면 통신해야 할 대상도 바뀐다.
-
-그래서 Node IP 사이의 통신뿐 아니라 Pod 대역을 어떻게 연결할지도 정해야 한다. 여기서는 VXLAN overlay와 BGP를 이용한 native routing 두 구성을 비교해보자.
-
-- **Overlay**: 노드 사이에 VXLAN 터널을 만든다. 물리망은 Node IP로 라우팅하고, Pod 패킷은 터널 안에 넣어 보낸다.
-- **Native routing + BGP**: Pod 패킷을 터널로 감싸지 않고 라우팅한다. 노드는 leaf에 BGP로 Pod 대역을 광고해 경로를 알려준다.
-
-### 노드의 routing table에서 보기
-
-아래는 Cilium 공식 문서의 **native routing** 그림이다. Pod가 연결된 인터페이스와 노드의 routing table을 같이 볼 수 있다.
-
-![두 Kubernetes 노드의 Pod와 native routing 경로를 보여주는 Cilium 공식 그림](cilium-native-routing.png)
-
-
-왼쪽 노드의 Pod 대역은 `10.10.10.0/24`, 오른쪽은 `10.10.20.0/24`다. 서로의 테이블에 적힌 next hop을 보면 왼쪽 Node IP는 `192.168.1.1`, 오른쪽은 `192.168.1.2`로 읽을 수 있다. `lxc1`, `lxc2`는 각 Pod에 연결된 노드 쪽 인터페이스다.
-
-왼쪽 Pod `10.10.10.1`에서 오른쪽 Pod `10.10.20.1`로 보낸다고 하자.
-
-1. 왼쪽 노드는 목적지와 매칭되는 `10.10.20.0/24 via 192.168.1.2` 경로를 선택한다.
-2. next hop인 오른쪽 노드로 패킷을 보낸다. 목적지 IP는 계속 `10.10.20.1`이다. next hop IP로 목적지 IP를 바꾸는 게 아니다.
-3. 오른쪽 노드는 `10.10.20.1/32 via lxc1` 경로를 보고 해당 Pod로 전달한다.
-
-그림은 같은 L2 망에 있는 노드끼리 직접 라우팅하는 예다. 이 경우 스위치는 노드 사이의 Ethernet 프레임을 전달하면 된다. 노드가 서로 다른 L3 구간에 있다면 중간 라우터에도 Pod 대역을 향한 경로가 필요하다.
-
-### 같은 통신을 VXLAN overlay로 보내면
-
-앞의 그림은 터널이 없는 구성이다. **같은 IP 배치를 overlay로 구성했다고 가정하면**, 왼쪽 노드가 원본 Pod 패킷을 감싸서 오른쪽 노드로 보낸다.
-
-```text
-Native routing
-  IP: 10.10.10.1 → 10.10.20.1
-  next hop: 192.168.1.2
-
-VXLAN overlay
-  Outer IP: 192.168.1.1 → 192.168.1.2
-    UDP / VXLAN
-      Inner IP: 10.10.10.1 → 10.10.20.1
-```
-
-overlay에서는 물리망이 바깥의 Node IP로 라우팅하고, 오른쪽 노드가 헤더를 벗겨 Pod로 전달한다. 앞 절의 VXLAN 예시는 leaf가 VTEP을 맡았지만, 여기서는 **k8s 노드가 터널의 양 끝**을 맡는다. 그래서 물리망에 Pod 대역을 모두 알려줄 필요가 없다. ([Cilium의 encapsulation 설명](https://docs.cilium.io/en/stable/network/concepts/routing/#encapsulation))
-
-### Pod 경로를 leaf에 BGP로 광고하기
-
-> pod를 직접 IP로 접근해야하나? 라는 생각이 당연히 들것이다. 일반적인 통신은 모두 Service 레이어를 타고 pod에게 트래픽이 전달되지만, 로드밸런싱없이 곧바로
-
-Pod 대역을 물리망에서도 직접 라우팅하려면 그 경로를 알려줘야 한다. BGP를 쓰면 각 노드가 자신에게 할당된 Pod 대역을 leaf에 광고할 수 있다. 앞 그림의 노드 주소와 Pod 대역으로 예를 들면, leaf에서는 아래처럼 보인다. 위 그림은 노드의 테이블이고, 아래는 **광고를 받은 leaf의 테이블**이다.
-
-```text
-[overlay]
-192.168.1.0/24  direct
-                 (Pod 대역은 모른다. 터널 안에 숨어 있다)
-
-[native routing + BGP]
-192.168.1.0/24  direct
-10.10.10.0/24   via 192.168.1.1    왼쪽 노드가 광고한 Pod 대역
-10.10.20.0/24   via 192.168.1.2    오른쪽 노드가 광고한 Pod 대역
-```
-
-Pod 대역과 Service VIP 광고는 구분해서 봐야 한다. 앞의 `/24` 경로는 Pod에 도달하기 위한 것이고, MetalLB가 광고하는 Service VIP는 서비스의 진입점이다. 예를 들어 두 노드가 같은 VIP `10.100.0.10/32`를 광고하면 leaf에 이런 경로가 추가될 수 있다.
-
-```text
-10.100.0.10/32  via 192.168.1.1, 192.168.1.2  (ECMP)
-```
-
-leaf에서 VIP 트래픽을 노드들로 분산하려면 multipath가 설정돼 있어야 한다. 선택된 노드에 도착한 뒤에는 클러스터의 Service 처리 로직이 backend Pod로 전달한다. VIP를 광고했다고 Pod 대역까지 자동으로 광고되는 건 아니다. ([MetalLB BGP 모드 설명](https://metallb.io/concepts/bgp/))
-
-아래 표의 native routing + BGP는 이렇게 leaf가 Pod 경로를 받아 라우팅하는 구성을 기준으로 비교했다.
-
-| 항목 | 일반 서버 | k8s VXLAN overlay | k8s native routing + BGP |
-| --- | --- | --- | --- |
-| 물리망이 아는 IP | 서버 IP | Node IP | Node IP + Pod 대역 |
-| 서버/Pod 간 통신 | IP 라우팅 | 노드 간 VXLAN 터널 | Pod IP로 라우팅 |
-| 물리망 설정 | 대역 할당과 라우팅 | Node 간 연결, 터널 허용, MTU | Pod 경로 수용, BGP peering과 정책 |
-| 예시 | - | Flannel VXLAN, Cilium VXLAN 모드 | Calico BGP, Cilium native routing + BGP |
-
-여기서 BGP와 native routing을 같은 기능으로 생각하면 헷갈린다. BGP는 경로를 알려주는 수단이고, 패킷을 실제로 전달하는 설정은 별도로 필요하다. 예를 들어 Cilium의 BGP control plane은 경로를 광고하지만 datapath 자체를 설정하지는 않는다. ([Cilium BGP 문서](https://docs.cilium.io/en/stable/network/bgp-control-plane/bgp-control-plane/))
-
-다음 편에서는 L4로 올라가 TCP/UDP와 L4 LB를 정리해보자.
-
+여기까지는 물리 서버와 데이터센터 망을 기준으로 라우팅을 살펴봤다. 이 위에 k8s를 올리면 노드 안의 Pod 네트워크와 Service 처리가 추가된다. 다음 글에서는 Pod가 노드에 연결되는 과정부터 시작해, 노드 간 통신과 BGP 광고를 따로 정리해보자.
