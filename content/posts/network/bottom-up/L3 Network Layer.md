@@ -176,10 +176,9 @@ VXLAN은 이런 L2 프레임을 L3 망 위의 터널로 전달한다. 물리망�
 
 ![[Pasted image 20261018143540.png]]
 
-그림에서 먼저 구분할 건 검은 실선과 주황 점선이다.
 
-- **검은 실선은 underlay**다. leaf와 spine을 실제로 연결한 L3 망이고, 앞에서 본 BGP와 ECMP를 여기에 쓸 수 있다.
-- **주황 점선은 overlay**다. leaf 사이에 만든 논리적인 VXLAN 터널이다. 점선처럼 별도 케이블을 연결하는 게 아니라, 실제 패킷은 검은 실선을 따라 spine을 거쳐 간다.
+- **underlay** : leaf와 spine을 실제로 연결한 L3 망이고, 앞에서 본 BGP와 ECMP를 여기에 쓸 수 있다.
+- **overlay** : leaf 사이에 만든 논리적인 VXLAN 터널이다. 실제 패킷은 검은 실선을 따라 spine을 거쳐 간다.
 
 각 leaf 아래에는 VLAN 11과 VLAN 12에 속한 VM이 있다. VLAN 11의 VM들은 서로 다른 leaf에 연결돼 있어도 `10.1.1.0/24`를 함께 쓰고, VLAN 12의 VM들은 `10.1.2.0/24`를 쓴다. 여기 적힌 IP는 VM의 주소이고, underlay에서 터널 양 끝을 연결하는 VTEP IP는 그림에 생략돼 있다.
 
@@ -249,41 +248,64 @@ Leaf3 --(BGP EVPN Route Type 2)--> Leaf1, Leaf2
 - **Overlay**: 노드 사이에 VXLAN 터널을 만든다. 물리망은 Node IP로 라우팅하고, Pod 패킷은 터널 안에 넣어 보낸다.
 - **Native routing + BGP**: Pod 패킷을 터널로 감싸지 않고 라우팅한다. 노드는 leaf에 BGP로 Pod 대역을 광고해 경로를 알려준다.
 
-```mermaid
-flowchart TB
-    subgraph OVERLAY["VXLAN overlay"]
-        direction TB
-        O1["Node 1<br/>VXLAN으로 감싸기"]
-        OF["물리망<br/>Node IP로 라우팅"]
-        O2["Node 2<br/>헤더 제거 후 Pod로 전달"]
-        O1 --> OF --> O2
-    end
-    subgraph NATIVE["Native routing + BGP"]
-        direction TB
-        N1["Node 1<br/>Pod 패킷 그대로 보내기"]
-        NF["물리망<br/>BGP로 배운 Pod 경로 사용"]
-        N2["Node 2<br/>목적지 Pod로 전달"]
-        N1 --> NF --> N2
-    end
-    style OF stroke:#17a2b8,stroke-width:2px
-    style NF stroke:#28a745,stroke-width:2px
+### 노드의 routing table에서 보기
+
+아래는 Cilium 공식 문서의 **native routing** 그림이다. Pod가 연결된 인터페이스와 노드의 routing table을 같이 볼 수 있다.
+
+![두 Kubernetes 노드의 Pod와 native routing 경로를 보여주는 Cilium 공식 그림](cilium-native-routing.png)
+
+
+왼쪽 노드의 Pod 대역은 `10.10.10.0/24`, 오른쪽은 `10.10.20.0/24`다. 서로의 테이블에 적힌 next hop을 보면 왼쪽 Node IP는 `192.168.1.1`, 오른쪽은 `192.168.1.2`로 읽을 수 있다. `lxc1`, `lxc2`는 각 Pod에 연결된 노드 쪽 인터페이스다.
+
+왼쪽 Pod `10.10.10.1`에서 오른쪽 Pod `10.10.20.1`로 보낸다고 하자.
+
+1. 왼쪽 노드는 목적지와 매칭되는 `10.10.20.0/24 via 192.168.1.2` 경로를 선택한다.
+2. next hop인 오른쪽 노드로 패킷을 보낸다. 목적지 IP는 계속 `10.10.20.1`이다. next hop IP로 목적지 IP를 바꾸는 게 아니다.
+3. 오른쪽 노드는 `10.10.20.1/32 via lxc1` 경로를 보고 해당 Pod로 전달한다.
+
+그림은 같은 L2 망에 있는 노드끼리 직접 라우팅하는 예다. 이 경우 스위치는 노드 사이의 Ethernet 프레임을 전달하면 된다. 노드가 서로 다른 L3 구간에 있다면 중간 라우터에도 Pod 대역을 향한 경로가 필요하다.
+
+### 같은 통신을 VXLAN overlay로 보내면
+
+앞의 그림은 터널이 없는 구성이다. **같은 IP 배치를 overlay로 구성했다고 가정하면**, 왼쪽 노드가 원본 Pod 패킷을 감싸서 오른쪽 노드로 보낸다.
+
+```text
+Native routing
+  IP: 10.10.10.1 → 10.10.20.1
+  next hop: 192.168.1.2
+
+VXLAN overlay
+  Outer IP: 192.168.1.1 → 192.168.1.2
+    UDP / VXLAN
+      Inner IP: 10.10.10.1 → 10.10.20.1
 ```
 
-두 경우 모두 물리망을 지나지만, 물리망이 라우팅할 때 보는 목적지 IP가 다르다. 이 차이는 leaf의 routing table에서도 확인할 수 있다. ([Cilium 라우팅 문서](https://docs.cilium.io/en/stable/network/concepts/routing/))
+overlay에서는 물리망이 바깥의 Node IP로 라우팅하고, 오른쪽 노드가 헤더를 벗겨 Pod로 전달한다. 앞 절의 VXLAN 예시는 leaf가 VTEP을 맡았지만, 여기서는 **k8s 노드가 터널의 양 끝**을 맡는다. 그래서 물리망에 Pod 대역을 모두 알려줄 필요가 없다. ([Cilium의 encapsulation 설명](https://docs.cilium.io/en/stable/network/concepts/routing/#encapsulation))
+
+### Pod 경로를 leaf에 BGP로 광고하기
+
+Pod 대역을 물리망에서도 직접 라우팅하려면 그 경로를 알려줘야 한다. BGP를 쓰면 각 노드가 자신에게 할당된 Pod 대역을 leaf에 광고할 수 있다. 앞 그림의 노드 주소와 Pod 대역으로 예를 들면, leaf에서는 아래처럼 보인다. 위 그림은 노드의 테이블이고, 아래는 **광고를 받은 leaf의 테이블**이다.
 
 ```text
 [overlay]
-10.1.1.0/24      direct
+192.168.1.0/24  direct
                  (Pod 대역은 모른다. 터널 안에 숨어 있다)
 
-[BGP]
-10.1.1.0/24      direct
-10.244.1.0/24    via 10.1.1.11          Node 1이 광고한 Pod 대역
-10.244.2.0/24    via 10.1.1.12          Node 2가 광고한 Pod 대역
-10.100.0.10/32   via 10.1.1.11, .12     MetalLB가 광고한 Service VIP (ECMP)
+[native routing + BGP]
+192.168.1.0/24  direct
+10.10.10.0/24   via 192.168.1.1    왼쪽 노드가 광고한 Pod 대역
+10.10.20.0/24   via 192.168.1.2    오른쪽 노드가 광고한 Pod 대역
 ```
 
-위 예시의 마지막 줄은 Pod 대역과 별개로 MetalLB가 광고한 Service VIP다. MetalLB를 BGP 모드로 쓰고 여러 노드가 같은 `/32`를 광고하면, multipath가 설정된 leaf에서 노드들로 트래픽을 분산할 수 있다. 실제 분산 방식은 라우터 설정에 따라 달라진다. ([MetalLB BGP 모드 설명](https://metallb.io/concepts/bgp/))
+Pod 대역과 Service VIP 광고는 구분해서 봐야 한다. 앞의 `/24` 경로는 Pod에 도달하기 위한 것이고, MetalLB가 광고하는 Service VIP는 서비스의 진입점이다. 예를 들어 두 노드가 같은 VIP `10.100.0.10/32`를 광고하면 leaf에 이런 경로가 추가될 수 있다.
+
+```text
+10.100.0.10/32  via 192.168.1.1, 192.168.1.2  (ECMP)
+```
+
+leaf에서 VIP 트래픽을 노드들로 분산하려면 multipath가 설정돼 있어야 한다. 선택된 노드에 도착한 뒤에는 클러스터의 Service 처리 로직이 backend Pod로 전달한다. VIP를 광고했다고 Pod 대역까지 자동으로 광고되는 건 아니다. ([MetalLB BGP 모드 설명](https://metallb.io/concepts/bgp/))
+
+아래 표의 native routing + BGP는 이렇게 leaf가 Pod 경로를 받아 라우팅하는 구성을 기준으로 비교했다.
 
 | 항목 | 일반 서버 | k8s VXLAN overlay | k8s native routing + BGP |
 | --- | --- | --- | --- |

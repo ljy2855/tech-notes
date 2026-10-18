@@ -212,6 +212,8 @@
   },
   "active": "c08b753f0bd57c0c",
   "lastOpenFiles": [
+    "content/Assets/cilium-images-LICENSE.txt",
+    "content/Assets/cilium-native-routing.png",
     "content/Assets/Pasted image 20261018143540.png",
     "content/Assets/Pasted image 20261018143532.png",
     "content/posts/network/bottom-up/L2 datalink.md",
@@ -227,8 +229,6 @@
     "content/notes/network/split tunnel (2편) k8s network.md",
     "content/posts/network/bottom-up/L2 datalink.md.tmp.74454.1f72179f57da",
     "content/Assets/Pasted image 20261010161921.png",
-    "content/Assets/Pasted image 20261010161339.png",
-    "content/Assets/Pasted image 20261010160837.png",
     "content/posts/network/bottom-up/L4 Transport.md",
     "content/posts/network/bottom-up",
     "content/posts/AI/AI.md",
