@@ -22,6 +22,18 @@
             }
           },
           {
+            "id": "9c9c81eb3be1d7e2",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.14.5"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.14.5"
+            }
+          },
+          {
             "id": "f5b5febcd1e70553",
             "type": "leaf",
             "state": {
@@ -47,7 +59,8 @@
               "title": "L2 datalink"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -209,7 +222,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "517441c814e0f045",
+  "active": "9c9c81eb3be1d7e2",
   "lastOpenFiles": [
     "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
     "content/posts/network/bottom-up/L3 Network Layer.md",
