@@ -25,38 +25,98 @@
             "id": "9c9c81eb3be1d7e2",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
-              "state": {
-                "currentVersion": "1.14.5"
-              },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.14.5"
-            }
-          },
-          {
-            "id": "f5b5febcd1e70553",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "Excalidraw/Drawing 2026-10-18 13.44.23.excalidraw.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "Drawing 2026-10-18 13.44.23.excalidraw"
-            }
-          },
-          {
-            "id": "c08b753f0bd57c0c",
-            "type": "leaf",
-            "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/network/bottom-up/L2 datalink.md",
+                "file": "private/여행/26.10 다카마스.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "L2 datalink"
+              "title": "26.10 다카마스"
+            }
+          },
+          {
+            "id": "c7aad352bfe78823",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/%EC%8B%9C%EC%8B%9C%EB%85%B8%EB%A0%88%EC%9D%B4%EA%B0%84+%EC%A0%84%EB%A7%9D%EB%8C%80/@34.1467729,133.7131554,11.83z/data=!4m6!3m5!1s0x3553932d833f7107:0x3ef08a4aef426f6a!8m2!3d34.3584418!4d134.0985474!16s%2Fg%2F1tlc5x2l?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "시시노레이간 전망대 - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "시시노레이간 전망대 - Google 지도"
+            }
+          },
+          {
+            "id": "11d60a51e7f1e620",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/Umie/@34.3506956,134.0399921,14z/data=!4m6!3m5!1s0x3553ec7fbc3bcfed:0x51e78e34b6a771a!8m2!3d34.3512226!4d134.0562141!16s%2Fg%2F1tc_nv87?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "Umie - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "Umie - Google 지도"
+            }
+          },
+          {
+            "id": "3f7a5b5387251835",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/Takamatsu+Marugamemachi+Shopping+St,+Marugamemachi,+Takamatsu,+Kagawa+760-0029+%EC%9D%BC%EB%B3%B8/@34.3435992,134.0500082,17z/data=!3m1!4b1!4m6!3m5!1s0x3553eb9a8b3c3d1b:0x70e2459645706b1d!8m2!3d34.3435992!4d134.0500082!16s%2Fg%2F11h55vj04p?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "Takamatsu Marugamemachi Shopping St - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "Takamatsu Marugamemachi Shopping St - Google 지도"
+            }
+          },
+          {
+            "id": "208671221b893261",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/search/%EB%8F%88%ED%82%A4%ED%98%B8%ED%85%8C/@34.3418819,134.0414697,16.07z?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "돈키호테 - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "돈키호테 - Google 지도"
+            }
+          },
+          {
+            "id": "a0a95e64733fa18b",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/%EC%84%B8%ED%86%A0%EB%85%B8%EB%A7%88%EC%93%B0%EB%A6%AC+%EC%8A%A4%EC%8B%9C+%ED%9A%A8%EA%B3%A0%EB%A7%88%EC%B9%98%EC%A0%90/@34.342981,134.0533706,15.63z/data=!4m6!3m5!1s0x3553eb57b77497fb:0xbab04626daf8b50b!8m2!3d34.3459902!4d134.0498007!16s%2Fg%2F11h0b3m_cq?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "세토노마쓰리 스시 효고마치점 - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "세토노마쓰리 스시 효고마치점 - Google 지도"
+            }
+          },
+          {
+            "id": "dc262c5d8a0d83ab",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/Umie/@34.3521292,134.0466656,15.81z/data=!4m6!3m5!1s0x3553ec7fbc3bcfed:0x51e78e34b6a771a!8m2!3d34.3512226!4d134.0562141!16s%2Fg%2F1tc_nv87?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "Umie - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "Umie - Google 지도"
             }
           }
         ],
@@ -119,7 +179,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 369.86328125
+    "width": 369.86328125,
+    "collapsed": true
   },
   "right": {
     "id": "2fbe64fa7887b4bd",
@@ -224,10 +285,11 @@
   },
   "active": "9c9c81eb3be1d7e2",
   "lastOpenFiles": [
-    "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
-    "content/posts/network/bottom-up/L3 Network Layer.md",
+    "private/여행/26.10 다카마스.md",
     "content/posts/network/bottom-up/L2 datalink.md",
     "Excalidraw/Drawing 2026-10-18 13.44.23.excalidraw.md",
+    "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
+    "content/posts/network/bottom-up/L3 Network Layer.md",
     "content/Assets/cilium-images-LICENSE.txt",
     "content/Assets/cilium-native-routing.png",
     "content/Assets/Pasted image 20261018143540.png",
@@ -253,7 +315,6 @@
     "content/notes/network/split tunnel.md",
     "blocks.json",
     "content/posts/network/DC Topology.md",
-    "private/여행/26.10 다카마스.md",
     "Untitled.md",
     "CLAUDE.md",
     "public/Assets/Pasted-image-20260704145603.textClipping",
