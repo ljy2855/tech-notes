@@ -36,17 +36,59 @@
             }
           },
           {
+            "id": "e60dab8015503cfa",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/search/%08%EC%9A%B0%EB%8F%99/@34.3398685,134.0527984,21z/data=!4m2!2m1!6e5?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "곕룞 - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "곕룞 - Google 지도"
+            }
+          },
+          {
+            "id": "e1ff708b50c02612",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/place/%ED%85%8C%EC%9A%B0%EC%B9%98%EC%9A%B0%EB%8F%99+%EC%B8%A0%EB%A3%A8%EB%A7%88%EB%A3%A8/@34.343528,134.0530179,17z/data=!3m1!5s0x3553eb9b1d01228b:0x1fcfdcc846e5d3d3!4m6!3m5!1s0x3553eb9b4c753627:0x3dc13604a8fc245d!8m2!3d34.342381!4d134.0523956!16s%2Fg%2F1v5k0vc0?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "테우치우동 츠루마루 - Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "테우치우동 츠루마루 - Google 지도"
+            }
+          },
+          {
+            "id": "8ca5077c24e462f0",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://www.google.com/maps/@34.2901744,134.0412948,13.05z?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "Google 지도",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "Google 지도"
+            }
+          },
+          {
             "id": "c7aad352bfe78823",
             "type": "leaf",
             "state": {
               "type": "webviewer",
               "state": {
-                "url": "https://www.google.com/maps/place/%EC%8B%9C%EC%8B%9C%EB%85%B8%EB%A0%88%EC%9D%B4%EA%B0%84+%EC%A0%84%EB%A7%9D%EB%8C%80/@34.1467729,133.7131554,11.83z/data=!4m6!3m5!1s0x3553932d833f7107:0x3ef08a4aef426f6a!8m2!3d34.3584418!4d134.0985474!16s%2Fg%2F1tlc5x2l?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
-                "title": "시시노레이간 전망대 - Google 지도",
+                "url": "https://www.google.com/maps/place/%EC%9D%BC%EB%B3%B8+%EC%97%90%ED%9E%88%EB%A9%94%ED%98%84+%EC%8B%9C%EC%BD%94%EC%BF%A0%EC%B6%94%EC%98%A4%EC%8B%9C/@33.9363625,133.4389929,12z/data=!3m1!4b1!4m14!1m7!3m6!1s0x3553932d833f7107:0x3ef08a4aef426f6a!2z7Iuc7Iuc64W466CI7J206rCEIOyghOunneuMgA!8m2!3d34.3584418!4d134.0985474!16s%2Fg%2F1tlc5x2l!3m5!1s0x3551ead59135cc7d:0x35ff968c9c51f47f!8m2!3d33.9804152!4d133.5490295!16zL20vMDM5eWN6?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
+                "title": "시코쿠추오시 - Google 지도",
                 "mode": "webview"
               },
               "icon": "globe-2",
-              "title": "시시노레이간 전망대 - Google 지도"
+              "title": "시코쿠추오시 - Google 지도"
             }
           },
           {
@@ -89,34 +131,6 @@
               },
               "icon": "globe-2",
               "title": "돈키호테 - Google 지도"
-            }
-          },
-          {
-            "id": "a0a95e64733fa18b",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://www.google.com/maps/place/%EC%84%B8%ED%86%A0%EB%85%B8%EB%A7%88%EC%93%B0%EB%A6%AC+%EC%8A%A4%EC%8B%9C+%ED%9A%A8%EA%B3%A0%EB%A7%88%EC%B9%98%EC%A0%90/@34.342981,134.0533706,15.63z/data=!4m6!3m5!1s0x3553eb57b77497fb:0xbab04626daf8b50b!8m2!3d34.3459902!4d134.0498007!16s%2Fg%2F11h0b3m_cq?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
-                "title": "세토노마쓰리 스시 효고마치점 - Google 지도",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "세토노마쓰리 스시 효고마치점 - Google 지도"
-            }
-          },
-          {
-            "id": "dc262c5d8a0d83ab",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://www.google.com/maps/place/Umie/@34.3521292,134.0466656,15.81z/data=!4m6!3m5!1s0x3553ec7fbc3bcfed:0x51e78e34b6a771a!8m2!3d34.3512226!4d134.0562141!16s%2Fg%2F1tc_nv87?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D",
-                "title": "Umie - Google 지도",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "Umie - Google 지도"
             }
           }
         ],
