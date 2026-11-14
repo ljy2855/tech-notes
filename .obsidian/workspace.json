@@ -296,8 +296,10 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "9c9c81eb3be1d7e2",
+  "active": "57d3d5df39abe790",
   "lastOpenFiles": [
+    "private/여행/~$26.10 다카마쓰 비용.xlsx",
+    "private/여행/26.10 다카마쓰 비용.xlsx",
     "content/Assets/Pasted image 20261025012853.png",
     "private/여행/26.10 다카마스.md",
     "content/posts/network/bottom-up/L2 datalink.md",
@@ -317,7 +319,6 @@
     "content/Assets/Pasted image 20261018133046.png",
     "content/notes/network/split tunnel (2편) k8s network.md",
     "content/posts/network/bottom-up/L2 datalink.md.tmp.74454.1f72179f57da",
-    "content/Assets/Pasted image 20261010161921.png",
     "content/posts/network/bottom-up/L4 Transport.md",
     "content/posts/network/bottom-up",
     "content/posts/AI/AI.md",
@@ -335,7 +336,6 @@
     "public/posts/network/인증서,-분산-시스템-클러스터링.html",
     "public/posts/linux/docker로-알아보는-Linux-network-가상화.html",
     "public/posts/linux/certbot-wildcard-인증서-갱신.html",
-    "public/posts/linux/KVM.html",
     "content/index.md",
     "content/archive/cs224n/02 N gram.md",
     "content/inbox/Resolve Deadlock.md",
