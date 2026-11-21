@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/network/bottom-up/L4 Transport.md",
+                "file": "content/posts/AI/Untitled.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "L4 Transport"
+              "title": "Untitled"
             }
           },
           {
@@ -298,6 +298,10 @@
   },
   "active": "9c9c81eb3be1d7e2",
   "lastOpenFiles": [
+    "content/notes/ai/Vector Search.md",
+    "content/posts/AI/Untitled.md",
+    "content/notes/ai/Evaluation.md",
+    "content/posts/network/bottom-up/L4 Transport.md",
     "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
     "content/posts/network/bottom-up/L3 Network Layer.md",
     "content/posts/network/bottom-up/L2 datalink.md",
@@ -319,7 +323,6 @@
     "content/Assets/Pasted image 20261018133046.png",
     "content/notes/network/split tunnel (2편) k8s network.md",
     "content/posts/network/bottom-up/L2 datalink.md.tmp.74454.1f72179f57da",
-    "content/posts/network/bottom-up/L4 Transport.md",
     "content/posts/network/bottom-up",
     "content/posts/AI/AI.md",
     "content/posts/AI",
@@ -341,8 +344,6 @@
     "content/inbox/Semantic Search.md",
     "content/inbox/Service Network.md",
     "content/inbox/Vector DB.md",
-    "content/inbox/Virtual Memory.md",
-    "content/inbox/VXLAN.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 3.canvas",
