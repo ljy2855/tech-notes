@@ -6,7 +6,7 @@ L3는 네트워크를 구성하면서 알아둘 것이 가장 많은 부분이�
 
 라우팅은 패킷을 다음에 어디로 보낼지 정하는 과정이다. L3 스위치뿐 아니라 서버도 자기 routing table을 보고 패킷을 보낸다.
 
-![[Pasted image 20261018143540.png]]
+![[l3-route-hops.png]]
 
 
 서버에서 `ip route`를 실행하면 아래처럼 확인할 수 있다.
@@ -32,7 +32,7 @@ Prefix         Next hop    Interface   Proto    AD
 - Prefix: 목적지 대역
 - Next hop / Interface: 다음에 넘길 장비와 나갈 포트
 - Proto: 이 경로를 어디서 배웠는지 (direct, static, bgp ...)
-- AD: 출처별 우선순위 (아래에서)
+- AD: 라우팅 프로토콜별 우선순위 
 
 ### Longest prefix match
 
@@ -53,7 +53,7 @@ O: 매칭  x: 불일치
 
 ### Administrative Distance
 
-같은 prefix를 static과 BGP 등 여러 출처에서 배울 수도 있다. 이때 어떤 출처의 경로를 routing table에 넣을지 비교하는 값이 AD다. 낮을수록 우선하며, 아래는 Cisco 기본값이다. 벤더마다 값은 다르다.
+같은 prefix를 static과 BGP 등 여러 출처에서 배울 수도 있다. 이때 어떤 출처의 경로를 routing table에 넣을지 비교하는 값이 AD다. 낮을수록 우선하며, 아래는 Cisco 기본값이다. 벤더마다 값은 다르다. (그러나 라우팅 프로토콜별 순위는 동일)
 
 | 출처 | AD |
 | --- | --- |
@@ -63,9 +63,11 @@ O: 매칭  x: 불일치
 | OSPF | 110 |
 | iBGP | 200 |
 
-같은 프로토콜 안에서는 metric이나 해당 프로토콜의 경로 선택 규칙으로 비교한다. 동등한 경로가 여러 개 있고 장비가 multipath를 사용하도록 설정돼 있으면 next hop을 여러 개 둘 수 있다. 이게 뒤에서 볼 ECMP다.
+같은 프로토콜 안에서는 metric이나 해당 프로토콜의 경로 선택 규칙으로 비교한다. 동등한 경로가 여러 개 있고 장비가 multipath를 사용하도록 설정돼 있으면 next hop을 여러 개 둘 수 있다. (ECMP)
 
 헷갈리기 쉬운 부분은 AD와 prefix 길이를 한꺼번에 비교하는 것이다. AD는 **같은 prefix의 경로를 어느 출처에서 가져올지** 정할 때 쓰고, 실제 패킷을 보낼 때는 테이블에 있는 경로 중 longest prefix match로 고른다.
+
+![[l3-ad-vs-lpm.png]]
 
 ---
 
@@ -86,24 +88,15 @@ O: 매칭  x: 불일치
 
 BGP(Border Gateway Protocol)는 AS 간 경로를 주고받는 프로토콜이다. AS(Autonomous System)는 하나의 관리 주체와 라우팅 정책 아래 있는 네트워크 묶음으로 보면 된다. 각 AS에는 ASN이라는 번호가 붙는다.
 
+보통 공인 IP처럼 기관에 공인 ASN이 부여되어 관리된다. 다만 IDC 내부에서 사설 ASN을 부여하여, 내부에서도 사용가능하다 (사설 IP처럼)
+
 on-prem에서 공인 대역을 직접 운영한다면 ISP 두 곳과 BGP를 맺어 회선을 이중화하는 식으로 쓸 수 있다. 데이터센터 내부에서도 스위치 간 경로를 주고받는 데 사용한다.
 
 - TCP 179로 이웃(peer)과 세션을 맺고, 처음엔 광고할 경로를 보내고 이후엔 변경 사항을 보낸다
 - 정책으로 어떤 경로를 광고하고 받을지, 어느 쪽을 선호할지 세밀하게 정할 수 있다
 - 경로마다 거쳐온 AS 목록(AS_PATH)을 붙여서 루프를 막는다
 
-```mermaid
-flowchart LR
-    A["`**AS 65001**
-    10.1.0.0/16 광고`"] -->|"AS_PATH<br/>65001"| B["`**AS 65002**`"]
-    B -->|"AS_PATH<br/>65002 65001"| C["`**AS 65003**`"]
-    C -->|"AS_PATH<br/>65003 65002 65001"| D(["`**AS 65001**
-    내 ASN이 있다
-    → drop`"])
-
-    style A fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style D fill:#f8d7da,stroke:#dc3545,color:#000
-```
+![[l3-bgp-as-path.png]]
 
 그림에서 AS 65001이 받은 경로에는 이미 자기 ASN이 들어 있다. 기본적으로 이런 경로는 루프가 생길 수 있어 받아들이지 않는다.
 
@@ -128,28 +121,7 @@ flowchart LR
 
 2편 마지막에 본 Clos 구성에 ASN과 각 랙의 대역을 붙여보자. 여기서 leaf와 spine으로 구성한 망을 fabric이라고 부른다.
 
-```mermaid
-flowchart BT
-    subgraph SP["Spine (AS 65000)"]
-        S1["`**Spine 1**`"]
-        S2["`**Spine 2**`"]
-    end
-    L1["`**Leaf 1**
-    AS 65101
-    10.1.1.0/24`"] --- S1 & S2
-    L2["`**Leaf 2**
-    AS 65102
-    10.1.2.0/24`"] --- S1 & S2
-    L3["`**Leaf 3**
-    AS 65103
-    10.1.3.0/24`"] --- S1 & S2
-
-    style S1 fill:#fff3cd,stroke:#ffc107,color:#000
-    style S2 fill:#fff3cd,stroke:#ffc107,color:#000
-    style L1 fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style L2 fill:#d1ecf1,stroke:#17a2b8,color:#000
-    style L3 fill:#d1ecf1,stroke:#17a2b8,color:#000
-```
+![[l3-clos-ecmp.png]]
 
 - leaf-spine 링크마다 eBGP 세션을 맺는다
 - 이 예시에서는 spine에 같은 ASN을, leaf마다 서로 다른 ASN을 쓴다 (64512 ~ 65534 범위의 사설 ASN 사용)
@@ -198,6 +170,8 @@ VXLAN에서는 망을 구분할 때 VLAN ID 대신 **VNI(VXLAN Network Identifie
 2. 패킷은 underlay의 라우팅 결과에 따라 Spine1 또는 Spine2를 거쳐 Leaf3으로 간다. spine은 바깥 IP 헤더로 라우팅하므로 VM의 MAC이나 VLAN을 보고 경로를 고를 필요가 없다.
 3. Leaf3은 바깥 헤더를 벗기고, VNI `10011`에 해당하는 L2 망으로 원본 프레임을 전달한다. 목적지 VM `10.1.1.12`는 일반 Ethernet 프레임을 받는다.
 
+![[l3-vxlan-encap.png]]
+
 여기서 패킷을 감싸고 벗기는(encap/decap) 역할을 하는 지점이 **VTEP(VXLAN Tunnel Endpoint) **이다. 이 그림에서는 leaf가 VTEP을 맡고, spine은 그 사이의 IP 패킷을 전달한다. Leaf1이 만든 패킷을 펼쳐보면 아래와 같다.
 
 ```text
@@ -231,6 +205,8 @@ Leaf3 --(BGP EVPN Route Type 2)--> Leaf1, Leaf2
 ```
 
 이 정보를 받은 Leaf1은 해당 MAC으로 가는 프레임을 Leaf3 VTEP으로 보내면 된다는 걸 알 수 있다.
+
+![[l3-evpn.png]]
 
 | 항목 | VXLAN (flood & learn) | VXLAN + EVPN |
 | --- | --- | --- |
