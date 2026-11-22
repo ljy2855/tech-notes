@@ -1,8 +1,9 @@
 1편에선 랙에 서버와 스위치를 놓고 케이블을 연결하는 것까지 봤다. 이번엔 연결된 장비들이 같은 망 안에서 어떻게 프레임을 주고받는지 정리해보자.
 
+
 ## L2에서 알아둘 것
 
-수업에서 배운 Ethernet 프레임, MAC 주소, 오류 검출(CRC)에 더해, 실제 망을 구성할 때는 VLAN과 이중화도 알아야 한다. 이 글에선 아래 순서로 살펴본다.
+수업에서 배운 Ethernet 프레임, MAC 주소, 오류 검출(CRC)에 더해, 실제 망을 구성할 때는 **VLAN과 이중화**도 알아야 한다.
 
 - 스위치의 프레임 전달과 IP에 대응하는 MAC 찾기 (MAC learning, ARP)
 - 망을 어떻게 쪼개는지 (VLAN)
@@ -20,7 +21,7 @@ L2에서 주고받는 단위는 Ethernet 프레임이다.
 +---------+---------+-----------+--------------+-----+
 ```
 
-Payload 최대 1500B가 흔히 말하는 MTU다. (DC 안에선 9000B jumbo frame도 많이 쓴다)
+Payload 최대 1500B가 흔히 말하는 MTU (DC 안에선 9000B jumbo frame도 많이 쓴다)
 
 스위치는 프레임이 들어온 포트와 src MAC을 MAC table에 기록한다. 이후 프레임을 보낼 때는 dst MAC을 이 테이블에서 찾는다.
 
@@ -41,13 +42,14 @@ flowchart LR
 
 ![[Pasted image 20261018133046.png]]
 
-그림에서 PC1이 PC4로 보내면 스위치는 MAC table의 `b29ac0 → port 4`를 보고 해당 포트로 전달한다. 이 L2 전달 과정에서 기준이 되는 건 목적지 MAC이다. 아직 배운 적 없는 MAC이거나 broadcast라면 같은 VLAN의 다른 포트로 flood한다.
+그림에서 PC1이 PC4로 보내면 스위치는 MAC table의 `b29ac0 → port 4`를 보고 해당 포트로 전달한다. 
+이 L2 전달 과정에서 기준이 되는 건 목적지 MAC이다. 아직 배운 적 없는 MAC이거나 broadcast라면 같은 VLAN의 다른 포트로 flood한다.
 
 ---
 
-## ARP: IP로 MAC 찾기
+## ARP
 
-서버에서 통신할 때는 보통 상대 IP를 지정한다. 그런데 Ethernet 프레임을 만들려면 목적지 MAC도 필요하다. IPv4에서 이 MAC을 알아내는 데 ARP를 쓴다.
+서버에서 통신할 때는 보통 상대 IP를 지정한다. L2 통신을 할때는 목적지 MAC도 필요하다. IPv4에서 이 MAC을 알아내는 데 ARP를 쓴다.
 
 ```mermaid
 sequenceDiagram
@@ -78,9 +80,11 @@ dst IP  = 8.8.8.8       (최종 목적지, 안 바뀐다)
 
 gateway가 이 패킷을 다음 구간으로 넘길 때는 그 구간에 맞는 MAC으로 새 프레임을 만든다. 그래서 경로를 따라가면 MAC은 바뀌지만, 목적지 IP는 유지된다. (중간에 NAT를 하는 경우는 별개다.)
 
+> 서버마다 운영체제 내에서 ARP table을 캐시처럼 사용한다. 때문에 처음 통신하는 새로운 목적지로 갈때만 ARP를 통해서 MAC 주소를 알아낸다.
 ### GARP
 
 on-prem에서 keepalived(VRRP)로 서비스 VIP를 이중화할 때도 ARP를 신경 써야 한다. VIP가 backup으로 넘어가면서 사용하는 MAC까지 달라지면, 주변 장비의 ARP cache에 남은 예전 MAC이 문제가 된다. VIP는 새 서버에 있는데 트래픽은 계속 예전 서버로 갈 수 있다.
+
 
 이때 VIP를 가져간 서버가 GARP(Gratuitous ARP)를 broadcast로 보내 새 MAC을 알린다.
 
@@ -91,6 +95,9 @@ After  : 10.0.0.100 (VIP) -> bb:bb:bb  (Server B, 새 master)
 ```
 
 일반적인 ARP 요청에 답하는 과정과 달리, GARP는 상대가 물어보기 전에 IP를 가진 쪽에서 먼저 보낸다.
+
+ **vrrp?**
+ > l3 단계의 이중화
 
 ---
 
