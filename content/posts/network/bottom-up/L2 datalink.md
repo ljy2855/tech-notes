@@ -22,20 +22,7 @@ Payload 최대 1500B가 흔히 말하는 MTU (DC 안에선 9000B jumbo frame도 
 
 스위치는 프레임이 들어온 포트와 src MAC을 MAC table에 기록한다. 이후 프레임을 보낼 때는 dst MAC을 이 테이블에서 찾는다.
 
-```mermaid
-flowchart LR
-    IN(["`**프레임 수신**
-    port 1`"]) --> LEARN["`**src MAC 학습**
-    (src MAC, port 1) 기록`"]
-    LEARN --> LOOKUP{"`**dst MAC**
-    table에 있나?`"}
-    LOOKUP -->|있음| FWD(["`해당 port로만 전달`"])
-    LOOKUP -->|"없음 / broadcast"| FLOOD(["`같은 VLAN의 다른 port로 flood`"])
-
-    style LOOKUP fill:#fff3cd,stroke:#ffc107,color:#000
-    style FWD fill:#d4edda,stroke:#28a745,color:#000
-    style FLOOD fill:#d1ecf1,stroke:#17a2b8,color:#000
-```
+![[l2-frame-forwarding.png]]
 
 ![[Pasted image 20261018133046.png]]
 
@@ -48,17 +35,7 @@ flowchart LR
 
 서버에서 통신할 때는 보통 상대 IP를 지정한다. L2 통신을 할때는 목적지 MAC도 필요하다. IPv4에서 이 MAC을 알아내는 데 ARP를 쓴다.
 
-```mermaid
-sequenceDiagram
-    participant A as Server A<br/>10.0.0.1
-    participant SW as Switch
-    participant B as Server B<br/>10.0.0.2
-    A->>SW: ARP Request (broadcast)<br/>10.0.0.2 누구야?
-    SW->>B: flood
-    B->>A: ARP Reply (unicast)<br/>10.0.0.2 = bb:bb:bb
-    Note over A: ARP cache에 저장
-    A->>B: 이후 dst MAC = bb:bb:bb 로 전송
-```
+![[l2-arp.png]]
 
 상대가 다른 대역이면 상대 MAC이 아니라 gateway MAC을 찾는다.
 
@@ -104,20 +81,7 @@ ARP 같은 broadcast는 같은 L2 망 전체에 퍼진다. 웹 서버, DB, 관�
 
 VLAN을 쓰면 스위치를 물리적으로 나누지 않고도 L2 망을 분리할 수 있다. 예를 들어 웹 서버는 VLAN 10, DB는 VLAN 20에 넣는 식이다.
 
-```mermaid
-flowchart LR
-    WEB(["`**Web Server**`"]) -->|"access<br/>VLAN 10"| TOR["`**ToR Switch**`"]
-    DB(["`**DB Server**`"]) -->|"access<br/>VLAN 20"| TOR
-    HV(["`**Hypervisor**
-    VM마다 다른 VLAN`"]) -->|"trunk<br/>VLAN 10,20"| TOR
-    TOR ==>|"trunk<br/>VLAN 10,20"| UP["`**상위 스위치**`"]
-
-    style TOR fill:#fff3cd,stroke:#ffc107,color:#000
-    style WEB fill:#e2d9f3,stroke:#6f42c1,color:#000
-    style DB fill:#e2d9f3,stroke:#6f42c1,color:#000
-    style HV fill:#e2d9f3,stroke:#6f42c1,color:#000
-    style UP fill:#d1ecf1,stroke:#17a2b8,color:#000
-```
+![[l2-vlan.png]]
 
 VLAN마다 broadcast domain이 나뉘고, 보통 IP subnet도 VLAN과 1:1로 맞춘다. 위 그림에서 웹 서버가 보낸 ARP broadcast는 DB가 있는 VLAN 20으로 넘어가지 않는다.
 
@@ -143,20 +107,7 @@ LAG(Link Aggregation)는 물리 링크 여러 개를 논리 링크 하나로 묶
 
 스위치 장애까지 대비하려면 서버를 서로 다른 스위치 두 대에 연결해야 한다. MLAG는 이 두 스위치를 서버에게 하나의 LAG 상대처럼 보이게 만든다. Cisco의 vPC처럼 벤더마다 부르는 이름은 다르다.
 
-```mermaid
-flowchart BT
-    subgraph PAIR["MLAG pair: ToR A ⇄ ToR B (peer-link)"]
-        A["`**ToR A**`"]
-        B["`**ToR B**`"]
-    end
-    S(["`**Server**
-    bond0 = eno1 + eno2`"]) -->|"eno1 (active)"| A
-    S -->|"eno2 (active)"| B
-
-    style S fill:#e2d9f3,stroke:#6f42c1,color:#000
-    style A fill:#fff3cd,stroke:#ffc107,color:#000
-    style B fill:#fff3cd,stroke:#ffc107,color:#000
-```
+![[l2-mlag.png]]
 
 그림처럼 서버의 두 NIC를 각각 ToR A, B에 연결하고 bond로 묶어 LACP를 사용한다. 서버 입장에선 스위치 한 대와 LAG를 맺은 것처럼 동작하므로, 한쪽 스위치가 장애나 점검으로 내려가도 남은 링크를 쓸 수 있다. 
 (물론 대역폭은 절반으로 줄어든다)
