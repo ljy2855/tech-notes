@@ -27,12 +27,24 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/network/bottom-up/L3 Network Layer.md",
+                "file": "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "L3 Network Layer"
+              "title": "L3 Network Layer (2) - Container Network"
+            }
+          },
+          {
+            "id": "645fa4925593a975",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.15.1"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.15.1"
             }
           },
           {
@@ -134,7 +146,7 @@
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -296,11 +308,11 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "9c9c81eb3be1d7e2",
+  "active": "645fa4925593a975",
   "lastOpenFiles": [
-    "content/posts/network/bottom-up/L2 datalink.md",
     "content/posts/network/bottom-up/L3 Network Layer.md",
     "content/posts/network/bottom-up/L3 Network Layer (2) - Container Network.md",
+    "content/posts/network/bottom-up/L2 datalink.md",
     "content/Assets/l3-evpn.png",
     "content/Assets/l3-vxlan-encap.png",
     "content/Assets/l3-clos-ecmp.png",

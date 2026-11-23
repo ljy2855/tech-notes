@@ -88,8 +88,6 @@ O: 매칭  x: 불일치
 
 BGP(Border Gateway Protocol)는 AS 간 경로를 주고받는 프로토콜이다. AS(Autonomous System)는 하나의 관리 주체와 라우팅 정책 아래 있는 네트워크 묶음으로 보면 된다. 각 AS에는 ASN이라는 번호가 붙는다.
 
-보통 공인 IP처럼 기관에 공인 ASN이 부여되어 관리된다. 다만 IDC 내부에서 사설 ASN을 부여하여, 내부에서도 사용가능하다 (사설 IP처럼)
-
 on-prem에서 공인 대역을 직접 운영한다면 ISP 두 곳과 BGP를 맺어 회선을 이중화하는 식으로 쓸 수 있다. 데이터센터 내부에서도 스위치 간 경로를 주고받는 데 사용한다.
 
 - TCP 179로 이웃(peer)과 세션을 맺고, 처음엔 광고할 경로를 보내고 이후엔 변경 사항을 보낸다
@@ -103,6 +101,8 @@ on-prem에서 공인 대역을 직접 운영한다면 ISP 두 곳과 BGP를 맺�
 같은 AS 안에서 맺는 BGP 세션은 iBGP, 서로 다른 AS 사이에서 맺는 세션은 eBGP라고 한다.
 
 ### DC 내부에서 BGP 쓰기
+
+ASN은 공인 IP처럼 기관에 공인 ASN이 부여되어 관리된다. 다만 IDC 내부에서 사설 ASN을 부여하여, 내부에서도 사용가능하다.
 
 한 조직 안의 라우팅이라면 OSPF 같은 IGP가 먼저 떠오르지만, DC 내부를 여러 AS로 나눠 eBGP로 연결할 수도 있다. OSPF와 비교하면 경로 정보를 다루는 방식이 다르다.
 
@@ -172,17 +172,7 @@ VXLAN에서는 망을 구분할 때 VLAN ID 대신 **VNI(VXLAN Network Identifie
 
 ![[l3-vxlan-encap.png]]
 
-여기서 패킷을 감싸고 벗기는(encap/decap) 역할을 하는 지점이 **VTEP(VXLAN Tunnel Endpoint) **이다. 이 그림에서는 leaf가 VTEP을 맡고, spine은 그 사이의 IP 패킷을 전달한다. Leaf1이 만든 패킷을 펼쳐보면 아래와 같다.
-
-```text
-Outer Ethernet
-└─ Outer IP: Leaf1 VTEP IP → Leaf3 VTEP IP
-   └─ UDP: dst port 4789
-      └─ VXLAN: VNI 10011
-         └─ 원본 Ethernet 프레임
-            └─ Inner IP: 10.1.1.10 → 10.1.1.12
-               └─ payload
-```
+여기서 패킷을 감싸고 벗기는(encap/decap) 역할을 하는 지점이 **VTEP(VXLAN Tunnel Endpoint) **이다. 이 그림에서는 leaf가 VTEP을 맡고, spine은 그 사이의 IP 패킷을 전달한다. 
 
 VLAN 12의 트래픽도 같은 물리 링크를 쓸 수 있지만, VNI `10012`로 구분되므로 VLAN 11의 L2 망과 섞이지 않는다. 서로 다른 VNI의 망 사이에서 통신하려면 별도의 L3 라우팅이 필요하다. VNI는 24bit라 2편에서 본 VLAN보다 훨씬 많은 망을 구분할 수 있다.
 
@@ -195,6 +185,7 @@ VLAN 12의 트래픽도 같은 물리 링크를 쓸 수 있지만, VNI `10012`�
 VXLAN의 flood & learn 방식에서는 모르는 MAC으로 가는 프레임을 같은 VNI에 참여하는 VTEP들로 flood하고, 돌아오는 트래픽에서 MAC을 배운다. 2편의 MAC learning을 터널 위에서 하는 셈이라 참여하는 VTEP이 많아지면 부담이 커진다.
 
 EVPN을 쓰면 BGP로 MAC과 IP 정보를 광고할 수 있다. 위 그림에서는 Leaf3이 `10.1.1.12` VM의 정보를 같은 VNI에 참여하는 다른 VTEP에 알려준다. VM의 MAC을 예시로 `02:00:00:00:11:12`라고 하면 광고 내용은 아래처럼 볼 수 있다.
+
 
 ```text
 Leaf3 --(BGP EVPN Route Type 2)--> Leaf1, Leaf2
@@ -218,4 +209,4 @@ Leaf3 --(BGP EVPN Route Type 2)--> Leaf1, Leaf2
 
 ---
 
-여기까지는 물리 서버와 데이터센터 망을 기준으로 라우팅을 살펴봤다. 이 위에 k8s를 올리면 노드 안의 Pod 네트워크와 Service 처리가 추가된다. 다음 글에서는 Pod가 노드에 연결되는 과정부터 시작해, 노드 간 통신과 BGP 광고를 따로 정리해보자.
+여기까지는 물리 서버와 데이터센터 망을 기준으로 라우팅을 살펴봤다. 전통적인 서비스 네트워크를 이해하면, 다음으론 container native 환경에서 네트워크를 알아보자.
